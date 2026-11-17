@@ -382,25 +382,25 @@ export const NotificationCenter: React.FC = () => {
   return (
     <div className="mt-10 space-y-8">
       {/* Main Notification Center Card */}
-      <div className="relative rounded-2xl border border-[#E5E7F0] bg-white p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.05)]">
+      <div className="relative rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.05)] dark:shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
         <div
           aria-hidden="true"
           className="absolute top-0 right-8 h-1.5 w-24 -skew-x-24 bg-[#EE1119]"
         />
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#E5E7F0] pb-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-[#E5E7F0] dark:border-[#242C54] pb-5">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
               <Bell className="h-4 w-4" aria-hidden="true" />
               <span>Notification Center</span>
             </div>
-            <h2 className="mt-1.5 font-display text-2xl font-extrabold text-[#1A1464]">
+            <h2 className="mt-1.5 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
               Project Status &amp; Admin Alerts
             </h2>
-            <p className="mt-1 text-sm text-[#4A4F63]">
-              <span className="font-semibold text-[#1A1464] tabular-nums">{unreadCount}</span>{' '}
+            <p className="mt-1 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
+              <span className="font-semibold text-[#1A1464] dark:text-white tabular-nums">{unreadCount}</span>{' '}
               unread alert{unreadCount === 1 ? '' : 's'}
-              <span className="mx-2 text-[#D3D7E6]" aria-hidden="true">·</span>
+              <span className="mx-2 text-[#D3D7E6] dark:text-[#2E3766]" aria-hidden="true">·</span>
               <span className="tabular-nums">{notifications.length}</span> total
             </p>
           </div>
@@ -411,7 +411,7 @@ export const NotificationCenter: React.FC = () => {
                 type="button"
                 disabled={actionBusyId === 'all'}
                 onClick={() => void handleMarkAllRead()}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-[#1A1464] bg-white px-4 py-2 text-xs font-bold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white disabled:opacity-60 whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#1A1464] dark:border-[#3A437A] bg-white dark:bg-[#101530] px-4 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#1A1464] dark:hover:bg-[#2E368F] hover:text-white disabled:opacity-60 whitespace-nowrap"
               >
                 <CheckCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Mark all read</span>
@@ -422,7 +422,7 @@ export const NotificationCenter: React.FC = () => {
 
         {/* Filter Controls */}
         <div
-          className="mt-5 flex flex-wrap gap-1.5 rounded-xl bg-[#F6F7FB] p-1.5 border border-[#E5E7F0]"
+          className="mt-5 flex flex-wrap gap-1.5 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] p-1.5 border border-[#E5E7F0] dark:border-[#242C54]"
           role="tablist"
           aria-label="Filter notifications"
         >
@@ -441,7 +441,7 @@ export const NotificationCenter: React.FC = () => {
                 aria-selected={isActive}
                 onClick={() => setFilter(tab.id as FilterTab)}
                 className={`relative rounded-lg px-3.5 py-2 text-xs font-semibold transition-colors whitespace-nowrap ${
-                  isActive ? 'text-white' : 'text-[#4A4F63] hover:text-[#1A1464]'
+                  isActive ? 'text-white' : 'text-[#4A4F63] dark:text-[#C2C9E0] hover:text-[#1A1464] dark:hover:text-white'
                 }`}
               >
                 {isActive && (
@@ -449,7 +449,7 @@ export const NotificationCenter: React.FC = () => {
                     layoutId="notif-filter-pill"
                     aria-hidden="true"
                     transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                    className="absolute inset-0 rounded-lg bg-[#1A1464] shadow-sm"
+                    className="absolute inset-0 rounded-lg bg-[#1A1464] dark:bg-[#2E368F] shadow-sm"
                   />
                 )}
                 <span className="relative z-10">{tab.label}</span>
@@ -462,26 +462,26 @@ export const NotificationCenter: React.FC = () => {
         {actionError && (
           <div
             role="alert"
-            className="mt-4 rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 px-4 py-3 text-xs font-semibold text-[#1A1464]"
+            className="mt-4 rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 dark:bg-[#EE1119]/10 px-4 py-3 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
           >
             {actionError}
           </div>
         )}
         {unreadCount > 0 && !user?.emailVerified && (
-          <p className="mt-4 text-xs font-medium text-[#6B7188]">
+          <p className="mt-4 text-xs font-medium text-[#6B7188] dark:text-[#8E97B8]">
             Verify your email address via the banner above to mark alerts as read.
           </p>
         )}
         <div className="mt-6">
           {loading ? (
-            <p className="py-8 text-center text-sm text-[#6B7188]">Loading your alerts...</p>
+            <p className="py-8 text-center text-sm text-[#6B7188] dark:text-[#8E97B8]">Loading your alerts...</p>
           ) : filteredNotifications.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[#D3D7E6] bg-[#F6F7FB]/50 px-6 py-10 text-center">
-              <Bell className="mx-auto h-7 w-7 text-[#6B7188]/60" aria-hidden="true" />
-              <p className="mt-3 font-display text-base font-bold text-[#1A1464]">
+            <div className="rounded-xl border border-dashed border-[#D3D7E6] dark:border-[#2E3766] bg-[#F6F7FB]/50 dark:bg-[#101530] px-6 py-10 text-center">
+              <Bell className="mx-auto h-7 w-7 text-[#6B7188]/60 dark:text-[#8E97B8]/60" aria-hidden="true" />
+              <p className="mt-3 font-display text-base font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                 No alerts in this view
               </p>
-              <p className="mt-1 text-sm text-[#6B7188]">
+              <p className="mt-1 text-sm text-[#6B7188] dark:text-[#8E97B8]">
                 You will see real-time alerts here whenever your project status is updated or an
                 admin sends you a message.
               </p>
@@ -501,8 +501,8 @@ export const NotificationCenter: React.FC = () => {
                       transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
                       className={`rounded-xl border p-4 sm:p-5 transition-colors ${
                         item.isRead
-                          ? 'border-[#E5E7F0] bg-white'
-                          : 'border-[#1A1464]/30 bg-[#F6F7FB]'
+                          ? 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530]/60'
+                          : 'border-[#1A1464]/30 dark:border-[#4F59B8] bg-[#F6F7FB] dark:bg-[#101530]'
                       }`}
                     >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -510,7 +510,7 @@ export const NotificationCenter: React.FC = () => {
                         <div
                           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
                             isStatus
-                              ? 'bg-[#1A1464] text-white'
+                              ? 'bg-[#1A1464] dark:bg-[#232B6E] text-white'
                               : 'bg-[#EE1119] text-white'
                           }`}
                         >
@@ -522,8 +522,8 @@ export const NotificationCenter: React.FC = () => {
                         </div>
 
                         <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6B7188]">
-                            <span className={isStatus ? 'text-[#1A1464]' : 'text-[#EE1119]'}>
+                          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                            <span className={isStatus ? 'text-[#1A1464] dark:text-[#9FA8FF]' : 'text-[#EE1119]'}>
                               {isStatus ? 'Project Status Update' : 'Admin Message'}
                             </span>
                             <span aria-hidden="true">·</span>
@@ -536,15 +536,15 @@ export const NotificationCenter: React.FC = () => {
                             )}
                           </div>
 
-                          <h3 className="mt-1 font-display text-base font-bold text-[#1A1464]">
+                          <h3 className="mt-1 font-display text-base font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                             {item.title}
                           </h3>
-                          <p className="mt-1 text-sm leading-relaxed text-[#4A4F63]">
+                          <p className="mt-1 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                             {item.body}
                           </p>
 
                           {(item.inquiryId || item.projectStatus) && (
-                            <p className="mt-2 text-xs font-medium text-[#6B7188]">
+                            <p className="mt-2 text-xs font-medium text-[#6B7188] dark:text-[#8E97B8]">
                               {item.inquiryId && <span>Ref: {item.inquiryId}</span>}
                               {item.inquiryId && item.projectStatus && (
                                 <span className="mx-2" aria-hidden="true">
@@ -564,7 +564,7 @@ export const NotificationCenter: React.FC = () => {
                           type="button"
                           disabled={actionBusyId === item.notificationId}
                           onClick={() => void handleMarkAsRead(item)}
-                          className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-[#E5E7F0] bg-white px-3 py-1.5 text-xs font-bold text-[#1A1464] transition-colors hover:border-[#1A1464] disabled:opacity-60 whitespace-nowrap"
+                          className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-1.5 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:border-[#1A1464] dark:hover:border-[#7C8CFF] disabled:opacity-60 whitespace-nowrap"
                         >
                           <Check className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
                           <span>Mark read</span>
@@ -582,15 +582,15 @@ export const NotificationCenter: React.FC = () => {
 
       {/* Admin Dispatch Panel: Visible only to verified primary admin (arigyewisdom7@gmail.com) */}
       {isPrimaryAdmin && (
-        <div className="rounded-2xl border border-[#1A1464]/20 bg-[#F6F7FB] p-6 sm:p-8">
-          <div className="border-b border-[#E5E7F0] pb-4">
+        <div className="rounded-2xl border border-[#1A1464]/20 dark:border-[#2B3466] bg-[#F6F7FB] dark:bg-[#101530] p-6 sm:p-8">
+          <div className="border-b border-[#E5E7F0] dark:border-[#242C54] pb-4">
             <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#EE1119]">
               Admin Controls · {user?.email}
             </p>
-            <h3 className="mt-1 font-display text-xl font-extrabold text-[#1A1464]">
+            <h3 className="mt-1 font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
               Update Project Status or Send Client Message
             </h3>
-            <p className="mt-1 text-xs sm:text-sm text-[#4A4F63]">
+            <p className="mt-1 text-xs sm:text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
               Actions below update Firestore and immediately push an alert to the recipient’s
               Notification Center.
             </p>
@@ -599,7 +599,7 @@ export const NotificationCenter: React.FC = () => {
           {adminFeedback && (
             <div
               role="status"
-              className="mt-4 rounded-xl border border-[#1A1464]/20 bg-white px-4 py-3 text-xs sm:text-sm font-semibold text-[#1A1464]"
+              className="mt-4 rounded-xl border border-[#1A1464]/20 dark:border-[#2B3466] bg-white dark:bg-[#141A38] px-4 py-3 text-xs sm:text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
             >
               {adminFeedback}
             </div>
@@ -609,14 +609,14 @@ export const NotificationCenter: React.FC = () => {
             {/* Update Project Status Form */}
             <form
               onSubmit={handleAdminStatusUpdate}
-              className="rounded-xl border border-[#E5E7F0] bg-white p-5 space-y-4"
+              className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-5 space-y-4"
             >
-              <h4 className="font-display text-base font-bold text-[#1A1464]">
+              <h4 className="font-display text-base font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                 Update Inquiry / Project Status
               </h4>
 
               {adminInquiries.length === 0 ? (
-                <p className="text-xs text-[#6B7188]">
+                <p className="text-xs text-[#6B7188] dark:text-[#8E97B8]">
                   No project inquiries submitted yet. Submit a brief on the Contact page to test
                   status alerts.
                 </p>
@@ -625,7 +625,7 @@ export const NotificationCenter: React.FC = () => {
                   <div>
                     <label
                       htmlFor="admin-inquiry-select"
-                      className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                      className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                     >
                       Project Inquiry
                     </label>
@@ -633,7 +633,7 @@ export const NotificationCenter: React.FC = () => {
                       id="admin-inquiry-select"
                       value={selectedInquiryId}
                       onChange={(e) => setSelectedInquiryId(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-3.5 py-2.5 text-sm text-[#1A1464]"
+                      className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                     >
                       {adminInquiries.map((inq) => (
                         <option key={inq.inquiryId} value={inq.inquiryId}>
@@ -646,7 +646,7 @@ export const NotificationCenter: React.FC = () => {
                   <div>
                     <label
                       htmlFor="admin-status-select"
-                      className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                      className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                     >
                       New Status
                     </label>
@@ -654,7 +654,7 @@ export const NotificationCenter: React.FC = () => {
                       id="admin-status-select"
                       value={nextStatus}
                       onChange={(e) => setNextStatus(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-3.5 py-2.5 text-sm text-[#1A1464]"
+                      className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                     >
                       {STATUS_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -667,7 +667,7 @@ export const NotificationCenter: React.FC = () => {
                   <div>
                     <label
                       htmlFor="admin-status-note"
-                      className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                      className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                     >
                       Status Note (Optional)
                     </label>
@@ -677,14 +677,14 @@ export const NotificationCenter: React.FC = () => {
                       value={statusNote}
                       onChange={(e) => setStatusNote(e.target.value)}
                       placeholder="Architecture review completed; moving into sprint 1."
-                      className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-3.5 py-2.5 text-sm text-[#1A1464]"
+                      className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={adminBusy}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#1A1464] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#120D4A] disabled:opacity-60"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8] disabled:opacity-60"
                   >
                     <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Update Status &amp; Notify</span>
@@ -696,16 +696,16 @@ export const NotificationCenter: React.FC = () => {
             {/* Send Admin Message Form */}
             <form
               onSubmit={handleSendAdminMessage}
-              className="rounded-xl border border-[#E5E7F0] bg-white p-5 space-y-4"
+              className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-5 space-y-4"
             >
-              <h4 className="font-display text-base font-bold text-[#1A1464]">
+              <h4 className="font-display text-base font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                 Send Direct Admin Message
               </h4>
 
               <div>
                 <label
                   htmlFor="admin-msg-recipient"
-                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   Recipient
                 </label>
@@ -713,7 +713,7 @@ export const NotificationCenter: React.FC = () => {
                   id="admin-msg-recipient"
                   value={adminMsgRecipientId}
                   onChange={(e) => setAdminMsgRecipientId(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-3.5 py-2.5 text-sm text-[#1A1464]"
+                  className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                 >
                   {uniqueRecipients.map((r) => (
                     <option key={r.uid} value={r.uid}>
@@ -726,7 +726,7 @@ export const NotificationCenter: React.FC = () => {
               <div>
                 <label
                   htmlFor="admin-msg-title"
-                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   Alert Subject
                 </label>
@@ -736,14 +736,14 @@ export const NotificationCenter: React.FC = () => {
                   value={adminMsgTitle}
                   onChange={(e) => setAdminMsgTitle(e.target.value)}
                   placeholder="Discovery call scheduled for Thursday"
-                  className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-3.5 py-2.5 text-sm text-[#1A1464]"
+                  className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="admin-msg-body"
-                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   Message
                 </label>
@@ -753,7 +753,7 @@ export const NotificationCenter: React.FC = () => {
                   value={adminMsgBody}
                   onChange={(e) => setAdminMsgBody(e.target.value)}
                   placeholder="Hello, we reviewed your requirements and prepared your milestone estimate."
-                  className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-3.5 py-2.5 text-sm text-[#1A1464]"
+                  className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                 />
               </div>
 
@@ -769,17 +769,17 @@ export const NotificationCenter: React.FC = () => {
           </div>
 
           {/* Client Trust & Branded Email Template Kit (Primary Admin Only) */}
-          <div className="mt-8 rounded-xl border border-[#E5E7F0] bg-white p-5 sm:p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[#E5E7F0] pb-4">
+          <div className="mt-8 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-5 sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[#E5E7F0] dark:border-[#242C54] pb-4">
               <div>
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
                   <Mail className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>Client Trust &amp; Branded Email Kit</span>
                 </div>
-                <h4 className="mt-1 font-display text-lg font-bold text-[#1A1464]">
+                <h4 className="mt-1 font-display text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                   Custom Action URL &amp; 0xDEV HTML Email Templates
                 </h4>
-                <p className="mt-1 text-xs text-[#4A4F63]">
+                <p className="mt-1 text-xs text-[#4A4F63] dark:text-[#C2C9E0]">
                   Paste the Action URL below into Firebase Console → Authentication → Templates so
                   client email links open right inside your branded <code>/auth-action</code> page.
                 </p>
@@ -801,13 +801,13 @@ export const NotificationCenter: React.FC = () => {
               ].map((urlItem) => (
                 <div
                   key={urlItem.key}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] px-3.5 py-2.5"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] px-3.5 py-2.5"
                 >
                   <div className="min-w-0">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188]">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
                       {urlItem.label}
                     </p>
-                    <p className="truncate font-mono text-xs font-semibold text-[#1A1464]">
+                    <p className="truncate font-mono text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]">
                       {urlItem.value}
                     </p>
                   </div>
@@ -818,7 +818,7 @@ export const NotificationCenter: React.FC = () => {
                       setCopiedKey(urlItem.key);
                       window.setTimeout(() => setCopiedKey(null), 2000);
                     }}
-                    className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#E5E7F0] bg-white px-2.5 py-1.5 text-xs font-bold text-[#1A1464] hover:border-[#1A1464]"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-1.5 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#1A1464] dark:hover:border-[#7C8CFF]"
                   >
                     <Copy className="h-3 w-3 text-[#EE1119]" aria-hidden="true" />
                     <span>{copiedKey === urlItem.key ? 'Copied' : 'Copy'}</span>
@@ -829,7 +829,7 @@ export const NotificationCenter: React.FC = () => {
 
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
               <div
-                className="flex flex-wrap gap-1.5 rounded-xl bg-[#F6F7FB] p-1 border border-[#E5E7F0]"
+                className="flex flex-wrap gap-1.5 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] p-1 border border-[#E5E7F0] dark:border-[#242C54]"
                 role="tablist"
                 aria-label="Preview branded HTML email templates"
               >
@@ -848,8 +848,8 @@ export const NotificationCenter: React.FC = () => {
                       onClick={() => setPreviewKind(tpl.id)}
                       className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                         active
-                          ? 'bg-[#1A1464] text-white'
-                          : 'text-[#4A4F63] hover:text-[#1A1464]'
+                          ? 'bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                          : 'text-[#4A4F63] dark:text-[#C2C9E0] hover:text-[#1A1464] dark:hover:text-white'
                       }`}
                     >
                       {tpl.label}
@@ -869,14 +869,14 @@ export const NotificationCenter: React.FC = () => {
                   setCopiedKey('html');
                   window.setTimeout(() => setCopiedKey(null), 2200);
                 }}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1A1464] px-4 py-2 text-xs font-bold text-white hover:bg-[#120D4A]"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-4 py-2 text-xs font-bold text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8]"
               >
                 <Copy className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
                 <span>{copiedKey === 'html' ? 'HTML Copied!' : 'Copy Branded HTML Template'}</span>
               </button>
             </div>
 
-            <div className="mt-4 overflow-hidden rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]">
+            <div className="mt-4 overflow-hidden rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]">
               <iframe
                 title="0xDEV Branded Email Template Preview"
                 srcDoc={buildBrandedEmailHtml({

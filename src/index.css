@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ==========================================================================
    0xDEV Brand & Design System Variables
@@ -19,6 +20,16 @@
 
   --font-display: 'Sora', ui-sans-serif, system-ui, sans-serif;
   --font-body: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+.dark {
+  --brand-bg: #090D1F;
+  --brand-surface: #111633;
+  --brand-text-heading: #F4F6FC;
+  --brand-text-body: #C2C9E0;
+  --brand-text-muted: #8E97B8;
+  --brand-border: #242C54;
+  color-scheme: dark;
 }
 
 @layer base {

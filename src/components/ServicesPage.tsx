@@ -62,7 +62,7 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({ onNavigate, onSelect
       />
 
       {/* Detailed Services Grid */}
-      <section className="bg-white py-16 sm:py-20">
+      <section className="bg-white dark:bg-[#090D1F] py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <StaggerGrid className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {SERVICES.map((service) => {
@@ -72,7 +72,7 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({ onNavigate, onSelect
                   <motion.article
                     whileHover={{ y: -4 }}
                     transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
-                    className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[#E5E7F0] bg-white p-7 transition-shadow duration-200 hover:border-[#1A1464]/35 hover:shadow-[0_18px_38px_rgba(26,20,100,0.08)]"
+                    className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-7 transition-shadow duration-200 hover:border-[#1A1464]/35 dark:hover:border-white/25 hover:shadow-[0_18px_38px_rgba(26,20,100,0.08)] dark:hover:shadow-[0_18px_38px_rgba(0,0,0,0.4)]"
                   >
                     <div
                       aria-hidden="true"
@@ -81,40 +81,40 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({ onNavigate, onSelect
 
                     <div>
                       <div className="flex items-center justify-between">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F6F7FB] text-[#1A1464] transition-colors group-hover:bg-[#1A1464] group-hover:text-white">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#F4F6FC] transition-colors group-hover:bg-[#1A1464] dark:group-hover:bg-[#2E368F] group-hover:text-white">
                           <Icon className="h-5 w-5" aria-hidden="true" />
                         </div>
-                        <span className="font-display text-xs font-bold tabular-nums text-[#6B7188] group-hover:text-[#EE1119]">
+                        <span className="font-display text-xs font-bold tabular-nums text-[#6B7188] dark:text-[#8E97B8] group-hover:text-[#EE1119]">
                           {service.number}
                         </span>
                       </div>
 
-                      <h2 className="mt-5 font-display text-xl font-bold text-[#1A1464]">
+                      <h2 className="mt-5 font-display text-xl font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                         {service.title}
                       </h2>
-                      <p className="mt-2.5 text-sm font-medium leading-relaxed text-[#4A4F63]">
+                      <p className="mt-2.5 text-sm font-medium leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                         {service.summary}
                       </p>
-                      <p className="mt-3 text-sm leading-relaxed text-[#6B7188]">
+                      <p className="mt-3 text-sm leading-relaxed text-[#6B7188] dark:text-[#8E97B8]">
                         {service.deepDive}
                       </p>
 
-                      <div className="mt-4 rounded-xl bg-[#F6F7FB] p-3.5 border border-[#E5E7F0]">
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#1A1464]">
+                      <div className="mt-4 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] p-3.5 border border-[#E5E7F0] dark:border-[#242C54]">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
                           Ideal For
                         </p>
-                        <p className="mt-1 text-xs leading-relaxed text-[#4A4F63]">
+                        <p className="mt-1 text-xs leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                           {service.idealFor}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-6 pt-4 border-t border-[#E5E7F0]">
-                      <p className="text-xs font-medium text-[#6B7188]">{service.deliverables}</p>
+                    <div className="mt-6 pt-4 border-t border-[#E5E7F0] dark:border-[#242C54]">
+                      <p className="text-xs font-medium text-[#6B7188] dark:text-[#8E97B8]">{service.deliverables}</p>
                       <button
                         type="button"
                         onClick={() => onSelectService(service.title)}
-                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] transition-colors group-hover:text-[#EE1119]"
+                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] transition-colors group-hover:text-[#EE1119]"
                       >
                         <span>Discuss this service</span>
                         <ArrowUpRight
@@ -132,20 +132,20 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({ onNavigate, onSelect
       </section>
 
       {/* Technology Stack Section */}
-      <section className="bg-[#F6F7FB] py-16 sm:py-20 border-t border-[#E5E7F0]">
+      <section className="bg-[#F6F7FB] dark:bg-[#101530] py-16 sm:py-20 border-t border-[#E5E7F0] dark:border-[#242C54]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-xl">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
                 Modern Technology Stack
               </p>
-              <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#1A1464]">
+              <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC]">
                 Battle-tested tools across every layer.
               </h2>
             </div>
 
             <div
-              className="flex flex-wrap gap-1.5 rounded-xl bg-white p-1.5 border border-[#E5E7F0]"
+              className="flex flex-wrap gap-1.5 rounded-xl bg-white dark:bg-[#141A38] p-1.5 border border-[#E5E7F0] dark:border-[#242C54]"
               role="tablist"
               aria-label="Filter technologies by layer"
             >
@@ -159,7 +159,7 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({ onNavigate, onSelect
                     aria-selected={isActive}
                     onClick={() => setSelectedCategory(category)}
                     className={`relative rounded-lg px-3.5 py-2 text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0 ${
-                      isActive ? 'text-white' : 'text-[#4A4F63] hover:text-[#1A1464]'
+                      isActive ? 'text-white' : 'text-[#4A4F63] dark:text-[#B8C0DA] hover:text-[#1A1464] dark:hover:text-white'
                     }`}
                   >
                     {isActive && (
@@ -167,7 +167,7 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({ onNavigate, onSelect
                         layoutId="services-category-pill"
                         aria-hidden="true"
                         transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                        className="absolute inset-0 rounded-lg bg-[#1A1464] shadow-sm"
+                        className="absolute inset-0 rounded-lg bg-[#1A1464] dark:bg-[#2E368F] shadow-sm"
                       />
                     )}
                     <span className="relative z-10">{category}</span>
@@ -187,17 +187,17 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({ onNavigate, onSelect
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
                   transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
-                  className="group flex items-center justify-between rounded-xl border border-[#E5E7F0] bg-white px-4 py-4 transition-colors duration-150 hover:border-[#1A1464]/35"
+                  className="group flex items-center justify-between rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-4 py-4 transition-colors duration-150 hover:border-[#1A1464]/35 dark:hover:border-white/25"
                 >
                   <div className="min-w-0">
-                    <p className="font-display text-sm sm:text-base font-bold text-[#1A1464] truncate">
+                    <p className="font-display text-sm sm:text-base font-bold text-[#1A1464] dark:text-[#F4F6FC] truncate">
                       {tech.name}
                     </p>
-                    <p className="mt-0.5 text-xs text-[#6B7188] truncate">{tech.role}</p>
+                    <p className="mt-0.5 text-xs text-[#6B7188] dark:text-[#8E97B8] truncate">{tech.role}</p>
                   </div>
                   <span
                     aria-hidden="true"
-                    className="h-5 w-1.5 shrink-0 -skew-x-12 rounded-xs bg-[#E5E7F0] transition-colors group-hover:bg-[#EE1119]"
+                    className="h-5 w-1.5 shrink-0 -skew-x-12 rounded-xs bg-[#E5E7F0] dark:bg-[#2E3766] transition-colors group-hover:bg-[#EE1119]"
                   />
                 </motion.div>
               ))}

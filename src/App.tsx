@@ -18,6 +18,7 @@ import { WhatsAppLauncher } from './components/WhatsAppLauncher';
 import { WorkPage } from './components/WorkPage';
 import { WhyPage } from './components/WhyPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { BLOG_ARTICLES } from './data/blogData';
 import { PageRoute } from './data/siteData';
 
@@ -84,12 +85,17 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-[#F6F7FB] px-4 text-center">
-          <Logo variant="light" showEmblemAbove />
-          <h1 className="mt-6 font-display text-2xl font-extrabold text-[#1A1464]">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-[#F6F7FB] dark:bg-[#090D1F] px-4 text-center">
+          <div className="dark:hidden">
+            <Logo variant="light" showEmblemAbove />
+          </div>
+          <div className="hidden dark:block">
+            <Logo variant="dark" showEmblemAbove />
+          </div>
+          <h1 className="mt-6 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
             Something went wrong
           </h1>
-          <p className="mt-2 max-w-md text-sm text-[#4A4F63]">
+          <p className="mt-2 max-w-md text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
             An unexpected display error occurred. Reload or return to the 0xDEV home view to
             continue.
           </p>
@@ -109,7 +115,7 @@ class ErrorBoundary extends React.Component<
                 window.history.replaceState({ page: 'home' }, '', '/');
                 window.location.reload();
               }}
-              className="rounded-xl border border-[#1A1464] bg-white px-5 py-2.5 text-sm font-semibold text-[#1A1464] hover:bg-[#1A1464] hover:text-white"
+              className="rounded-xl border border-[#1A1464] dark:border-[#3A437A] bg-white dark:bg-[#141A38] px-5 py-2.5 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC] hover:bg-[#1A1464] hover:text-white dark:hover:bg-[#2E368F]"
             >
               Return Home
             </button>
@@ -137,6 +143,7 @@ function isAuthPath(pathname: string): boolean {
 }
 
 function AppShell() {
+  const { isDark } = useTheme();
   const {
     user,
     loading,
@@ -351,9 +358,9 @@ function AppShell() {
   // Loading state while checking Firebase Auth session (only block if on gated portal/dashboard)
   if (loading && (showAuthPortal || currentPage === 'dashboard')) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#F6F7FB] px-4">
-        <Logo variant="light" showEmblemAbove />
-        <p className="mt-5 text-sm font-semibold text-[#1A1464]">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#F6F7FB] dark:bg-[#090D1F] px-4">
+        <Logo variant={isDark ? 'dark' : 'light'} showEmblemAbove />
+        <p className="mt-5 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]">
           Checking your session...
         </p>
       </div>
@@ -381,7 +388,7 @@ function AppShell() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-[#4A4F63]">
+    <div className="flex min-h-screen flex-col bg-white text-[#4A4F63] dark:bg-[#090D1F] dark:text-[#C2C9E0] transition-colors duration-200">
       <Navbar
         currentPage={currentPage}
         onNavigate={navigateTo}
@@ -392,7 +399,7 @@ function AppShell() {
       {user && !user.emailVerified && (
         <div
           role="status"
-          className="border-b border-[#EE1119]/25 bg-[#F6F7FB] px-4 py-2.5 text-xs sm:text-sm text-[#1A1464] print:hidden"
+          className="border-b border-[#EE1119]/25 bg-[#F6F7FB] dark:bg-[#111633] px-4 py-2.5 text-xs sm:text-sm text-[#1A1464] dark:text-[#F4F6FC] print:hidden"
         >
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
             <p>
@@ -440,7 +447,7 @@ function AppShell() {
                     setVerifyBusy(false);
                   }
                 }}
-                className="rounded-lg bg-[#1A1464] px-3 py-1 text-xs font-semibold text-white hover:bg-[#120D4A] disabled:opacity-60"
+                className="rounded-lg bg-[#1A1464] dark:bg-[#2E368F] px-3 py-1 text-xs font-semibold text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8] disabled:opacity-60"
               >
                 I have verified
               </button>
@@ -509,11 +516,13 @@ function AppShell() {
 export default function App() {
   return (
     <MotionConfig reducedMotion="user">
-      <ErrorBoundary>
-        <AuthProvider>
-          <AppShell />
-        </AuthProvider>
-      </ErrorBoundary>
+      <ThemeProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <AppShell />
+          </AuthProvider>
+        </ErrorBoundary>
+      </ThemeProvider>
     </MotionConfig>
   );
 }

@@ -483,15 +483,15 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
   return (
     <section
       aria-labelledby="project-timeline-heading"
-      className="relative mt-10 rounded-2xl border border-[#E5E7F0] bg-white p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.05)]"
+      className="relative mt-10 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.05)] dark:shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
     >
       <div
         aria-hidden="true"
-        className="absolute top-0 right-8 h-1.5 w-24 -skew-x-24 bg-[#1A1464]"
+        className="absolute top-0 right-8 h-1.5 w-24 -skew-x-24 bg-[#1A1464] dark:bg-[#7C8CFF]"
       />
 
       {/* Section Top Bar */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between border-b border-[#E5E7F0] pb-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between border-b border-[#E5E7F0] dark:border-[#242C54] pb-6">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
             <FolderGit2 className="h-4 w-4" aria-hidden="true" />
@@ -499,11 +499,11 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
           </div>
           <h2
             id="project-timeline-heading"
-            className="mt-1.5 font-display text-2xl font-extrabold text-[#1A1464]"
+            className="mt-1.5 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]"
           >
             Milestones &amp; Completion Progress
           </h2>
-          <p className="mt-1 text-sm text-[#4A4F63]">
+          <p className="mt-1 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
             Track every engineering phase, target delivery date, and real-time completion percentage.
           </p>
         </div>
@@ -524,7 +524,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                     setFeedback(null);
                     setErrorMsg(null);
                   }}
-                  className="rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-[#1A1464] focus:border-[#1A1464] focus:bg-white"
+                  className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-[#1A1464] dark:text-white focus:border-[#1A1464] dark:focus:border-[#7C8CFF] focus:bg-white dark:focus:bg-[#182044]"
                 >
                   {inquiries.map((inq) => (
                     <option key={inq.inquiryId} value={inq.inquiryId}>
@@ -543,7 +543,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                   setShowAddForm((prev) => !prev);
                   setErrorMsg(null);
                 }}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1A1464] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#120D4A] whitespace-nowrap shrink-0"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#120D4A] dark:hover:bg-[#3A43A8] whitespace-nowrap shrink-0"
               >
                 <Plus className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
                 <span>{showAddForm ? 'Close Editor' : 'Add Milestone'}</span>
@@ -556,18 +556,18 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
       {/* Loading Skeleton */}
       {inquiriesLoading ? (
         <div className="mt-6 space-y-4" aria-label="Loading project timeline">
-          <div className="h-24 rounded-xl bg-[#F6F7FB] border border-[#E5E7F0]" />
-          <div className="h-20 rounded-xl bg-[#F6F7FB] border border-[#E5E7F0]" />
-          <div className="h-20 rounded-xl bg-[#F6F7FB] border border-[#E5E7F0]" />
+          <div className="h-24 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] border border-[#E5E7F0] dark:border-[#242C54]" />
+          <div className="h-20 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] border border-[#E5E7F0] dark:border-[#242C54]" />
+          <div className="h-20 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] border border-[#E5E7F0] dark:border-[#242C54]" />
         </div>
       ) : inquiries.length === 0 ? (
         /* Empty State */
-        <div className="mt-6 rounded-xl border border-dashed border-[#D3D7E6] bg-[#F6F7FB]/60 px-6 py-10 text-center">
-          <FolderGit2 className="mx-auto h-8 w-8 text-[#1A1464]/50" aria-hidden="true" />
-          <h3 className="mt-3 font-display text-lg font-bold text-[#1A1464]">
+        <div className="mt-6 rounded-xl border border-dashed border-[#D3D7E6] dark:border-[#2E3766] bg-[#F6F7FB]/60 dark:bg-[#101530] px-6 py-10 text-center">
+          <FolderGit2 className="mx-auto h-8 w-8 text-[#1A1464]/50 dark:text-[#7C8CFF]/60" aria-hidden="true" />
+          <h3 className="mt-3 font-display text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC]">
             No active project briefs yet
           </h3>
-          <p className="mx-auto mt-1.5 max-w-md text-sm text-[#4A4F63]">
+          <p className="mx-auto mt-1.5 max-w-md text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
             Once you submit a project consultation brief, your 0xDEV milestone timeline and live
             completion tracker will appear here automatically.
           </p>
@@ -582,11 +582,11 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
       ) : selectedInquiry ? (
         <div className="mt-6 space-y-6">
           {/* Overall Completion Overview Bar */}
-          <div className="rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-5 sm:p-6">
+          <div className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-5 sm:p-6">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold text-[#6B7188]">
-                  <span className="font-bold text-[#1A1464]">
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                  <span className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                     {INQUIRY_STATUS_LABELS[selectedInquiry.status] || selectedInquiry.status}
                   </span>
                   <span aria-hidden="true">·</span>
@@ -605,21 +605,21 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                   )}
                 </div>
 
-                <h3 className="mt-1.5 font-display text-xl font-extrabold text-[#1A1464] truncate">
+                <h3 className="mt-1.5 font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC] truncate">
                   {selectedInquiry.service}
                 </h3>
 
-                <p className="mt-1 text-xs font-medium text-[#4A4F63] tabular-nums">
+                <p className="mt-1 text-xs font-medium text-[#4A4F63] dark:text-[#C2C9E0] tabular-nums">
                   {summaryStats.completedCount} of {summaryStats.totalCount} milestones completed
                   {summaryStats.activeCount > 0 && ` · ${summaryStats.activeCount} active`}
                 </p>
               </div>
 
               <div className="shrink-0 sm:text-right">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6B7188]">
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6B7188] dark:text-[#8E97B8]">
                   Overall Completion
                 </p>
-                <p className="mt-0.5 font-display text-4xl font-extrabold tracking-tight text-[#1A1464] tabular-nums">
+                <p className="mt-0.5 font-display text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
                   {summaryStats.overallPercent}
                   <span className="text-xl text-[#EE1119]">%</span>
                 </p>
@@ -629,7 +629,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
             {/* Segmented Overall Progress Bar */}
             <div className="mt-5">
               <div
-                className="h-2.5 w-full overflow-hidden rounded-full bg-[#E5E7F0]"
+                className="h-2.5 w-full overflow-hidden rounded-full bg-[#E5E7F0] dark:bg-[#242C54]"
                 role="progressbar"
                 aria-valuenow={summaryStats.overallPercent}
                 aria-valuemin={0}
@@ -651,8 +651,8 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                 {displayedMilestones.slice(0, 5).map((ms, idx) => (
                   <div key={ms.milestoneId} className="min-w-0">
                     <div className="flex items-center justify-between gap-1 text-[11px] font-semibold">
-                      <span className="truncate text-[#1A1464]">
-                        <span className="font-mono text-[#6B7188] tabular-nums mr-1">
+                      <span className="truncate text-[#1A1464] dark:text-[#F4F6FC]">
+                        <span className="font-mono text-[#6B7188] dark:text-[#8E97B8] tabular-nums mr-1">
                           {String(idx + 1).padStart(2, '0')}
                         </span>
                         {ms.phase}
@@ -663,7 +663,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                             ? 'text-[#16A34A]'
                             : ms.progress > 0
                               ? 'text-[#EE1119]'
-                              : 'text-[#6B7188]'
+                              : 'text-[#6B7188] dark:text-[#8E97B8]'
                         }`}
                       >
                         {ms.progress}%
@@ -679,7 +679,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
           {errorMsg && (
             <div
               role="alert"
-              className="rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 px-4 py-3 text-xs font-semibold text-[#1A1464]"
+              className="rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 dark:bg-[#EE1119]/10 px-4 py-3 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
             >
               {errorMsg}
             </div>
@@ -687,7 +687,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
           {feedback && (
             <div
               role="status"
-              className="rounded-xl border border-[#1A1464]/20 bg-[#F6F7FB] px-4 py-3 text-xs font-semibold text-[#1A1464]"
+              className="rounded-xl border border-[#1A1464]/20 dark:border-[#2B3466] bg-[#F6F7FB] dark:bg-[#101530] px-4 py-3 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
             >
               {feedback}
             </div>
@@ -695,8 +695,8 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
 
           {/* Baseline Info Notice & Admin Seed Control */}
           {isUsingBaseline && (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-[#E5E7F0] bg-white px-4 py-3.5">
-              <div className="flex items-start gap-2.5 text-xs text-[#4A4F63]">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-4 py-3.5">
+              <div className="flex items-start gap-2.5 text-xs text-[#4A4F63] dark:text-[#C2C9E0]">
                 <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#EE1119]" aria-hidden="true" />
                 <span>
                   Showing standard 0xDEV 5-phase delivery baseline synchronized with your inquiry
@@ -708,7 +708,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                   type="button"
                   disabled={busyId === 'seed'}
                   onClick={() => void handleSeedStandardMilestones()}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#1A1464] bg-white px-3.5 py-2 text-xs font-bold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white disabled:opacity-60 whitespace-nowrap"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#1A1464] dark:border-[#3A437A] bg-white dark:bg-[#141A38] px-3.5 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#1A1464] dark:hover:bg-[#2E368F] hover:text-white disabled:opacity-60 whitespace-nowrap"
                 >
                   <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{busyId === 'seed' ? 'Seeding...' : 'Seed 5 Editable Milestones'}</span>
@@ -726,13 +726,13 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
                 onSubmit={handleAddMilestone}
-                className="rounded-xl border border-[#1A1464]/20 bg-[#F6F7FB] p-5 space-y-4"
+                className="rounded-xl border border-[#1A1464]/20 dark:border-[#2B3466] bg-[#F6F7FB] dark:bg-[#101530] p-5 space-y-4"
               >
               <div className="flex items-center justify-between">
-                <h4 className="font-display text-base font-bold text-[#1A1464]">
+                <h4 className="font-display text-base font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                   Add Custom Project Milestone
                 </h4>
-                <span className="text-xs font-mono text-[#6B7188]">
+                <span className="text-xs font-mono text-[#6B7188] dark:text-[#8E97B8]">
                   Project: {selectedInquiry.inquiryId}
                 </span>
               </div>
@@ -741,7 +741,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                 <div>
                   <label
                     htmlFor="ms-phase"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Phase
                   </label>
@@ -751,14 +751,14 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                     value={newPhase}
                     onChange={(e) => setNewPhase(e.target.value)}
                     placeholder="Design / Build / QA"
-                    className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2.5 text-sm text-[#1A1464]"
+                    className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="ms-title"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Milestone Title
                   </label>
@@ -768,7 +768,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="API Integration & Authentication Flow"
-                    className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2.5 text-sm text-[#1A1464]"
+                    className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                   />
                 </div>
               </div>
@@ -777,7 +777,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                 <div>
                   <label
                     htmlFor="ms-due"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Target Date
                   </label>
@@ -787,14 +787,14 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                     value={newDueDate}
                     onChange={(e) => setNewDueDate(e.target.value)}
                     placeholder="May 30, 2025"
-                    className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2.5 text-sm text-[#1A1464]"
+                    className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="ms-status"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Status
                   </label>
@@ -804,7 +804,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                     onChange={(e) =>
                       setNewStatus(e.target.value as ProjectMilestoneRecord['status'])
                     }
-                    className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2.5 text-sm text-[#1A1464]"
+                    className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                   >
                     <option value="pending">Upcoming</option>
                     <option value="in_progress">In Progress</option>
@@ -815,7 +815,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                 <div>
                   <label
                     htmlFor="ms-progress"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] tabular-nums"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC] tabular-nums"
                   >
                     Completion: {newProgress}%
                   </label>
@@ -835,7 +835,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
               <div>
                 <label
                   htmlFor="ms-summary"
-                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   Deliverable Summary
                 </label>
@@ -845,7 +845,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                   value={newSummary}
                   onChange={(e) => setNewSummary(e.target.value)}
                   placeholder="Describe what will be delivered and verified in this milestone."
-                  className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2.5 text-sm text-[#1A1464]"
+                  className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                 />
               </div>
 
@@ -861,7 +861,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="rounded-xl border border-[#E5E7F0] bg-white px-4 py-2.5 text-xs font-bold text-[#4A4F63] hover:text-[#1A1464]"
+                  className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-4 py-2.5 text-xs font-bold text-[#4A4F63] dark:text-[#C2C9E0] hover:text-[#1A1464] dark:hover:text-white"
                 >
                   Cancel
                 </button>
@@ -872,9 +872,9 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
 
           {/* Chronological Visual Timeline */}
           {milestonesLoading ? (
-            <p className="py-6 text-center text-sm text-[#6B7188]">Loading project milestones...</p>
+            <p className="py-6 text-center text-sm text-[#6B7188] dark:text-[#8E97B8]">Loading project milestones...</p>
           ) : (
-            <ol className="relative space-y-5 before:absolute before:left-[19px] before:top-3 before:bottom-3 before:w-[2px] before:bg-[#E5E7F0]">
+            <ol className="relative space-y-5 before:absolute before:left-[19px] before:top-3 before:bottom-3 before:w-[2px] before:bg-[#E5E7F0] dark:before:bg-[#242C54]">
               {displayedMilestones.map((item, idx) => {
                 const isCompleted = item.status === 'completed' || item.progress >= 100;
                 const isActive = !isCompleted && (item.status === 'in_progress' || item.progress > 0);
@@ -900,7 +900,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                           ? 'border-[#16A34A] bg-[#16A34A] text-white'
                           : isActive
                             ? 'border-[#EE1119] bg-[#EE1119] text-white shadow-[0_6px_18px_rgba(238,17,25,0.22)]'
-                            : 'border-[#E5E7F0] bg-white text-[#6B7188]'
+                            : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] text-[#6B7188] dark:text-[#8E97B8]'
                       }`}
                     >
                       {isCompleted ? (
@@ -916,20 +916,20 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                     <div
                       className={`rounded-xl border p-4 sm:p-5 transition-colors ${
                         isActive
-                          ? 'border-[#1A1464]/30 bg-[#F6F7FB]/80'
-                          : 'border-[#E5E7F0] bg-white'
+                          ? 'border-[#1A1464]/30 dark:border-[#4F59B8] bg-[#F6F7FB]/80 dark:bg-[#101530]'
+                          : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530]/60'
                       }`}
                     >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold">
-                            <span className="font-mono text-[#6B7188] tabular-nums">
+                            <span className="font-mono text-[#6B7188] dark:text-[#8E97B8] tabular-nums">
                               {stepNum}
                             </span>
-                            <span className="font-bold uppercase tracking-wider text-[#1A1464]">
+                            <span className="font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
                               {item.phase}
                             </span>
-                            <span className="text-[#D3D7E6]" aria-hidden="true">
+                            <span className="text-[#D3D7E6] dark:text-[#2E3766]" aria-hidden="true">
                               ·
                             </span>
                             <span
@@ -938,17 +938,17 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                                   ? 'font-bold text-[#16A34A]'
                                   : isActive
                                     ? 'font-bold text-[#EE1119]'
-                                    : 'text-[#6B7188]'
+                                    : 'text-[#6B7188] dark:text-[#8E97B8]'
                               }
                             >
                               {MILESTONE_STATUS_LABELS[item.status]}
                             </span>
                             {item.dueDate && (
                               <>
-                                <span className="text-[#D3D7E6]" aria-hidden="true">
+                                <span className="text-[#D3D7E6] dark:text-[#2E3766]" aria-hidden="true">
                                   ·
                                 </span>
-                                <span className="inline-flex items-center gap-1 text-[#6B7188] tabular-nums">
+                                <span className="inline-flex items-center gap-1 text-[#6B7188] dark:text-[#8E97B8] tabular-nums">
                                   <Calendar className="h-3 w-3" aria-hidden="true" />
                                   {item.dueDate}
                                 </span>
@@ -956,10 +956,10 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                             )}
                           </div>
 
-                          <h4 className="mt-1.5 font-display text-base sm:text-lg font-bold text-[#1A1464]">
+                          <h4 className="mt-1.5 font-display text-base sm:text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                             {item.title}
                           </h4>
-                          <p className="mt-1 text-sm leading-relaxed text-[#4A4F63]">
+                          <p className="mt-1 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                             {item.summary}
                           </p>
                         </div>
@@ -971,7 +971,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                                 ? 'text-[#16A34A]'
                                 : isActive
                                   ? 'text-[#EE1119]'
-                                  : 'text-[#6B7188]'
+                                  : 'text-[#6B7188] dark:text-[#8E97B8]'
                             }`}
                           >
                             {item.progress}%
@@ -982,7 +982,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                       {/* Milestone Progress Bar */}
                       <div className="mt-3.5">
                         <div
-                          className="h-2 w-full overflow-hidden rounded-full bg-[#E5E7F0]"
+                          className="h-2 w-full overflow-hidden rounded-full bg-[#E5E7F0] dark:bg-[#242C54]"
                           role="progressbar"
                           aria-valuenow={item.progress}
                           aria-valuemin={0}
@@ -995,7 +995,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                                 ? 'bg-[#16A34A]'
                                 : isActive
                                   ? 'bg-[#EE1119]'
-                                  : 'bg-[#1A1464]/30'
+                                  : 'bg-[#1A1464]/30 dark:bg-[#7C8CFF]/40'
                             }`}
                             initial={{ scaleX: 0 }}
                             animate={{ scaleX: item.progress / 100 }}
@@ -1006,9 +1006,9 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
 
                       {/* Admin Quick Progress Controls */}
                       {isPrimaryAdmin && !item.isBaseline && (
-                        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#E5E7F0] pt-3">
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#E5E7F0] dark:border-[#242C54] pt-3">
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188] mr-1">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8] mr-1">
                               Set progress:
                             </span>
                             {[0, 25, 50, 75, 100].map((pct) => (
@@ -1019,8 +1019,8 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                                 onClick={() => void handleQuickProgressUpdate(item, pct)}
                                 className={`rounded-lg border px-2.5 py-1 text-xs font-bold font-mono tabular-nums transition-colors ${
                                   item.progress === pct
-                                    ? 'border-[#1A1464] bg-[#1A1464] text-white'
-                                    : 'border-[#E5E7F0] bg-white text-[#1A1464] hover:border-[#1A1464]'
+                                    ? 'border-[#1A1464] dark:border-[#4F59B8] bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                                    : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#1A1464] dark:hover:border-[#7C8CFF]'
                                 }`}
                               >
                                 {pct}%
@@ -1032,7 +1032,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                             type="button"
                             disabled={busyId === item.milestoneId}
                             onClick={() => void handleDeleteMilestone(item)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-[#E5E7F0] bg-white px-2.5 py-1 text-xs font-semibold text-[#6B7188] transition-colors hover:border-[#EE1119] hover:text-[#EE1119] disabled:opacity-60"
+                            className="inline-flex items-center gap-1 rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-1 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8] transition-colors hover:border-[#EE1119] hover:text-[#EE1119] disabled:opacity-60"
                           >
                             <Trash2 className="h-3 w-3" aria-hidden="true" />
                             <span>Delete</span>

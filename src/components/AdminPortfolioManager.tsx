@@ -132,14 +132,14 @@ export const AdminPortfolioManager: React.FC = () => {
   return (
     <section
       aria-labelledby="admin-portfolio-heading"
-      className="relative mt-10 rounded-2xl border border-[#E5E7F0] bg-white p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.05)]"
+      className="relative mt-10 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.05)] dark:shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
     >
       <div
         aria-hidden="true"
         className="absolute top-0 right-8 h-1.5 w-24 -skew-x-24 bg-[#EE1119]"
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-[#E5E7F0] pb-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-[#E5E7F0] dark:border-[#242C54] pb-6">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119] flex items-center gap-1.5">
             <Layers className="h-4 w-4" aria-hidden="true" />
@@ -147,11 +147,11 @@ export const AdminPortfolioManager: React.FC = () => {
           </p>
           <h2
             id="admin-portfolio-heading"
-            className="mt-1.5 font-display text-2xl font-extrabold text-[#1A1464]"
+            className="mt-1.5 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]"
           >
             Live Case Study Manager ({projects.length} Total Live)
           </h2>
-          <p className="mt-1 text-sm text-[#4A4F63]">
+          <p className="mt-1 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
             Publish new projects with live screen previews directly to Home, Work, and the Visitor Portal.
           </p>
         </div>
@@ -162,7 +162,7 @@ export const AdminPortfolioManager: React.FC = () => {
             setShowForm((prev) => !prev);
             setError(null);
           }}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-[#1A1464] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#120D4A] shrink-0"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8] shrink-0"
         >
           <Plus className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
           <span>{showForm ? 'Close Publisher' : 'Publish New Case Study'}</span>
@@ -170,23 +170,23 @@ export const AdminPortfolioManager: React.FC = () => {
       </div>
 
       {error && (
-        <div role="alert" className="mt-4 rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 p-3.5 text-xs font-semibold text-[#1A1464]">
+        <div role="alert" className="mt-4 rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 dark:bg-[#EE1119]/10 p-3.5 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]">
           {error}
         </div>
       )}
       {feedback && (
-        <div role="status" className="mt-4 rounded-xl border border-[#1A1464]/20 bg-[#F6F7FB] p-3.5 text-xs font-semibold text-[#1A1464]">
+        <div role="status" className="mt-4 rounded-xl border border-[#1A1464]/20 dark:border-[#2B3466] bg-[#F6F7FB] dark:bg-[#101530] p-3.5 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]">
           {feedback}
         </div>
       )}
 
       {showForm && (
-        <form onSubmit={handlePublishProject} className="mt-6 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-5 space-y-4">
+        <form onSubmit={handlePublishProject} className="mt-6 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-5 space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 items-start">
             <div className="lg:col-span-8 space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="cms-title" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-title" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Project Title *
                   </label>
                   <input
@@ -195,11 +195,11 @@ export const AdminPortfolioManager: React.FC = () => {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. Kigezi FinHub Treasury Engine"
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2 text-sm text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2 text-sm text-[#1A1464] dark:text-white"
                   />
                 </div>
                 <div>
-                  <label htmlFor="cms-sector" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-sector" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Sector *
                   </label>
                   <input
@@ -208,21 +208,21 @@ export const AdminPortfolioManager: React.FC = () => {
                     value={sector}
                     onChange={(e) => setSector(e.target.value)}
                     placeholder="Fintech / SaaS / AgriTech"
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2 text-sm text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2 text-sm text-[#1A1464] dark:text-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <label htmlFor="cms-kind" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-kind" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Screen Preview Style
                   </label>
                   <select
                     id="cms-kind"
                     value={previewKind}
                     onChange={(e) => setPreviewKind(e.target.value as ProjectPreviewKind)}
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs font-semibold text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-white"
                   >
                     {PREVIEW_KINDS.map((k) => (
                       <option key={k.value} value={k.value}>
@@ -232,7 +232,7 @@ export const AdminPortfolioManager: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="cms-url" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-url" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Mock Browser URL
                   </label>
                   <input
@@ -240,11 +240,11 @@ export const AdminPortfolioManager: React.FC = () => {
                     type="text"
                     value={previewUrl}
                     onChange={(e) => setPreviewUrl(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
                   />
                 </div>
                 <div>
-                  <label htmlFor="cms-region" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-region" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Region
                   </label>
                   <input
@@ -252,14 +252,14 @@ export const AdminPortfolioManager: React.FC = () => {
                     type="text"
                     value={region}
                     onChange={(e) => setRegion(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <label htmlFor="cms-timeline" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-timeline" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Timeline
                   </label>
                   <input
@@ -267,11 +267,11 @@ export const AdminPortfolioManager: React.FC = () => {
                     type="text"
                     value={timeline}
                     onChange={(e) => setTimeline(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
                   />
                 </div>
                 <div>
-                  <label htmlFor="cms-client" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-client" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Client Type
                   </label>
                   <input
@@ -279,11 +279,11 @@ export const AdminPortfolioManager: React.FC = () => {
                     type="text"
                     value={clientType}
                     onChange={(e) => setClientType(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
                   />
                 </div>
                 <div>
-                  <label htmlFor="cms-deliv" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-deliv" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Deliverable Type
                   </label>
                   <input
@@ -291,14 +291,14 @@ export const AdminPortfolioManager: React.FC = () => {
                     type="text"
                     value={deliverableType}
                     onChange={(e) => setDeliverableType(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="cms-problem" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-problem" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Challenge (10+ chars) *
                   </label>
                   <textarea
@@ -306,11 +306,11 @@ export const AdminPortfolioManager: React.FC = () => {
                     rows={2}
                     value={problem}
                     onChange={(e) => setProblem(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
                   />
                 </div>
                 <div>
-                  <label htmlFor="cms-solution" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-solution" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     0xDEV Solution (10+ chars) *
                   </label>
                   <textarea
@@ -318,14 +318,14 @@ export const AdminPortfolioManager: React.FC = () => {
                     rows={2}
                     value={solution}
                     onChange={(e) => setSolution(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="cms-arch" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-arch" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Architecture Notes *
                   </label>
                   <input
@@ -334,11 +334,11 @@ export const AdminPortfolioManager: React.FC = () => {
                     value={architectureNotes}
                     onChange={(e) => setArchitectureNotes(e.target.value)}
                     placeholder="Multi-AZ deployment, Redis queues..."
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
                   />
                 </div>
                 <div>
-                  <label htmlFor="cms-stack" className="block text-xs font-bold uppercase text-[#1A1464]">
+                  <label htmlFor="cms-stack" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                     Tech Stack Summary
                   </label>
                   <input
@@ -346,7 +346,7 @@ export const AdminPortfolioManager: React.FC = () => {
                     type="text"
                     value={stackSummary}
                     onChange={(e) => setStackSummary(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
                   />
                 </div>
               </div>
@@ -358,14 +358,14 @@ export const AdminPortfolioManager: React.FC = () => {
                     aria-label="Metric 1 value"
                     value={metric1Value}
                     onChange={(e) => setMetric1Value(e.target.value)}
-                    className="w-full rounded-lg border border-[#E5E7F0] bg-white px-2.5 py-1.5 text-xs font-bold text-[#1A1464]"
+                    className="w-full rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-1.5 text-xs font-bold text-[#1A1464] dark:text-white"
                   />
                   <input
                     type="text"
                     aria-label="Metric 1 label"
                     value={metric1Label}
                     onChange={(e) => setMetric1Label(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-[#E5E7F0] bg-white px-2.5 py-1 text-[11px] text-[#4A4F63]"
+                    className="mt-1 w-full rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-1 text-[11px] text-[#4A4F63] dark:text-[#C2C9E0]"
                   />
                 </div>
                 <div>
@@ -374,14 +374,14 @@ export const AdminPortfolioManager: React.FC = () => {
                     aria-label="Metric 2 value"
                     value={metric2Value}
                     onChange={(e) => setMetric2Value(e.target.value)}
-                    className="w-full rounded-lg border border-[#E5E7F0] bg-white px-2.5 py-1.5 text-xs font-bold text-[#1A1464]"
+                    className="w-full rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-1.5 text-xs font-bold text-[#1A1464] dark:text-white"
                   />
                   <input
                     type="text"
                     aria-label="Metric 2 label"
                     value={metric2Label}
                     onChange={(e) => setMetric2Label(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-[#E5E7F0] bg-white px-2.5 py-1 text-[11px] text-[#4A4F63]"
+                    className="mt-1 w-full rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-1 text-[11px] text-[#4A4F63] dark:text-[#C2C9E0]"
                   />
                 </div>
                 <div>
@@ -390,14 +390,14 @@ export const AdminPortfolioManager: React.FC = () => {
                     aria-label="Metric 3 value"
                     value={metric3Value}
                     onChange={(e) => setMetric3Value(e.target.value)}
-                    className="w-full rounded-lg border border-[#E5E7F0] bg-white px-2.5 py-1.5 text-xs font-bold text-[#1A1464]"
+                    className="w-full rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-1.5 text-xs font-bold text-[#1A1464] dark:text-white"
                   />
                   <input
                     type="text"
                     aria-label="Metric 3 label"
                     value={metric3Label}
                     onChange={(e) => setMetric3Label(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-[#E5E7F0] bg-white px-2.5 py-1 text-[11px] text-[#4A4F63]"
+                    className="mt-1 w-full rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-1 text-[11px] text-[#4A4F63] dark:text-[#C2C9E0]"
                   />
                 </div>
               </div>
@@ -405,7 +405,7 @@ export const AdminPortfolioManager: React.FC = () => {
 
             {/* Live Screen Preview */}
             <div className="lg:col-span-4 space-y-2">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188]">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
                 Live Screen Preview
               </p>
               <ProjectPreviewScreen
@@ -447,7 +447,7 @@ export const AdminPortfolioManager: React.FC = () => {
       {/* Custom Firestore Projects List */}
       <div className="mt-6">
         {customProjects.length === 0 ? (
-          <p className="text-xs text-[#6B7188]">
+          <p className="text-xs text-[#6B7188] dark:text-[#8E97B8]">
             12 built-in flagship case studies are active. Custom case studies published here appear at the top of your live showcase immediately.
           </p>
         ) : (
@@ -455,13 +455,13 @@ export const AdminPortfolioManager: React.FC = () => {
             {customProjects.map((proj) => (
               <div
                 key={proj.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-4"
+                className="flex items-center justify-between gap-3 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-4"
               >
                 <div className="min-w-0">
                   <p className="text-[11px] font-bold text-[#EE1119]">
                     {proj.sector} · {proj.region}
                   </p>
-                  <p className="font-display text-sm font-bold text-[#1A1464] truncate">
+                  <p className="font-display text-sm font-bold text-[#1A1464] dark:text-[#F4F6FC] truncate">
                     {proj.title}
                   </p>
                 </div>
@@ -472,8 +472,8 @@ export const AdminPortfolioManager: React.FC = () => {
                     aria-label="Toggle featured"
                     className={`rounded-lg border px-2.5 py-1 text-xs font-bold ${
                       proj.featured
-                        ? 'border-[#1A1464] bg-[#1A1464] text-white'
-                        : 'border-[#E5E7F0] bg-white text-[#6B7188]'
+                        ? 'border-[#1A1464] dark:border-[#4F59B8] bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#6B7188] dark:text-[#8E97B8]'
                     }`}
                   >
                     <Star className="h-3.5 w-3.5" aria-hidden="true" />
@@ -482,7 +482,7 @@ export const AdminPortfolioManager: React.FC = () => {
                     type="button"
                     onClick={() => void handleDeleteCustom(proj.id)}
                     aria-label={`Delete ${proj.title}`}
-                    className="rounded-lg border border-[#E5E7F0] bg-white p-1.5 text-[#6B7188] hover:border-[#EE1119] hover:text-[#EE1119]"
+                    className="rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-1.5 text-[#6B7188] dark:text-[#8E97B8] hover:border-[#EE1119] hover:text-[#EE1119]"
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>

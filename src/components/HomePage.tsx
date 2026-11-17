@@ -134,13 +134,13 @@ export const HomePage: React.FC<HomePageProps> = ({
   return (
     <>
       {/* 1. Hero Section */}
-      <section className="relative overflow-hidden bg-white pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+      <section className="relative overflow-hidden bg-white dark:bg-[#090D1F] pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
         <motion.div
           aria-hidden="true"
           initial={{ opacity: 0, x: 48 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, ease: EASE_OUT_EXPO }}
-          className="pointer-events-none absolute -top-24 right-0 h-[520px] w-[48%] translate-x-16 -skew-x-12 bg-[#F6F7FB] hidden lg:block"
+          className="pointer-events-none absolute -top-24 right-0 h-[520px] w-[48%] translate-x-16 -skew-x-12 bg-[#F6F7FB] dark:bg-[#101530] hidden lg:block"
         />
         <motion.div
           aria-hidden="true"
@@ -166,7 +166,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.48, delay: 0.06, ease: EASE_OUT_EXPO }}
-                className="mt-4 font-display text-[clamp(2.25rem,4.1vw,3.65rem)] font-extrabold leading-[1.08] tracking-tight text-[#1A1464] text-balance"
+                className="mt-4 font-display text-[clamp(2.25rem,4.1vw,3.65rem)] font-extrabold leading-[1.08] tracking-tight text-[#1A1464] dark:text-[#F4F6FC] text-balance"
               >
                 One Team.{' '}
                 <span className="relative inline-block">
@@ -176,7 +176,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
                     transition={{ duration: 0.55, delay: 0.3, ease: EASE_OUT_EXPO }}
-                    className="origin-left absolute left-0 right-0 bottom-1.5 h-3 -skew-x-12 bg-[#EE1119]/15"
+                    className="origin-left absolute left-0 right-0 bottom-1.5 h-3 -skew-x-12 bg-[#EE1119]/15 dark:bg-[#EE1119]/30"
                   />
                 </span>{' '}
                 of Your Technology.
@@ -186,12 +186,12 @@ export const HomePage: React.FC<HomePageProps> = ({
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: 0.12, ease: EASE_OUT_EXPO }}
-                className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-[#4A4F63]"
+                className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]"
               >
                 We design, build, deploy, and maintain software, cloud infrastructure, and
                 cybersecurity under one roof. Whether you need a full product build or an agile
                 freelance engineering partner, you work with{' '}
-                <strong className="font-semibold text-[#1A1464]">one accountable team</strong>{' '}
+                <strong className="font-semibold text-[#1A1464] dark:text-white">one accountable team</strong>{' '}
                 instead of juggling five vendors.
               </motion.p>
 
@@ -229,7 +229,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className="inline-flex items-center gap-2 rounded-xl border-2 border-[#1A1464] bg-white px-6 py-3.5 text-sm sm:text-base font-semibold text-[#1A1464] transition-colors duration-150 hover:bg-[#1A1464] hover:text-white whitespace-nowrap"
+                  className="inline-flex items-center gap-2 rounded-xl border-2 border-[#1A1464] dark:border-[#3A437A] bg-white dark:bg-[#141A38] px-6 py-3.5 text-sm sm:text-base font-semibold text-[#1A1464] dark:text-[#F4F6FC] transition-colors duration-150 hover:bg-[#1A1464] hover:text-white dark:hover:bg-[#2E368F] dark:hover:border-[#2E368F] whitespace-nowrap"
                 >
                   <Eye className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
                   <span>See Some of Our Work ({projects.length})</span>
@@ -238,7 +238,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigate('services')}
-                  className="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-semibold text-[#1A1464] hover:text-[#EE1119] transition-colors whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC] hover:text-[#EE1119] transition-colors whitespace-nowrap"
                 >
                   <span>Explore Services</span>
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -249,7 +249,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.45, delay: 0.25 }}
-                className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm font-medium text-[#4A4F63]"
+                className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm font-medium text-[#4A4F63] dark:text-[#B8C0DA]"
               >
                 <span>Single Point of Contact</span>
                 <span className="text-[#EE1119]" aria-hidden="true">/</span>
@@ -268,18 +268,18 @@ export const HomePage: React.FC<HomePageProps> = ({
               onMouseEnter={() => setPaused(true)}
               onMouseLeave={() => setPaused(false)}
             >
-              <div className="relative rounded-2xl border border-[#E5E7F0] bg-white p-5 sm:p-7 shadow-[0_20px_50px_rgba(26,20,100,0.09)]">
+              <div className="relative rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-5 sm:p-7 shadow-[0_20px_50px_rgba(26,20,100,0.09)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
                 <div
                   aria-hidden="true"
                   className="absolute top-0 right-6 h-1.5 w-24 -skew-x-24 bg-[#EE1119]"
                 />
 
-                <div className="flex items-center justify-between border-b border-[#E5E7F0] pb-4">
+                <div className="flex items-center justify-between border-b border-[#E5E7F0] dark:border-[#242C54] pb-4">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188]">
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188] dark:text-[#8E97B8]">
                       Unified Delivery Stack
                     </p>
-                    <p className="mt-0.5 font-display text-base font-bold text-[#1A1464]">
+                    <p className="mt-0.5 font-display text-base font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                       Design · Build · Infrastructure · Maintain
                     </p>
                   </div>
@@ -304,8 +304,8 @@ export const HomePage: React.FC<HomePageProps> = ({
                         }}
                         className={`group flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left transition-all duration-200 ${
                           isActive
-                            ? 'border-[#1A1464] bg-[#1A1464] text-white shadow-md translate-x-1'
-                            : 'border-[#E5E7F0] bg-[#F6F7FB] text-[#1A1464] hover:border-[#1A1464]/35 hover:bg-white'
+                            ? 'border-[#1A1464] dark:border-[#3A459E] bg-[#1A1464] dark:bg-[#232B6E] text-white shadow-md translate-x-1'
+                            : 'border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#1A1464]/35 dark:hover:border-white/25 hover:bg-white dark:hover:bg-[#182044]'
                         }`}
                       >
                         <div className="flex items-center gap-3.5 min-w-0">
@@ -313,7 +313,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
                               isActive
                                 ? 'bg-[#EE1119] text-white'
-                                : 'bg-white text-[#1A1464] border border-[#E5E7F0]'
+                                : 'bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] border border-[#E5E7F0] dark:border-[#242C54]'
                             }`}
                           >
                             <Icon className="h-4 w-4" aria-hidden="true" />
@@ -322,7 +322,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             <div className="flex items-center gap-2">
                               <span
                                 className={`font-display text-xs font-bold tabular-nums ${
-                                  isActive ? 'text-[#EE1119]' : 'text-[#6B7188]'
+                                  isActive ? 'text-[#EE1119]' : 'text-[#6B7188] dark:text-[#8E97B8]'
                                 }`}
                               >
                                 {layer.step}
@@ -333,7 +333,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             </div>
                             <p
                               className={`text-xs truncate ${
-                                isActive ? 'text-white/80' : 'text-[#4A4F63]'
+                                isActive ? 'text-white/80' : 'text-[#4A4F63] dark:text-[#B8C0DA]'
                               }`}
                             >
                               {layer.tagline}
@@ -344,7 +344,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                           className={`h-4 w-4 shrink-0 transition-transform duration-150 ${
                             isActive
                               ? 'text-[#EE1119] translate-x-0.5'
-                              : 'text-[#6B7188] opacity-60 group-hover:opacity-100'
+                              : 'text-[#6B7188] dark:text-[#8E97B8] opacity-60 group-hover:opacity-100'
                           }`}
                           aria-hidden="true"
                         />
@@ -353,7 +353,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   })}
                 </div>
 
-                <div className="mt-5 rounded-xl bg-[#F6F7FB] p-4 border border-[#E5E7F0] min-h-[112px]">
+                <div className="mt-5 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] p-4 border border-[#E5E7F0] dark:border-[#242C54] min-h-[112px]">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeLayer.id}
@@ -362,14 +362,14 @@ export const HomePage: React.FC<HomePageProps> = ({
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
                     >
-                      <p className="text-xs sm:text-sm leading-relaxed text-[#4A4F63]">
+                      <p className="text-xs sm:text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                         {activeLayer.details}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
                         {activeLayer.deliverables.map((item) => (
                           <span
                             key={item}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1A1464]"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
                           >
                             <Check className="h-3.5 w-3.5 text-[#EE1119] shrink-0" aria-hidden="true" />
                             <span>{item}</span>
@@ -384,20 +384,20 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
 
           {/* Trust Strip */}
-          <div className="mt-16 border-t border-[#E5E7F0] pt-8">
+          <div className="mt-16 border-t border-[#E5E7F0] dark:border-[#242C54] pt-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188] shrink-0">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188] dark:text-[#8E97B8] shrink-0">
                 Trusted by growing teams across Uganda, Africa &amp; remote partners
               </p>
               <div className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-3 lg:flex lg:flex-wrap lg:items-center lg:gap-9">
                 {TRUST_PARTNERS.map((partner) => (
                   <div
                     key={partner.name}
-                    className="flex items-center gap-2 text-[#6B7188] transition-colors hover:text-[#1A1464]"
+                    className="flex items-center gap-2 text-[#6B7188] dark:text-[#8E97B8] transition-colors hover:text-[#1A1464] dark:hover:text-white"
                   >
                     <span
                       aria-hidden="true"
-                      className="h-2.5 w-2.5 -skew-x-12 bg-[#1A1464]/25"
+                      className="h-2.5 w-2.5 -skew-x-12 bg-[#1A1464]/25 dark:bg-white/30"
                     />
                     <span className="font-display text-sm font-bold tracking-tight whitespace-nowrap">
                       {partner.name}
@@ -411,7 +411,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* 2. Why 0xDEV Snapshot */}
-      <section className="bg-[#F6F7FB] py-20 sm:py-24">
+      <section className="bg-[#F6F7FB] dark:bg-[#101530] py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -419,10 +419,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
                   Why 0xDEV
                 </p>
-                <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] text-balance">
+                <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC] text-balance">
                   Stop juggling five vendors.
                 </h2>
-                <p className="mt-3 text-base text-[#4A4F63]">
+                <p className="mt-3 text-base text-[#4A4F63] dark:text-[#C2C9E0]">
                   Most software projects stall in the gaps between disconnected freelancers and
                   agencies. We replace five separate contracts with one accountable team.
                 </p>
@@ -430,7 +430,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('why-0xdev')}
-                className="inline-flex items-center gap-2 self-start rounded-xl border border-[#1A1464] bg-white px-5 py-3 text-sm font-semibold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white whitespace-nowrap"
+                className="inline-flex items-center gap-2 self-start rounded-xl border border-[#1A1464] dark:border-[#3A437A] bg-white dark:bg-[#141A38] px-5 py-3 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#1A1464] hover:text-white dark:hover:bg-[#2E368F] whitespace-nowrap"
               >
                 <span>Compare Models &amp; Pricing</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -440,14 +440,14 @@ export const HomePage: React.FC<HomePageProps> = ({
 
           <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
             <Reveal direction="right" distance={20}>
-              <div className="h-full rounded-2xl border border-[#E5E7F0] bg-white p-6 sm:p-8">
-                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188]">
+              <div className="h-full rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188] dark:text-[#8E97B8]">
                   Fragmented Multi-Vendor Setup
                 </p>
-                <h3 className="mt-2 font-display text-xl font-bold text-[#1A1464]">
+                <h3 className="mt-2 font-display text-xl font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                   5 Contractors, Zero Shared Ownership
                 </h3>
-                <ul className="mt-5 space-y-3 text-sm text-[#4A4F63]">
+                <ul className="mt-5 space-y-3 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
                   {[
                     'Separate UI freelancer, backend shop, DevOps contractor, host, and support desk',
                     'Days lost translating specs and blaming another vendor when bugs appear',
@@ -463,7 +463,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             </Reveal>
 
             <Reveal direction="left" distance={20} delay={0.08}>
-              <div className="h-full rounded-2xl bg-[#1A1464] p-6 sm:p-8 text-white shadow-lg">
+              <div className="h-full rounded-2xl bg-[#1A1464] dark:bg-[#141A3B] dark:border dark:border-[#2B3466] p-6 sm:p-8 text-white shadow-lg">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
                   The 0xDEV Approach
                 </p>
@@ -489,7 +489,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* 3. Core Services Preview */}
-      <section className="bg-white py-20 sm:py-24">
+      <section className="bg-white dark:bg-[#090D1F] py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -497,14 +497,14 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
                   Capabilities Overview
                 </p>
-                <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] text-balance">
+                <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC] text-balance">
                   Every discipline required to ship and run reliable technology.
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => onNavigate('services')}
-                className="inline-flex items-center gap-2 self-start rounded-xl bg-[#1A1464] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#120D4A] whitespace-nowrap"
+                className="inline-flex items-center gap-2 self-start rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#120D4A] dark:hover:bg-[#3A43A8] whitespace-nowrap"
               >
                 <span>View All 9 Services &amp; Tech Stack</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -518,7 +518,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <motion.article
                   whileHover={{ y: -4 }}
                   transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
-                  className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[#E5E7F0] bg-white p-6 transition-colors duration-200 hover:border-[#1A1464]/35 hover:shadow-md"
+                  className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 transition-colors duration-200 hover:border-[#1A1464]/35 dark:hover:border-white/25 hover:shadow-md"
                 >
                   <div
                     aria-hidden="true"
@@ -528,17 +528,17 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <span className="font-display text-xs font-bold tabular-nums text-[#EE1119]">
                       {service.number}
                     </span>
-                    <h3 className="mt-2 font-display text-lg font-bold text-[#1A1464]">
+                    <h3 className="mt-2 font-display text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                       {service.title}
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[#4A4F63]">
+                    <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                       {service.summary}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => onSelectService(service.title)}
-                    className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] group-hover:text-[#EE1119] transition-colors"
+                    className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] group-hover:text-[#EE1119] transition-colors"
                   >
                     <span>Request this service</span>
                     <ArrowUpRight
@@ -592,7 +592,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* 5. See Some of Our Work Showcase (All 12 Live Screen Previews) */}
-      <section id="our-work-showcase" className="bg-white py-20 sm:py-24">
+      <section id="our-work-showcase" className="bg-white dark:bg-[#090D1F] py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -600,10 +600,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
                   See Some of Our Work · {projects.length} Production Builds
                 </p>
-                <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] text-balance">
+                <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC] text-balance">
                   Live screen previews across fintech, health, agritech &amp; cloud.
                 </h2>
-                <p className="mt-3 text-base text-[#4A4F63]">
+                <p className="mt-3 text-base text-[#4A4F63] dark:text-[#C2C9E0]">
                   Click any interactive screen preview below to inspect the UI, system
                   architecture, and verified outcomes shipped by 0xDEV.
                 </p>
@@ -611,7 +611,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('work')}
-                className="inline-flex items-center gap-2 self-start rounded-xl border border-[#1A1464] bg-white px-5 py-3 text-sm font-semibold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white whitespace-nowrap"
+                className="inline-flex items-center gap-2 self-start rounded-xl border border-[#1A1464] dark:border-[#3A437A] bg-white dark:bg-[#141A38] px-5 py-3 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#1A1464] hover:text-white dark:hover:bg-[#2E368F] whitespace-nowrap"
               >
                 <span>Open Full Work Archive</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -622,7 +622,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           {/* Sector Filter Tabs */}
           <div className="mt-8 overflow-x-auto pb-2">
             <div
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-1.5"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-1.5"
               role="tablist"
               aria-label="Filter showcased work by sector"
             >
@@ -636,7 +636,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     aria-selected={isActive}
                     onClick={() => setWorkSector(sector)}
                     className={`relative rounded-lg px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors ${
-                      isActive ? 'text-white' : 'text-[#4A4F63] hover:text-[#1A1464]'
+                      isActive ? 'text-white' : 'text-[#4A4F63] dark:text-[#B8C0DA] hover:text-[#1A1464] dark:hover:text-white'
                     }`}
                   >
                     {isActive && (
@@ -644,7 +644,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                         layoutId="home-work-filter"
                         aria-hidden="true"
                         transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                        className="absolute inset-0 rounded-lg bg-[#1A1464] shadow-sm"
+                        className="absolute inset-0 rounded-lg bg-[#1A1464] dark:bg-[#2E368F] shadow-sm"
                       />
                     )}
                     <span className="relative z-10">
@@ -670,7 +670,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   exit={{ opacity: 0, y: -10 }}
                   whileHover={{ y: -4 }}
                   transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
-                  className="flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] bg-white p-5 shadow-sm transition-shadow duration-200 hover:border-[#1A1464]/35 hover:shadow-md"
+                  className="flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-5 shadow-sm transition-shadow duration-200 hover:border-[#1A1464]/35 dark:hover:border-white/25 hover:shadow-md"
                 >
                   <div>
                     <ProjectPreviewScreen
@@ -678,34 +678,34 @@ export const HomePage: React.FC<HomePageProps> = ({
                       onInspect={(selected) => setInspectedProject(selected)}
                     />
 
-                    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6B7188]">
+                    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">
                       <span className="text-[#EE1119]">{study.sector}</span>
                       <span aria-hidden="true">·</span>
                       <span>{study.region}</span>
                     </div>
-                    <h3 className="mt-1.5 font-display text-lg font-bold text-[#1A1464]">
+                    <h3 className="mt-1.5 font-display text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                       {study.title}
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] line-clamp-3">
+                    <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0] line-clamp-3">
                       {study.solution}
                     </p>
                   </div>
 
-                  <div className="mt-5 pt-4 border-t border-[#E5E7F0]">
+                  <div className="mt-5 pt-4 border-t border-[#E5E7F0] dark:border-[#242C54]">
                     <div className="grid grid-cols-3 gap-2">
                       {study.metrics.map((metric) => (
                         <div key={metric.label}>
-                          <p className="font-display text-base font-extrabold text-[#1A1464] tabular-nums">
+                          <p className="font-display text-base font-extrabold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
                             {metric.value}
                           </p>
-                          <p className="text-[11px] leading-tight text-[#6B7188]">{metric.label}</p>
+                          <p className="text-[11px] leading-tight text-[#6B7188] dark:text-[#8E97B8]">{metric.label}</p>
                         </div>
                       ))}
                     </div>
                     <button
                       type="button"
                       onClick={() => setInspectedProject(study)}
-                      className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#F6F7FB] border border-[#E5E7F0] px-4 py-2 text-xs font-bold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white"
+                      className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] border border-[#E5E7F0] dark:border-[#242C54] px-4 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#1A1464] hover:text-white dark:hover:bg-[#2E368F]"
                     >
                       <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                       <span>Open Live Screen Preview</span>
@@ -719,14 +719,14 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* 6. Client Testimonials Carousel */}
-      <section className="bg-[#F6F7FB] py-20 sm:py-24">
+      <section className="bg-[#F6F7FB] dark:bg-[#101530] py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
                 Client Outcomes
               </p>
-              <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464]">
+              <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC]">
                 Why partners trust 0xDEV.
               </h2>
             </div>
@@ -739,7 +739,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   setActiveSlide((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length)
                 }
                 aria-label="Previous testimonial"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#E5E7F0] bg-white text-[#1A1464] transition-colors hover:border-[#1A1464] hover:bg-[#1A1464] hover:text-white"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:border-[#1A1464] hover:bg-[#1A1464] hover:text-white dark:hover:bg-[#2E368F]"
               >
                 <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               </motion.button>
@@ -748,14 +748,14 @@ export const HomePage: React.FC<HomePageProps> = ({
                 whileTap={{ scale: 0.92 }}
                 onClick={() => setActiveSlide((prev) => (prev + 1) % TESTIMONIALS.length)}
                 aria-label="Next testimonial"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#E5E7F0] bg-white text-[#1A1464] transition-colors hover:border-[#1A1464] hover:bg-[#1A1464] hover:text-white"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:border-[#1A1464] hover:bg-[#1A1464] hover:text-white dark:hover:bg-[#2E368F]"
               >
                 <ChevronRight className="h-5 w-5" aria-hidden="true" />
               </motion.button>
             </div>
           </div>
 
-          <div className="mt-10 overflow-hidden rounded-2xl border border-[#E5E7F0] bg-white p-7 sm:p-10 shadow-sm">
+          <div className="mt-10 overflow-hidden rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-7 sm:p-10 shadow-sm">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeSlide}
@@ -767,23 +767,23 @@ export const HomePage: React.FC<HomePageProps> = ({
               >
                 <div className="lg:col-span-8">
                   <Quote className="h-8 w-8 text-[#EE1119]" aria-hidden="true" />
-                  <blockquote className="mt-4 font-display text-lg sm:text-2xl font-semibold leading-snug text-[#1A1464]">
+                  <blockquote className="mt-4 font-display text-lg sm:text-2xl font-semibold leading-snug text-[#1A1464] dark:text-[#F4F6FC]">
                     “{currentTestimonial.quote}”
                   </blockquote>
                 </div>
-                <div className="lg:col-span-4 lg:border-l lg:border-[#E5E7F0] lg:pl-8">
-                  <p className="font-display text-base font-bold text-[#1A1464]">
+                <div className="lg:col-span-4 lg:border-l lg:border-[#E5E7F0] dark:lg:border-[#242C54] lg:pl-8">
+                  <p className="font-display text-base font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                     {currentTestimonial.name}
                   </p>
-                  <p className="mt-0.5 text-sm font-medium text-[#4A4F63]">
+                  <p className="mt-0.5 text-sm font-medium text-[#4A4F63] dark:text-[#C2C9E0]">
                     {currentTestimonial.role}
                   </p>
-                  <p className="text-xs font-semibold text-[#6B7188]">{currentTestimonial.company}</p>
-                  <div className="mt-5 pt-4 border-t border-[#E5E7F0]">
+                  <p className="text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">{currentTestimonial.company}</p>
+                  <div className="mt-5 pt-4 border-t border-[#E5E7F0] dark:border-[#242C54]">
                     <p className="text-xs font-bold uppercase tracking-wider text-[#EE1119]">
                       Measured Result
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-[#1A1464]">
+                    <p className="mt-1 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]">
                       {currentTestimonial.outcome}
                     </p>
                   </div>
@@ -795,7 +795,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* 7. Engineering Insights Preview Strip */}
-      <section className="bg-white py-20 sm:py-24">
+      <section className="bg-white dark:bg-[#090D1F] py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -803,17 +803,17 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
                   Engineering Journal
                 </p>
-                <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] text-balance">
+                <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC] text-balance">
                   Latest technical insights from our build floor.
                 </h2>
-                <p className="mt-3 text-base text-[#4A4F63]">
+                <p className="mt-3 text-base text-[#4A4F63] dark:text-[#C2C9E0]">
                   Original 0xDEV architecture deep dives plus an auto-updated daily engineering news wire.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => onNavigate('blog')}
-                className="inline-flex items-center gap-2 self-start rounded-xl border border-[#1A1464] bg-white px-5 py-3 text-sm font-semibold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white whitespace-nowrap"
+                className="inline-flex items-center gap-2 self-start rounded-xl border border-[#1A1464] dark:border-[#3A437A] bg-white dark:bg-[#141A38] px-5 py-3 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#1A1464] hover:text-white dark:hover:bg-[#2E368F] whitespace-nowrap"
               >
                 <BookOpen className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
                 <span>Explore All {articles.length + liveArticles.length} Briefings</span>
@@ -827,14 +827,14 @@ export const HomePage: React.FC<HomePageProps> = ({
               .slice(0, 3)
               .map((article) => (
               <StaggerItem key={article.id} className="h-full">
-                <article className="group flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB]/60 p-6 transition-colors hover:border-[#1A1464]/35 hover:bg-white">
+                <article className="group flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/60 dark:bg-[#141A38] p-6 transition-colors hover:border-[#1A1464]/35 dark:hover:border-white/25 hover:bg-white dark:hover:bg-[#182044]">
                   <div>
-                    <p className="font-mono text-xs font-semibold text-[#6B7188] tabular-nums">
+                    <p className="font-mono text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8] tabular-nums">
                       <span className="text-[#EE1119] font-bold">{article.category}</span>
                       <span className="mx-1.5">·</span>
                       <span>{article.publishedDate}</span>
                     </p>
-                    <h3 className="mt-2.5 font-display text-lg font-extrabold leading-snug text-[#1A1464] group-hover:text-[#EE1119] transition-colors">
+                    <h3 className="mt-2.5 font-display text-lg font-extrabold leading-snug text-[#1A1464] dark:text-[#F4F6FC] group-hover:text-[#EE1119] transition-colors">
                       <a
                         href={`/blog/${article.slug}`}
                         onClick={(e) => {
@@ -849,13 +849,13 @@ export const HomePage: React.FC<HomePageProps> = ({
                         {article.title}
                       </a>
                     </h3>
-                    <p className="mt-2.5 text-sm leading-relaxed text-[#4A4F63] line-clamp-3">
+                    <p className="mt-2.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0] line-clamp-3">
                       {article.excerpt}
                     </p>
                   </div>
 
-                  <div className="mt-5 flex items-center justify-between border-t border-[#E5E7F0] pt-4">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7188] tabular-nums">
+                  <div className="mt-5 flex items-center justify-between border-t border-[#E5E7F0] dark:border-[#242C54] pt-4">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8] tabular-nums">
                       <Clock className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
                       <span>{article.readTimeMinutes} min read</span>
                     </span>
@@ -868,7 +868,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                           onNavigate('blog');
                         }
                       }}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] group-hover:text-[#EE1119] transition-colors"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] group-hover:text-[#EE1119] transition-colors"
                     >
                       <span>Read Brief</span>
                       <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

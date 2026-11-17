@@ -37,12 +37,12 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
         onNavigate={onNavigate}
       />
 
-      <section className="bg-white py-16 sm:py-20">
+      <section className="bg-white dark:bg-[#090D1F] py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-[#E5E7F0] pb-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-[#E5E7F0] dark:border-[#242C54] pb-6">
             <div className="overflow-x-auto pb-1">
               <div
-                className="inline-flex flex-wrap gap-1.5 rounded-xl bg-[#F6F7FB] p-1.5 border border-[#E5E7F0]"
+                className="inline-flex flex-wrap gap-1.5 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] p-1.5 border border-[#E5E7F0] dark:border-[#242C54]"
                 role="tablist"
                 aria-label="Filter case studies by sector"
               >
@@ -56,7 +56,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                       aria-selected={isActive}
                       onClick={() => setSelectedSector(sector)}
                       className={`relative rounded-lg px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors duration-150 ${
-                        isActive ? 'text-white' : 'text-[#4A4F63] hover:text-[#1A1464]'
+                        isActive ? 'text-white' : 'text-[#4A4F63] dark:text-[#B8C0DA] hover:text-[#1A1464] dark:hover:text-white'
                       }`}
                     >
                       {isActive && (
@@ -64,7 +64,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                           layoutId="work-sector-pill"
                           aria-hidden="true"
                           transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                          className="absolute inset-0 rounded-lg bg-[#1A1464] shadow-sm"
+                          className="absolute inset-0 rounded-lg bg-[#1A1464] dark:bg-[#2E368F] shadow-sm"
                         />
                       )}
                       <span className="relative z-10">
@@ -75,7 +75,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                 })}
               </div>
             </div>
-            <p className="text-xs font-medium text-[#6B7188] tabular-nums shrink-0">
+            <p className="text-xs font-medium text-[#6B7188] dark:text-[#8E97B8] tabular-nums shrink-0">
               Showing {filteredStudies.length} shipped project
               {filteredStudies.length === 1 ? '' : 's'}
             </p>
@@ -92,13 +92,13 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                   exit={{ opacity: 0, y: -10 }}
                   whileHover={{ y: -3 }}
                   transition={{ duration: 0.22, ease: EASE_OUT_EXPO }}
-                  className="rounded-2xl border border-[#E5E7F0] bg-white p-6 sm:p-8 shadow-sm transition-colors duration-200 hover:border-[#1A1464]/35"
+                  className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8 shadow-sm transition-colors duration-200 hover:border-[#1A1464]/35 dark:hover:border-white/25"
                 >
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
                     {/* Left: Interactive Live Screen Preview + Narrative */}
                     <div className="lg:col-span-8 space-y-6">
                       <div>
-                        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6B7188]">
+                        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">
                           <span className="text-[#EE1119]">{study.sector}</span>
                           <span aria-hidden="true">·</span>
                           <span>{study.region}</span>
@@ -108,7 +108,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                           <span>{study.clientType}</span>
                         </div>
 
-                        <h2 className="mt-2.5 font-display text-2xl sm:text-3xl font-extrabold text-[#1A1464]">
+                        <h2 className="mt-2.5 font-display text-2xl sm:text-3xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
                           {study.title}
                         </h2>
                       </div>
@@ -122,34 +122,34 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                         </div>
                         <div className="md:col-span-6 space-y-4">
                           <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-[#6B7188]">
+                            <p className="text-xs font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
                               The Challenge
                             </p>
-                            <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63]">
+                            <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                               {study.problem}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-[#6B7188]">
+                            <p className="text-xs font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
                               The 0xDEV Solution
                             </p>
-                            <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63]">
+                            <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                               {study.solution}
                             </p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="rounded-xl bg-[#F6F7FB] p-4 border border-[#E5E7F0]">
-                        <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464]">
+                      <div className="rounded-xl bg-[#F6F7FB] dark:bg-[#101530] p-4 border border-[#E5E7F0] dark:border-[#242C54]">
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
                           Architecture Highlight
                         </p>
-                        <p className="mt-1 text-sm text-[#4A4F63]">{study.architectureNotes}</p>
+                        <p className="mt-1 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">{study.architectureNotes}</p>
                       </div>
                     </div>
 
                     {/* Right: Metrics & Actions */}
-                    <div className="lg:col-span-4 flex h-full flex-col justify-between rounded-xl bg-[#1A1464] p-6 text-white">
+                    <div className="lg:col-span-4 flex h-full flex-col justify-between rounded-xl bg-[#1A1464] dark:bg-[#0E1330] dark:border dark:border-[#242C54] p-6 text-white">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
                           Measured Outcomes

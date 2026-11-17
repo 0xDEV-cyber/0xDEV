@@ -162,10 +162,10 @@ export const AuthActionPage: React.FC<AuthActionPageProps> = ({ onDone }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F7FB] flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-[#E5E7F0] bg-white overflow-hidden shadow-[0_20px_50px_rgba(26,20,100,0.08)]">
+    <div className="min-h-screen bg-[#F6F7FB] dark:bg-[#090D1F] flex flex-col items-center justify-center px-4 py-12 transition-colors duration-200">
+      <div className="w-full max-w-md rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] overflow-hidden shadow-[0_20px_50px_rgba(26,20,100,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
         {/* Navy Header Band */}
-        <div className="bg-[#1A1464] px-6 py-6 sm:px-8 border-b-4 border-[#EE1119] flex items-center justify-between">
+        <div className="bg-[#1A1464] dark:bg-[#0E1330] px-6 py-6 sm:px-8 border-b-4 border-[#EE1119] flex items-center justify-between">
           <Logo variant="dark" />
           <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/75">
             Security Action
@@ -175,23 +175,23 @@ export const AuthActionPage: React.FC<AuthActionPageProps> = ({ onDone }) => {
         <div className="p-6 sm:p-8">
           {stage === 'processing' && (
             <div className="py-6 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F6F7FB] text-[#1A1464]">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#F4F6FC]">
                 <ShieldCheck className="h-6 w-6 text-[#EE1119]" aria-hidden="true" />
               </div>
-              <h1 className="mt-4 font-display text-xl font-extrabold text-[#1A1464]">{title}</h1>
-              <p className="mt-2 text-sm text-[#4A4F63]">{message}</p>
+              <h1 className="mt-4 font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">{title}</h1>
+              <p className="mt-2 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">{message}</p>
             </div>
           )}
 
           {(stage === 'verify_success' || stage === 'reset_success') && (
             <div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1A1464] text-white">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1A1464] dark:bg-[#2E368F] text-white">
                 <CheckCircle2 className="h-6 w-6 text-[#EE1119]" aria-hidden="true" />
               </div>
-              <h1 className="mt-5 font-display text-2xl font-extrabold text-[#1A1464]">
+              <h1 className="mt-5 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
                 {title}
               </h1>
-              <p className="mt-2 text-sm leading-relaxed text-[#4A4F63]">{message}</p>
+              <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">{message}</p>
               <button
                 type="button"
                 onClick={() => onDone(user ? 'home' : 'login')}
@@ -209,15 +209,15 @@ export const AuthActionPage: React.FC<AuthActionPageProps> = ({ onDone }) => {
                 <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Password Recovery</span>
               </div>
-              <h1 className="font-display text-2xl font-extrabold text-[#1A1464]">{title}</h1>
-              <p className="text-sm text-[#4A4F63]">
-                Updating credentials for <strong className="text-[#1A1464]">{resetEmail}</strong>
+              <h1 className="font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">{title}</h1>
+              <p className="text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
+                Updating credentials for <strong className="text-[#1A1464] dark:text-[#F4F6FC]">{resetEmail}</strong>
               </p>
 
               {formError && (
                 <div
                   role="alert"
-                  className="rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 p-3.5 text-xs font-semibold text-[#1A1464]"
+                  className="rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 dark:bg-[#EE1119]/10 p-3.5 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   {formError}
                 </div>
@@ -226,7 +226,7 @@ export const AuthActionPage: React.FC<AuthActionPageProps> = ({ onDone }) => {
               <div>
                 <label
                   htmlFor="action-new-password"
-                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   New Password
                 </label>
@@ -241,13 +241,13 @@ export const AuthActionPage: React.FC<AuthActionPageProps> = ({ onDone }) => {
                       if (formError) setFormError(null);
                     }}
                     placeholder="Minimum 8 characters"
-                    className="w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-4 py-3 pr-11 text-sm text-[#1A1464] focus:border-[#1A1464] focus:bg-white"
+                    className="w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-4 py-3 pr-11 text-sm text-[#1A1464] dark:text-white focus:border-[#1A1464] dark:focus:border-[#5D6BFF] focus:bg-white dark:focus:bg-[#182044]"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7188] hover:text-[#1A1464]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7188] dark:text-[#8E97B8] hover:text-[#1A1464] dark:hover:text-white"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -257,7 +257,7 @@ export const AuthActionPage: React.FC<AuthActionPageProps> = ({ onDone }) => {
               <div>
                 <label
                   htmlFor="action-confirm-password"
-                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   Confirm New Password
                 </label>
@@ -271,7 +271,7 @@ export const AuthActionPage: React.FC<AuthActionPageProps> = ({ onDone }) => {
                     if (formError) setFormError(null);
                   }}
                   placeholder="Repeat new password"
-                  className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-4 py-3 text-sm text-[#1A1464] focus:border-[#1A1464] focus:bg-white"
+                  className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-4 py-3 text-sm text-[#1A1464] dark:text-white focus:border-[#1A1464] dark:focus:border-[#5D6BFF] focus:bg-white dark:focus:bg-[#182044]"
                 />
               </div>
 
@@ -291,14 +291,14 @@ export const AuthActionPage: React.FC<AuthActionPageProps> = ({ onDone }) => {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EE1119]/10 text-[#EE1119]">
                 <AlertCircle className="h-6 w-6" aria-hidden="true" />
               </div>
-              <h1 className="mt-5 font-display text-2xl font-extrabold text-[#1A1464]">
+              <h1 className="mt-5 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
                 {title}
               </h1>
-              <p className="mt-2 text-sm leading-relaxed text-[#4A4F63]">{message}</p>
+              <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">{message}</p>
               <button
                 type="button"
                 onClick={() => onDone(user ? 'home' : 'login')}
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A1464] px-5 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#120D4A]"
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-5 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#120D4A] dark:hover:bg-[#3A43A8]"
               >
                 <span>{user ? 'Return to 0xDEV' : 'Return to Sign In'}</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -306,7 +306,7 @@ export const AuthActionPage: React.FC<AuthActionPageProps> = ({ onDone }) => {
             </div>
           )}
 
-          <div className="mt-6 border-t border-[#E5E7F0] pt-4 text-center text-[11px] text-[#6B7188]">
+          <div className="mt-6 border-t border-[#E5E7F0] dark:border-[#242C54] pt-4 text-center text-[11px] text-[#6B7188] dark:text-[#8E97B8]">
             0xDEV Client Security · {COMPANY_CONTACT.location} · {COMPANY_CONTACT.phoneDisplay}
           </div>
         </div>

@@ -34,10 +34,10 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
         <div className="space-y-2.5">
           <div className="flex items-baseline justify-between">
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-[#6B7188]">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
                 Daily Settlement Volume
               </p>
-              <p className="font-display text-base font-extrabold text-[#1A1464] tabular-nums">
+              <p className="font-display text-base font-extrabold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
                 $1,482,910
               </p>
             </div>
@@ -54,19 +54,25 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
                 width="11"
                 rx="2"
                 height={h}
-                fill={i >= 9 ? '#EE1119' : i % 2 === 0 ? '#1A1464' : '#C7CBE0'}
+                className={
+                  i >= 9
+                    ? 'fill-[#EE1119]'
+                    : i % 2 === 0
+                      ? 'fill-[#1A1464] dark:fill-[#7C8CFF]'
+                      : 'fill-[#C7CBE0] dark:fill-[#2D376B]'
+                }
               />
             ))}
           </svg>
           {!compact && (
-            <div className="space-y-1.5 pt-1 border-t border-[#E5E7F0] text-[10px]">
-              <div className="flex items-center justify-between text-[#1A1464] font-semibold">
+            <div className="space-y-1.5 pt-1 border-t border-[#E5E7F0] dark:border-[#242C54] text-[10px]">
+              <div className="flex items-center justify-between text-[#1A1464] dark:text-[#F4F6FC] font-semibold">
                 <span>KLA-8841 · MTN MoMo Batch</span>
                 <span className="tabular-nums text-[#10B981]">Settled · 4.2s</span>
               </div>
-              <div className="flex items-center justify-between text-[#4A4F63]">
+              <div className="flex items-center justify-between text-[#4A4F63] dark:text-[#C2C9E0]">
                 <span>NBO-3029 · Card Gateway</span>
-                <span className="tabular-nums text-[#1A1464]">Verified · 1.8s</span>
+                <span className="tabular-nums text-[#1A1464] dark:text-[#9FA8FF]">Verified · 1.8s</span>
               </div>
             </div>
           )}
@@ -77,20 +83,20 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
       return (
         <div className="space-y-2.5">
           <div className="grid grid-cols-3 gap-1.5 text-center">
-            <div className="rounded-lg bg-[#F6F7FB] p-1.5 border border-[#E5E7F0]">
-              <p className="text-[9px] text-[#6B7188]">Active Consults</p>
-              <p className="font-display text-xs font-extrabold text-[#1A1464] tabular-nums">38</p>
+            <div className="rounded-lg bg-[#F6F7FB] dark:bg-[#101530] p-1.5 border border-[#E5E7F0] dark:border-[#242C54]">
+              <p className="text-[9px] text-[#6B7188] dark:text-[#8E97B8]">Active Consults</p>
+              <p className="font-display text-xs font-extrabold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">38</p>
             </div>
-            <div className="rounded-lg bg-[#F6F7FB] p-1.5 border border-[#E5E7F0]">
-              <p className="text-[9px] text-[#6B7188]">Avg Wait</p>
+            <div className="rounded-lg bg-[#F6F7FB] dark:bg-[#101530] p-1.5 border border-[#E5E7F0] dark:border-[#242C54]">
+              <p className="text-[9px] text-[#6B7188] dark:text-[#8E97B8]">Avg Wait</p>
               <p className="font-display text-xs font-extrabold text-[#EE1119] tabular-nums">3m 12s</p>
             </div>
-            <div className="rounded-lg bg-[#F6F7FB] p-1.5 border border-[#E5E7F0]">
-              <p className="text-[9px] text-[#6B7188]">Lab Sync</p>
+            <div className="rounded-lg bg-[#F6F7FB] dark:bg-[#101530] p-1.5 border border-[#E5E7F0] dark:border-[#242C54]">
+              <p className="text-[9px] text-[#6B7188] dark:text-[#8E97B8]">Lab Sync</p>
               <p className="font-display text-xs font-extrabold text-[#10B981]">E2EE</p>
             </div>
           </div>
-          <div className="rounded-lg bg-[#1A1464] p-2.5 text-white flex items-center justify-between">
+          <div className="rounded-lg bg-[#1A1464] dark:bg-[#1E2554] p-2.5 text-white flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
               <Activity className="h-3.5 w-3.5 text-[#EE1119] shrink-0" aria-hidden="true" />
               <div className="min-w-0">
@@ -101,9 +107,9 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
             <span className="text-[9px] font-bold text-[#EE1119] shrink-0">HD Sync</span>
           </div>
           {!compact && (
-            <div className="flex items-center justify-between text-[10px] text-[#4A4F63] pt-0.5">
+            <div className="flex items-center justify-between text-[10px] text-[#4A4F63] dark:text-[#C2C9E0] pt-0.5">
               <span>Offline Queue Synced</span>
-              <span className="font-bold text-[#1A1464] tabular-nums">12/12 Clinics</span>
+              <span className="font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">12/12 Clinics</span>
             </div>
           )}
         </div>
@@ -112,7 +118,7 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
     case 'logistics':
       return (
         <div className="space-y-2.5">
-          <div className="relative rounded-lg bg-[#1A1464] p-2.5 text-white overflow-hidden">
+          <div className="relative rounded-lg bg-[#1A1464] dark:bg-[#1E2554] p-2.5 text-white overflow-hidden">
             <div className="flex items-center justify-between text-[9px] text-white/75 mb-1.5">
               <span className="font-bold text-white flex items-center gap-1">
                 <Truck className="h-3 w-3 text-[#EE1119]" aria-hidden="true" />
@@ -147,8 +153,8 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
           </div>
           {!compact && (
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-[#4A4F63]">Dispatch Queue Latency</span>
-              <span className="font-bold text-[#1A1464] tabular-nums">18 ms · -38% Spend</span>
+              <span className="text-[#4A4F63] dark:text-[#C2C9E0]">Dispatch Queue Latency</span>
+              <span className="font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">18 ms · -38% Spend</span>
             </div>
           )}
         </div>
@@ -160,23 +166,23 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Leaf className="h-3.5 w-3.5 text-[#10B981]" aria-hidden="true" />
-              <span className="text-[10px] font-bold text-[#1A1464]">
+              <span className="text-[10px] font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                 Kabale Center 04 · Harvest Batch
               </span>
             </div>
             <span className="text-[9px] font-bold text-[#EE1119] tabular-nums">6,400+ Farmers</span>
           </div>
-          <div className="rounded-lg bg-[#F6F7FB] p-2 border border-[#E5E7F0] space-y-1.5 text-[10px]">
-            <div className="flex justify-between font-semibold text-[#1A1464]">
+          <div className="rounded-lg bg-[#F6F7FB] dark:bg-[#101530] p-2 border border-[#E5E7F0] dark:border-[#242C54] space-y-1.5 text-[10px]">
+            <div className="flex justify-between font-semibold text-[#1A1464] dark:text-[#F4F6FC]">
               <span>Arabica Parchment · Lot #419</span>
               <span className="tabular-nums">2,480 kg</span>
             </div>
-            <div className="h-1.5 w-full rounded-full bg-[#E5E7F0] overflow-hidden">
+            <div className="h-1.5 w-full rounded-full bg-[#E5E7F0] dark:bg-[#242C54] overflow-hidden">
               <div className="h-full w-[88%] bg-[#10B981] rounded-full" />
             </div>
-            <div className="flex justify-between text-[9px] text-[#6B7188]">
+            <div className="flex justify-between text-[9px] text-[#6B7188] dark:text-[#8E97B8]">
               <span>MoMo Bulk Disbursement</span>
-              <span className="font-bold text-[#1A1464] tabular-nums">18 min Avg Payout</span>
+              <span className="font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">18 min Avg Payout</span>
             </div>
           </div>
         </div>
@@ -186,7 +192,7 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
       return (
         <div className="space-y-2.5">
           <div className="flex items-center justify-between text-[10px]">
-            <span className="font-bold text-[#1A1464] flex items-center gap-1">
+            <span className="font-bold text-[#1A1464] dark:text-[#F4F6FC] flex items-center gap-1">
               <ShoppingBag className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
               Vendor Settlement Grid
             </span>
@@ -200,10 +206,10 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
             ].map((hub) => (
               <div
                 key={hub.name}
-                className="rounded-lg bg-[#F6F7FB] border border-[#E5E7F0] p-1.5"
+                className="rounded-lg bg-[#F6F7FB] dark:bg-[#101530] border border-[#E5E7F0] dark:border-[#242C54] p-1.5"
               >
-                <p className="text-[9px] font-semibold text-[#6B7188]">{hub.name}</p>
-                <p className="font-display text-xs font-extrabold text-[#1A1464] tabular-nums">
+                <p className="text-[9px] font-semibold text-[#6B7188] dark:text-[#8E97B8]">{hub.name}</p>
+                <p className="font-display text-xs font-extrabold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
                   {hub.rev}
                 </p>
                 <p className="text-[9px] font-bold text-[#EE1119] tabular-nums">{hub.share}</p>
@@ -218,10 +224,10 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-[#6B7188]">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
                 Term Tuition Reconciliation
               </p>
-              <p className="font-display text-base font-extrabold text-[#1A1464] tabular-nums">
+              <p className="font-display text-base font-extrabold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
                 94.2% Matched
               </p>
             </div>
@@ -230,13 +236,13 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
             </span>
           </div>
           <div className="space-y-1.5 text-[10px]">
-            <div className="flex items-center justify-between rounded-md bg-[#F6F7FB] px-2 py-1 border border-[#E5E7F0]">
-              <span className="font-medium text-[#1A1464]">#RCP-9021 · Bank Slip Auto-Match</span>
+            <div className="flex items-center justify-between rounded-md bg-[#F6F7FB] dark:bg-[#101530] px-2 py-1 border border-[#E5E7F0] dark:border-[#242C54]">
+              <span className="font-medium text-[#1A1464] dark:text-[#F4F6FC]">#RCP-9021 · Bank Slip Auto-Match</span>
               <span className="font-bold text-[#10B981]">PDF Sent</span>
             </div>
             {!compact && (
-              <div className="flex items-center justify-between rounded-md bg-[#F6F7FB] px-2 py-1 border border-[#E5E7F0]">
-                <span className="font-medium text-[#1A1464]">#RCP-9022 · MoMo Tuition Direct</span>
+              <div className="flex items-center justify-between rounded-md bg-[#F6F7FB] dark:bg-[#101530] px-2 py-1 border border-[#E5E7F0] dark:border-[#242C54]">
+                <span className="font-medium text-[#1A1464] dark:text-[#F4F6FC]">#RCP-9022 · MoMo Tuition Direct</span>
                 <span className="font-bold text-[#10B981]">Cleared</span>
               </div>
             )}
@@ -248,7 +254,7 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
       return (
         <div className="space-y-2.5">
           <div className="flex items-center justify-between text-[10px]">
-            <span className="font-bold text-[#1A1464] flex items-center gap-1">
+            <span className="font-bold text-[#1A1464] dark:text-[#F4F6FC] flex items-center gap-1">
               <Sun className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
               Microgrid Inverter Output
             </span>
@@ -258,20 +264,19 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
             <path
               d="M0 36 C 30 34, 55 18, 85 16 C 115 14, 145 8, 175 14 C 195 18, 208 26, 220 24"
               fill="none"
-              stroke="#1A1464"
+              className="stroke-[#1A1464] dark:stroke-[#7C8CFF]"
               strokeWidth="2.5"
             />
             <path
               d="M0 36 C 30 34, 55 18, 85 16 C 115 14, 145 8, 175 14 C 195 18, 208 26, 220 24 L 220 44 L 0 44 Z"
-              fill="#1A1464"
-              fillOpacity="0.08"
+              className="fill-[#1A1464]/10 dark:fill-[#7C8CFF]/20"
             />
             <circle cx="145" cy="11" r="3.5" fill="#EE1119" />
           </svg>
           {!compact && (
-            <div className="flex items-center justify-between text-[10px] text-[#4A4F63]">
+            <div className="flex items-center justify-between text-[10px] text-[#4A4F63] dark:text-[#C2C9E0]">
               <span>PayGo Token Activation</span>
-              <span className="font-bold text-[#1A1464] tabular-nums">2.1s Avg · MQTT</span>
+              <span className="font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">2.1s Avg · MQTT</span>
             </div>
           )}
         </div>
@@ -282,10 +287,10 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-[#6B7188]">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
                 90-Day Cashflow Forecast
               </p>
-              <p className="font-display text-base font-extrabold text-[#1A1464] tabular-nums">
+              <p className="font-display text-base font-extrabold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
                 +$248,400 Net
               </p>
             </div>
@@ -300,10 +305,10 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <circle cx="214" cy="6" r="3.5" fill="#1A1464" />
+            <circle cx="214" cy="6" r="3.5" className="fill-[#1A1464] dark:fill-[#7C8CFF]" />
           </svg>
           {!compact && (
-            <div className="flex items-center justify-between text-[10px] text-[#4A4F63]">
+            <div className="flex items-center justify-between text-[10px] text-[#4A4F63] dark:text-[#C2C9E0]">
               <span>OCR Expense Receipts</span>
               <span className="font-bold text-[#10B981] tabular-nums">99.2% Auto-Tagged</span>
             </div>
@@ -315,7 +320,7 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
       return (
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#1A1464]">
+            <span className="text-[10px] font-bold text-[#1A1464] dark:text-[#F4F6FC]">
               Cold-Room Telemetry · Batch #C209
             </span>
             <span className="font-display text-sm font-extrabold text-[#10B981] tabular-nums">
@@ -323,14 +328,14 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
             </span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg bg-[#F6F7FB] p-2 border border-[#E5E7F0]">
-              <p className="text-[9px] text-[#6B7188]">Connected Pharmacies</p>
-              <p className="font-display text-xs font-extrabold text-[#1A1464] tabular-nums">
+            <div className="rounded-lg bg-[#F6F7FB] dark:bg-[#101530] p-2 border border-[#E5E7F0] dark:border-[#242C54]">
+              <p className="text-[9px] text-[#6B7188] dark:text-[#8E97B8]">Connected Pharmacies</p>
+              <p className="font-display text-xs font-extrabold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
                 410+ Active
               </p>
             </div>
-            <div className="rounded-lg bg-[#F6F7FB] p-2 border border-[#E5E7F0]">
-              <p className="text-[9px] text-[#6B7188]">Expiry Reduction</p>
+            <div className="rounded-lg bg-[#F6F7FB] dark:bg-[#101530] p-2 border border-[#E5E7F0] dark:border-[#242C54]">
+              <p className="text-[9px] text-[#6B7188] dark:text-[#8E97B8]">Expiry Reduction</p>
               <p className="font-display text-xs font-extrabold text-[#EE1119] tabular-nums">
                 -72% Waste
               </p>
@@ -342,7 +347,7 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
     case 'hospitality':
       return (
         <div className="space-y-2.5">
-          <div className="rounded-lg bg-[#1A1464] p-2.5 text-white flex items-center justify-between">
+          <div className="rounded-lg bg-[#1A1464] dark:bg-[#1E2554] p-2.5 text-white flex items-center justify-between">
             <div>
               <p className="text-[9px] uppercase tracking-wider text-white/70">
                 Bwindi Forest Eco-Lodge
@@ -358,7 +363,7 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
               <p className="text-[8px] text-white/75">USD · EUR · UGX</p>
             </div>
           </div>
-          <div className="flex items-center justify-between text-[10px] text-[#4A4F63]">
+          <div className="flex items-center justify-between text-[10px] text-[#4A4F63] dark:text-[#C2C9E0]">
             <span>Direct Permit Sync</span>
             <span className="font-bold text-[#10B981] tabular-nums">+118% Direct Bookings</span>
           </div>
@@ -369,23 +374,23 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
       return (
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#1A1464] flex items-center gap-1">
+            <span className="text-[10px] font-bold text-[#1A1464] dark:text-[#F4F6FC] flex items-center gap-1">
               <ShieldCheck className="h-3.5 w-3.5 text-[#10B981]" aria-hidden="true" />
               ISO 27001 Posture Score
             </span>
-            <span className="font-display text-sm font-extrabold text-[#1A1464] tabular-nums">
+            <span className="font-display text-sm font-extrabold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
               99.4%
             </span>
           </div>
           <div className="space-y-1 text-[10px]">
-            <div className="flex justify-between rounded-md bg-[#F6F7FB] px-2 py-1 border border-[#E5E7F0]">
-              <span className="text-[#4A4F63]">IAM Policy Drift Check</span>
+            <div className="flex justify-between rounded-md bg-[#F6F7FB] dark:bg-[#101530] px-2 py-1 border border-[#E5E7F0] dark:border-[#242C54]">
+              <span className="text-[#4A4F63] dark:text-[#C2C9E0]">IAM Policy Drift Check</span>
               <span className="font-bold text-[#10B981]">0 Violations</span>
             </div>
             {!compact && (
-              <div className="flex justify-between rounded-md bg-[#F6F7FB] px-2 py-1 border border-[#E5E7F0]">
-                <span className="text-[#4A4F63]">TLS &amp; Secret Rotation</span>
-                <span className="font-bold text-[#1A1464]">Auto-Verified</span>
+              <div className="flex justify-between rounded-md bg-[#F6F7FB] dark:bg-[#101530] px-2 py-1 border border-[#E5E7F0] dark:border-[#242C54]">
+                <span className="text-[#4A4F63] dark:text-[#C2C9E0]">TLS &amp; Secret Rotation</span>
+                <span className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">Auto-Verified</span>
               </div>
             )}
           </div>
@@ -396,18 +401,18 @@ const ScreenBody: React.FC<{ study: CaseStudy; compact?: boolean }> = ({ study, 
       return (
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-[#1A1464] flex items-center gap-1">
-              <Droplets className="h-3.5 w-3.5 text-[#1A1464]" aria-hidden="true" />
+            <span className="text-[10px] font-bold text-[#1A1464] dark:text-[#F4F6FC] flex items-center gap-1">
+              <Droplets className="h-3.5 w-3.5 text-[#1A1464] dark:text-[#7C8CFF]" aria-hidden="true" />
               Municipal Water Meter Grid
             </span>
             <span className="text-[9px] font-bold text-[#EE1119] tabular-nums">
               28,000+ Homes
             </span>
           </div>
-          <div className="rounded-lg bg-[#F6F7FB] p-2 border border-[#E5E7F0] flex items-center justify-between text-[10px]">
+          <div className="rounded-lg bg-[#F6F7FB] dark:bg-[#101530] p-2 border border-[#E5E7F0] dark:border-[#242C54] flex items-center justify-between text-[10px]">
             <div>
-              <p className="font-bold text-[#1A1464]">Meter #KBL-4820 · GPS Verified</p>
-              <p className="text-[9px] text-[#6B7188]">Instant Citizen MoMo Receipt</p>
+              <p className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">Meter #KBL-4820 · GPS Verified</p>
+              <p className="text-[9px] text-[#6B7188] dark:text-[#8E97B8]">Instant Citizen MoMo Receipt</p>
             </div>
             <span className="font-display text-xs font-extrabold text-[#10B981] tabular-nums">
               98.4%
@@ -434,36 +439,36 @@ export const ProjectPreviewScreen: React.FC<ProjectPreviewScreenProps> = ({
             'aria-label': `Open live preview for ${study.title}`,
           }
         : {})}
-      className={`group/screen relative block w-full text-left overflow-hidden rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] transition-all duration-200 ${
+      className={`group/screen relative block w-full text-left overflow-hidden rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] transition-all duration-200 ${
         onInspect
-          ? 'cursor-pointer hover:border-[#1A1464]/45 hover:shadow-[0_12px_28px_rgba(26,20,100,0.1)]'
+          ? 'cursor-pointer hover:border-[#1A1464]/45 dark:hover:border-[#4F59B8] hover:shadow-[0_12px_28px_rgba(26,20,100,0.1)] dark:hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)]'
           : ''
       }`}
     >
       {/* Browser Window Top Chrome */}
-      <div className="flex items-center justify-between gap-2 border-b border-[#E5E7F0] bg-white px-3 py-2">
+      <div className="flex items-center justify-between gap-2 border-b border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2">
         <div className="flex items-center gap-1.5" aria-hidden="true">
           <span className="h-2 w-2 rounded-full bg-[#EE1119]" />
-          <span className="h-2 w-2 rounded-full bg-[#1A1464]/30" />
-          <span className="h-2 w-2 rounded-full bg-[#CBD5E1]" />
+          <span className="h-2 w-2 rounded-full bg-[#1A1464]/30 dark:bg-white/30" />
+          <span className="h-2 w-2 rounded-full bg-[#CBD5E1] dark:bg-[#3A437A]" />
         </div>
-        <div className="flex items-center gap-1 rounded-md bg-[#F6F7FB] px-2 py-0.5 text-[10px] font-medium text-[#6B7188] truncate max-w-[70%]">
+        <div className="flex items-center gap-1 rounded-md bg-[#F6F7FB] dark:bg-[#101530] px-2 py-0.5 text-[10px] font-medium text-[#6B7188] dark:text-[#8E97B8] truncate max-w-[70%]">
           <Lock className="h-2.5 w-2.5 text-[#10B981] shrink-0" aria-hidden="true" />
           <span className="truncate">{study.previewUrl}</span>
         </div>
         {onInspect ? (
           <Maximize2
-            className="h-3 w-3 text-[#6B7188] transition-colors group-hover/screen:text-[#EE1119] shrink-0"
+            className="h-3 w-3 text-[#6B7188] dark:text-[#8E97B8] transition-colors group-hover/screen:text-[#EE1119] shrink-0"
             aria-hidden="true"
           />
         ) : (
-          <Globe className="h-3 w-3 text-[#6B7188] shrink-0" aria-hidden="true" />
+          <Globe className="h-3 w-3 text-[#6B7188] dark:text-[#8E97B8] shrink-0" aria-hidden="true" />
         )}
       </div>
 
       {/* Screen Content Canvas */}
-      <div className={`bg-white/95 ${compact ? 'p-3' : 'p-4'}`}>
-        <div className="mb-2.5 flex items-center justify-between gap-2 text-[9px] font-bold uppercase tracking-wider text-[#6B7188]">
+      <div className={`bg-white/95 dark:bg-[#141A38] ${compact ? 'p-3' : 'p-4'}`}>
+        <div className="mb-2.5 flex items-center justify-between gap-2 text-[9px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
           <span className="text-[#EE1119] truncate">{study.deliverableType}</span>
           <span className="shrink-0 tabular-nums">{study.metrics[0]?.value}</span>
         </div>
@@ -503,7 +508,7 @@ export const ProjectPreviewModal: React.FC<ProjectPreviewModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#1A1464]/65 backdrop-blur-sm p-4 sm:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#1A1464]/65 dark:bg-[#050814]/80 backdrop-blur-sm p-4 sm:p-6"
           onClick={onClose}
           role="dialog"
           aria-modal="true"
@@ -515,12 +520,12 @@ export const ProjectPreviewModal: React.FC<ProjectPreviewModalProps> = ({
             exit={{ opacity: 0, scale: 0.96, y: 10 }}
             transition={{ duration: 0.24, ease: EASE_OUT_EXPO }}
             onClick={(e) => e.stopPropagation()}
-            className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-[#E5E7F0] bg-white shadow-[0_24px_60px_rgba(26,20,100,0.3)]"
+            className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] shadow-[0_24px_60px_rgba(26,20,100,0.3)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.55)]"
           >
             {/* Header */}
-            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#E5E7F0] bg-white/95 backdrop-blur-sm px-6 py-5 sm:px-8">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[#E5E7F0] dark:border-[#242C54] bg-white/95 dark:bg-[#101530]/95 backdrop-blur-sm px-6 py-5 sm:px-8">
               <div>
-                <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-[#6B7188]">
+                <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-[#6B7188] dark:text-[#8E97B8]">
                   <span className="text-[#EE1119]">{study.sector}</span>
                   <span aria-hidden="true">·</span>
                   <span>{study.region}</span>
@@ -529,7 +534,7 @@ export const ProjectPreviewModal: React.FC<ProjectPreviewModalProps> = ({
                 </div>
                 <h2
                   id="project-preview-modal-title"
-                  className="mt-1.5 font-display text-xl sm:text-2xl font-extrabold text-[#1A1464]"
+                  className="mt-1.5 font-display text-xl sm:text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   {study.title}
                 </h2>
@@ -538,7 +543,7 @@ export const ProjectPreviewModal: React.FC<ProjectPreviewModalProps> = ({
                 type="button"
                 onClick={onClose}
                 aria-label="Close project preview"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#1A1464] dark:hover:bg-[#2E368F] hover:text-white"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -548,13 +553,13 @@ export const ProjectPreviewModal: React.FC<ProjectPreviewModalProps> = ({
             <div className="p-6 sm:p-8 space-y-6">
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
                 <div className="lg:col-span-7">
-                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#6B7188]">
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#6B7188] dark:text-[#8E97B8]">
                     Interactive Product Screen Preview
                   </p>
                   <ProjectPreviewScreen study={study} />
                 </div>
 
-                <div className="lg:col-span-5 rounded-xl bg-[#1A1464] p-5 text-white space-y-4">
+                <div className="lg:col-span-5 rounded-xl bg-[#1A1464] dark:bg-[#141A3B] dark:border dark:border-[#2B3466] p-5 text-white space-y-4">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#EE1119]">
                       Client Profile
@@ -584,25 +589,25 @@ export const ProjectPreviewModal: React.FC<ProjectPreviewModalProps> = ({
               </div>
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div className="rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#6B7188]">
+                <div className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
                     The Challenge
                   </p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63]">{study.problem}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">{study.problem}</p>
                 </div>
-                <div className="rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464]">
+                <div className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
                     The 0xDEV Solution
                   </p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63]">{study.solution}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">{study.solution}</p>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 rounded-xl border border-[#E5E7F0] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-4 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-2.5">
                   <Cpu className="mt-0.5 h-4 w-4 text-[#EE1119] shrink-0" aria-hidden="true" />
-                  <p className="text-xs sm:text-sm text-[#4A4F63]">
-                    <strong className="text-[#1A1464]">Architecture:</strong>{' '}
+                  <p className="text-xs sm:text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
+                    <strong className="text-[#1A1464] dark:text-[#F4F6FC]">Architecture:</strong>{' '}
                     {study.architectureNotes}
                   </p>
                 </div>
@@ -663,7 +668,7 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 flex items-center justify-center bg-[#1A1464]/75 backdrop-blur-sm p-3 sm:p-6"
+            className="fixed inset-0 z-40 flex items-center justify-center bg-[#1A1464]/75 dark:bg-[#050814]/85 backdrop-blur-sm p-3 sm:p-6"
             onClick={onClose}
             role="dialog"
             aria-modal="true"
@@ -675,10 +680,10 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
               exit={{ opacity: 0, y: 12, scale: 0.98 }}
               transition={{ duration: 0.25, ease: EASE_OUT_EXPO }}
               onClick={(e) => e.stopPropagation()}
-              className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB] shadow-[0_28px_70px_rgba(26,20,100,0.38)]"
+              className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#090D1F] shadow-[0_28px_70px_rgba(26,20,100,0.38)] dark:shadow-[0_28px_70px_rgba(0,0,0,0.65)]"
             >
               {/* Modal Top Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7F0] bg-white px-5 py-4 sm:px-7">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-5 py-4 sm:px-7">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#EE1119] flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
@@ -686,7 +691,7 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
                   </p>
                   <h2
                     id="work-showcase-modal-title"
-                    className="mt-1 font-display text-lg sm:text-2xl font-extrabold text-[#1A1464]"
+                    className="mt-1 font-display text-lg sm:text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Live UI Screen Previews &amp; Architecture Portfolio
                   </h2>
@@ -710,7 +715,7 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
                     type="button"
                     onClick={onClose}
                     aria-label="Close portfolio showcase"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#1A1464] dark:hover:bg-[#2E368F] hover:text-white"
                   >
                     <X className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -718,7 +723,7 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
               </div>
 
               {/* Filter Strip */}
-              <div className="border-b border-[#E5E7F0] bg-white px-5 py-3 sm:px-7 overflow-x-auto">
+              <div className="border-b border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-5 py-3 sm:px-7 overflow-x-auto">
                 <div className="flex items-center gap-1.5 min-w-max" role="tablist" aria-label="Project categories">
                   {dynamicFilters.map((item) => {
                     const active = filter === item;
@@ -731,8 +736,8 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
                         onClick={() => setFilter(item)}
                         className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                           active
-                            ? 'bg-[#1A1464] text-white'
-                            : 'bg-[#F6F7FB] text-[#4A4F63] hover:text-[#1A1464]'
+                            ? 'bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                            : 'bg-[#F6F7FB] dark:bg-[#141A38] text-[#4A4F63] dark:text-[#C2C9E0] hover:text-[#1A1464] dark:hover:text-white'
                         }`}
                       >
                         {item}
@@ -748,31 +753,31 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
                   {visibleProjects.map((study) => (
                     <article
                       key={study.id}
-                      className="flex flex-col justify-between rounded-2xl border border-[#E5E7F0] bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                      className="flex flex-col justify-between rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-4 shadow-sm transition-shadow hover:shadow-md"
                     >
                       <div>
                         <ProjectPreviewScreen study={study} onInspect={setInspected} />
-                        <div className="mt-4 flex items-center gap-2 text-[11px] font-semibold text-[#6B7188]">
+                        <div className="mt-4 flex items-center gap-2 text-[11px] font-semibold text-[#6B7188] dark:text-[#8E97B8]">
                           <span className="text-[#EE1119]">{study.sector}</span>
                           <span aria-hidden="true">·</span>
                           <span className="truncate">{study.region}</span>
                         </div>
-                        <h3 className="mt-1 font-display text-base font-bold text-[#1A1464]">
+                        <h3 className="mt-1 font-display text-base font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                           {study.title}
                         </h3>
-                        <p className="mt-1.5 text-xs leading-relaxed text-[#4A4F63] line-clamp-2">
+                        <p className="mt-1.5 text-xs leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0] line-clamp-2">
                           {study.solution}
                         </p>
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between border-t border-[#E5E7F0] pt-3">
-                        <span className="text-[11px] font-bold text-[#1A1464] tabular-nums">
+                      <div className="mt-4 flex items-center justify-between border-t border-[#E5E7F0] dark:border-[#242C54] pt-3">
+                        <span className="text-[11px] font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
                           {study.metrics[0]?.value} · {study.metrics[0]?.label}
                         </span>
                         <button
                           type="button"
                           onClick={() => setInspected(study)}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-[#EE1119] hover:text-[#1A1464] transition-colors"
+                          className="inline-flex items-center gap-1 text-xs font-bold text-[#EE1119] hover:text-[#1A1464] dark:hover:text-white transition-colors"
                         >
                           <span>Inspect</span>
                           <ArrowRight className="h-3 w-3" aria-hidden="true" />
@@ -784,18 +789,18 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
               </div>
 
               {/* Bottom Footer Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E5E7F0] bg-white px-5 py-3.5 sm:px-7">
-                <p className="text-xs text-[#4A4F63] flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-5 py-3.5 sm:px-7">
+                <p className="text-xs text-[#4A4F63] dark:text-[#C2C9E0] flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" aria-hidden="true" />
                   <span>
-                    Showing <strong className="text-[#1A1464] tabular-nums">{visibleProjects.length}</strong> of{' '}
-                    <strong className="text-[#1A1464] tabular-nums">{projects.length}</strong> production builds by 0xDEV.
+                    Showing <strong className="text-[#1A1464] dark:text-white tabular-nums">{visibleProjects.length}</strong> of{' '}
+                    <strong className="text-[#1A1464] dark:text-white tabular-nums">{projects.length}</strong> production builds by 0xDEV.
                   </span>
                 </p>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl border border-[#1A1464] px-4 py-1.5 text-xs font-bold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white"
+                  className="rounded-xl border border-[#1A1464] dark:border-[#3A437A] px-4 py-1.5 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#1A1464] dark:hover:bg-[#2E368F] hover:text-white"
                 >
                   Close Showcase
                 </button>

@@ -158,7 +158,7 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
     <section
       id="project-estimator"
       aria-labelledby="estimator-heading"
-      className="bg-white py-16 sm:py-20 border-t border-[#E5E7F0]"
+      className="bg-white dark:bg-[#090D1F] py-16 sm:py-20 border-t border-[#E5E7F0] dark:border-[#242C54]"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
@@ -168,11 +168,11 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
           </p>
           <h2
             id="estimator-heading"
-            className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] text-balance"
+            className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC] text-balance"
           >
             Scope your build in 30 seconds.
           </h2>
-          <p className="mt-3 text-base text-[#4A4F63]">
+          <p className="mt-3 text-base text-[#4A4F63] dark:text-[#C2C9E0]">
             Select the layers and capabilities you need for an instant ballpark budget and timeline,
             then send it straight to our Kabale engineering desk.
           </p>
@@ -180,10 +180,10 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
 
         <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
           {/* Left Controls */}
-          <div className="lg:col-span-7 space-y-8 rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB]/60 p-6 sm:p-8">
+          <div className="lg:col-span-7 space-y-8 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/60 dark:bg-[#101530] p-6 sm:p-8">
             {/* Step 1: Platforms */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464]">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
                 01 · Core Platforms &amp; Disciplines (Select 1 or more)
               </p>
               <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -197,14 +197,14 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
                       aria-pressed={active}
                       className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-xs sm:text-sm font-semibold transition-all ${
                         active
-                          ? 'border-[#1A1464] bg-[#1A1464] text-white shadow-sm'
-                          : 'border-[#E5E7F0] bg-white text-[#1A1464] hover:border-[#1A1464]/40'
+                          ? 'border-[#1A1464] dark:border-[#3A459E] bg-[#1A1464] dark:bg-[#232B6E] text-white shadow-sm'
+                          : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#1A1464]/40 dark:hover:border-white/25'
                       }`}
                     >
                       <span>{opt.label}</span>
                       <span
                         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md ${
-                          active ? 'bg-[#EE1119] text-white' : 'bg-[#F6F7FB] text-[#6B7188]'
+                          active ? 'bg-[#EE1119] text-white' : 'bg-[#F6F7FB] dark:bg-[#101530] text-[#6B7188] dark:text-[#8E97B8]'
                         }`}
                       >
                         <Check className="h-3 w-3" aria-hidden="true" />
@@ -217,7 +217,7 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
 
             {/* Step 2: Modules */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464]">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
                 02 · Capabilities &amp; Integrations (Optional)
               </p>
               <div className="mt-3 flex flex-wrap gap-2.5">
@@ -231,13 +231,13 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
                       aria-pressed={active}
                       className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition-all ${
                         active
-                          ? 'border-[#EE1119] bg-[#EE1119]/10 text-[#1A1464]'
-                          : 'border-[#E5E7F0] bg-white text-[#4A4F63] hover:border-[#1A1464]/40'
+                          ? 'border-[#EE1119] bg-[#EE1119]/10 dark:bg-[#EE1119]/20 text-[#1A1464] dark:text-white'
+                          : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#4A4F63] dark:text-[#B8C0DA] hover:border-[#1A1464]/40 dark:hover:border-white/25'
                       }`}
                     >
                       <span
                         className={`h-2 w-2 rounded-full ${
-                          active ? 'bg-[#EE1119]' : 'bg-[#CBD5E1]'
+                          active ? 'bg-[#EE1119]' : 'bg-[#CBD5E1] dark:bg-[#3A437A]'
                         }`}
                       />
                       <span>{mod.label}</span>
@@ -249,7 +249,7 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
 
             {/* Step 3: Pace */}
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464]">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
                 03 · Delivery Pace &amp; Support
               </p>
               <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -263,12 +263,12 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
                       aria-pressed={active}
                       className={`rounded-xl border p-3.5 text-left transition-all ${
                         active
-                          ? 'border-[#1A1464] bg-white ring-2 ring-[#1A1464]/15'
-                          : 'border-[#E5E7F0] bg-white hover:border-[#1A1464]/35'
+                          ? 'border-[#1A1464] dark:border-[#5D6BFF] bg-white dark:bg-[#182044] ring-2 ring-[#1A1464]/15 dark:ring-[#5D6BFF]/30'
+                          : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] hover:border-[#1A1464]/35 dark:hover:border-white/25'
                       }`}
                     >
-                      <p className="font-display text-xs font-bold text-[#1A1464]">{pace.label}</p>
-                      <p className="mt-1 text-[11px] leading-snug text-[#6B7188]">{pace.detail}</p>
+                      <p className="font-display text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC]">{pace.label}</p>
+                      <p className="mt-1 text-[11px] leading-snug text-[#6B7188] dark:text-[#8E97B8]">{pace.detail}</p>
                     </button>
                   );
                 })}
@@ -282,7 +282,7 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
             initial={{ opacity: 0.92, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
-            className="lg:col-span-5 relative overflow-hidden rounded-2xl bg-[#1A1464] p-7 sm:p-8 text-white shadow-[0_24px_50px_rgba(26,20,100,0.2)]"
+            className="lg:col-span-5 relative overflow-hidden rounded-2xl bg-[#1A1464] dark:bg-[#141A3B] dark:border dark:border-[#2B3466] p-7 sm:p-8 text-white shadow-[0_24px_50px_rgba(26,20,100,0.2)] dark:shadow-[0_24px_50px_rgba(0,0,0,0.5)]"
           >
             <div
               aria-hidden="true"

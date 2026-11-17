@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { LogIn, LogOut, Menu, X } from 'lucide-react';
+import { LogIn, LogOut, Menu, Moon, Sun, X } from 'lucide-react';
 import { AnimatePresence, motion, useScroll, useSpring } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { NAV_LINKS, PageRoute } from '../data/siteData';
 import { Logo } from './Logo';
 import { PWAInstallButton } from './PWAControls';
@@ -14,6 +15,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenAuth }) => {
   const { user, signOutUser } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { scrollYProgress } = useScroll();
@@ -55,8 +57,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-200 print:hidden ${
         scrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(26,20,100,0.08)] border-b border-[#E5E7F0] py-3'
-          : 'bg-white/95 backdrop-blur-sm border-b border-[#E5E7F0]/70 py-4'
+          ? 'bg-white/95 dark:bg-[#090D1F]/95 backdrop-blur-md shadow-[0_8px_30px_rgba(26,20,100,0.08)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.45)] border-b border-[#E5E7F0] dark:border-[#242C54] py-3'
+          : 'bg-white/95 dark:bg-[#090D1F]/95 backdrop-blur-sm border-b border-[#E5E7F0]/70 dark:border-[#242C54]/70 py-4'
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 xl:gap-8 px-4 sm:px-6 lg:px-8">
@@ -69,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
           whileTap={{ scale: 0.98 }}
           className="whitespace-nowrap shrink-0 rounded-md focus-visible:outline-2"
         >
-          <Logo variant="light" />
+          <Logo variant={isDark ? 'dark' : 'light'} />
         </motion.a>
 
         {/* Zone 2: Single-line Page Navigation Links */}
@@ -83,7 +85,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
                 onClick={(e) => handleLinkClick(e, link.id)}
                 aria-current={isActive ? 'page' : undefined}
                 className={`relative py-1.5 text-[13px] xl:text-sm font-semibold whitespace-nowrap shrink-0 transition-colors duration-150 ${
-                  isActive ? 'text-[#1A1464]' : 'text-[#4A4F63] hover:text-[#1A1464]'
+                  isActive
+                    ? 'text-[#1A1464] dark:text-white'
+                    : 'text-[#4A4F63] dark:text-[#B8C0DA] hover:text-[#1A1464] dark:hover:text-white'
                 }`}
               >
                 {link.label}
@@ -100,8 +104,24 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
           })}
         </nav>
 
-        {/* Zone 3: Consultation CTA + PWA Install + Auth + Mobile Menu */}
+        {/* Zone 3: Theme Toggle + Consultation CTA + PWA Install + Auth + Mobile Menu */}
         <div className="flex items-center gap-2 shrink-0">
+          <motion.button
+            type="button"
+            onClick={toggleTheme}
+            whileTap={{ scale: 0.94 }}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-pressed={isDark}
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:border-[#1A1464]/40 dark:hover:border-white/30 hover:bg-white dark:hover:bg-[#1C234B] shrink-0"
+          >
+            {isDark ? (
+              <Sun className="h-4 w-4 text-amber-400" aria-hidden="true" />
+            ) : (
+              <Moon className="h-4 w-4 text-[#1A1464]" aria-hidden="true" />
+            )}
+          </motion.button>
+
           <div className="hidden xl:block">
             <PWAInstallButton compact />
           </div>
@@ -124,7 +144,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
               whileTap={{ scale: 0.97 }}
               title={`Signed in as ${user.displayName || user.email || 'Member'}`}
               aria-label="Sign out"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs font-semibold text-[#1A1464] transition-colors hover:border-[#1A1464]/40 hover:bg-[#F6F7FB] whitespace-nowrap shrink-0"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:border-[#1A1464]/40 dark:hover:border-white/30 hover:bg-[#F6F7FB] dark:hover:bg-[#1C234B] whitespace-nowrap shrink-0"
             >
               <LogOut className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
               <span>Sign Out</span>
@@ -138,7 +158,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
                   onOpenAuth('login');
                 }}
                 whileTap={{ scale: 0.97 }}
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs font-semibold text-[#1A1464] transition-colors hover:border-[#1A1464]/40 hover:bg-[#F6F7FB] whitespace-nowrap shrink-0"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:border-[#1A1464]/40 dark:hover:border-white/30 hover:bg-[#F6F7FB] dark:hover:bg-[#1C234B] whitespace-nowrap shrink-0"
               >
                 <LogIn className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
                 <span>Sign In</span>
@@ -153,7 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
             aria-expanded={mobileOpen}
             aria-controls="mobile-navigation-drawer"
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#E5E7F0] bg-white text-[#1A1464] transition-colors hover:bg-[#F6F7FB] lg:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#F6F7FB] dark:hover:bg-[#1C234B] lg:hidden"
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </motion.button>
@@ -176,7 +196,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className="border-t border-[#E5E7F0] bg-white px-4 pb-6 pt-4 shadow-lg lg:hidden"
+            className="border-t border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#0D1229] px-4 pb-6 pt-4 shadow-lg lg:hidden"
           >
             <nav aria-label="Mobile Navigation" className="flex flex-col gap-1">
               <a
@@ -184,8 +204,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
                 onClick={(e) => handleLinkClick(e, 'home')}
                 className={`flex items-center justify-between rounded-xl px-4 py-3 text-base font-semibold transition-colors ${
                   currentPage === 'home'
-                    ? 'bg-[#F6F7FB] text-[#1A1464]'
-                    : 'text-[#4A4F63] hover:bg-[#F6F7FB] hover:text-[#1A1464]'
+                    ? 'bg-[#F6F7FB] dark:bg-[#182044] text-[#1A1464] dark:text-white'
+                    : 'text-[#4A4F63] dark:text-[#C2C9E0] hover:bg-[#F6F7FB] dark:hover:bg-[#141A38] hover:text-[#1A1464] dark:hover:text-white'
                 }`}
               >
                 <span>Home</span>
@@ -202,8 +222,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
                     onClick={(e) => handleLinkClick(e, link.id)}
                     className={`flex items-center justify-between rounded-xl px-4 py-3 text-base font-semibold transition-colors ${
                       isActive
-                        ? 'bg-[#F6F7FB] text-[#1A1464]'
-                        : 'text-[#4A4F63] hover:bg-[#F6F7FB] hover:text-[#1A1464]'
+                        ? 'bg-[#F6F7FB] dark:bg-[#182044] text-[#1A1464] dark:text-white'
+                        : 'text-[#4A4F63] dark:text-[#C2C9E0] hover:bg-[#F6F7FB] dark:hover:bg-[#141A38] hover:text-[#1A1464] dark:hover:text-white'
                     }`}
                   >
                     <span>{link.label}</span>
@@ -213,7 +233,24 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
                   </a>
                 );
               })}
-              <div className="mt-3 pt-3 border-t border-[#E5E7F0] space-y-2">
+              <div className="mt-3 pt-3 border-t border-[#E5E7F0] dark:border-[#242C54] space-y-2">
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="flex w-full items-center justify-between rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] px-4 py-3 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
+                >
+                  <span className="flex items-center gap-2">
+                    {isDark ? (
+                      <Sun className="h-4 w-4 text-amber-400" aria-hidden="true" />
+                    ) : (
+                      <Moon className="h-4 w-4 text-[#1A1464]" aria-hidden="true" />
+                    )}
+                    <span>Appearance</span>
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
+                    {isDark ? 'Dark' : 'Light'}
+                  </span>
+                </button>
                 <a
                   href="/contact"
                   onClick={(e) => handleLinkClick(e, 'contact')}
@@ -228,7 +265,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
                   <button
                     type="button"
                     onClick={handleSignOut}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] px-5 py-3 text-sm font-semibold text-[#1A1464]"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] px-5 py-3 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     <LogOut className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
                     <span>Sign Out ({user.email})</span>
@@ -241,7 +278,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
                         setMobileOpen(false);
                         onOpenAuth('login');
                       }}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] px-5 py-3 text-sm font-semibold text-[#1A1464]"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] px-5 py-3 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
                     >
                       <LogIn className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
                       <span>Sign In / Register</span>

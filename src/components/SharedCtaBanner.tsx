@@ -10,10 +10,10 @@ interface SharedCtaBannerProps {
 
 export const SharedCtaBanner: React.FC<SharedCtaBannerProps> = ({ onNavigate }) => {
   return (
-    <section className="bg-white py-16 sm:py-20 border-t border-[#E5E7F0]">
+    <section className="bg-white dark:bg-[#090D1F] py-16 sm:py-20 border-t border-[#E5E7F0] dark:border-[#242C54]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <div className="relative overflow-hidden rounded-2xl bg-[#1A1464] px-6 py-12 sm:px-12 sm:py-16 text-white shadow-[0_24px_60px_rgba(26,20,100,0.18)]">
+          <div className="relative overflow-hidden rounded-2xl bg-[#1A1464] dark:bg-[#141A3B] dark:border dark:border-[#2B3466] px-6 py-12 sm:px-12 sm:py-16 text-white shadow-[0_24px_60px_rgba(26,20,100,0.18)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
             {/* Diagonal Red Swoosh Cut */}
             <div
               aria-hidden="true"

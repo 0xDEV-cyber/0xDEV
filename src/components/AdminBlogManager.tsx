@@ -170,14 +170,14 @@ export const AdminBlogManager: React.FC = () => {
   return (
     <section
       aria-labelledby="admin-blog-heading"
-      className="relative mt-10 rounded-2xl border border-[#E5E7F0] bg-white p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.05)]"
+      className="relative mt-10 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.05)] dark:shadow-[0_18px_45px_rgba(0,0,0,0.35)]"
     >
       <div
         aria-hidden="true"
         className="absolute top-0 right-8 h-1.5 w-24 -skew-x-24 bg-[#EE1119]"
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-[#E5E7F0] pb-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-[#E5E7F0] dark:border-[#242C54] pb-6">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119] flex items-center gap-1.5">
             <BookOpen className="h-4 w-4" aria-hidden="true" />
@@ -185,11 +185,11 @@ export const AdminBlogManager: React.FC = () => {
           </p>
           <h2
             id="admin-blog-heading"
-            className="mt-1.5 font-display text-2xl font-extrabold text-[#1A1464]"
+            className="mt-1.5 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]"
           >
             Technical Insights Publisher ({articles.length} Articles Live)
           </h2>
-          <p className="mt-1 text-sm text-[#4A4F63]">
+          <p className="mt-1 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
             Publish engineering deep-dives, architecture notes, and code patterns directly to the public Blog.
           </p>
         </div>
@@ -200,7 +200,7 @@ export const AdminBlogManager: React.FC = () => {
             setShowForm((prev) => !prev);
             setError(null);
           }}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-[#1A1464] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#120D4A] shrink-0"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8] shrink-0"
         >
           <Plus className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
           <span>{showForm ? 'Close Blog Editor' : 'Write Technical Article'}</span>
@@ -210,7 +210,7 @@ export const AdminBlogManager: React.FC = () => {
       {error && (
         <div
           role="alert"
-          className="mt-4 rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 p-3.5 text-xs font-semibold text-[#1A1464]"
+          className="mt-4 rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 dark:bg-[#EE1119]/10 p-3.5 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
         >
           {error}
         </div>
@@ -218,7 +218,7 @@ export const AdminBlogManager: React.FC = () => {
       {feedback && (
         <div
           role="status"
-          className="mt-4 rounded-xl border border-[#1A1464]/20 bg-[#F6F7FB] p-3.5 text-xs font-semibold text-[#1A1464]"
+          className="mt-4 rounded-xl border border-[#1A1464]/20 dark:border-[#2B3466] bg-[#F6F7FB] dark:bg-[#101530] p-3.5 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
         >
           {feedback}
         </div>
@@ -227,11 +227,11 @@ export const AdminBlogManager: React.FC = () => {
       {showForm && (
         <form
           onSubmit={handlePublishPost}
-          className="mt-6 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-5 space-y-4"
+          className="mt-6 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-5 space-y-4"
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="sm:col-span-2">
-              <label htmlFor="blog-cms-title" className="block text-xs font-bold uppercase text-[#1A1464]">
+              <label htmlFor="blog-cms-title" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                 Article Title *
               </label>
               <input
@@ -240,18 +240,18 @@ export const AdminBlogManager: React.FC = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Zero-Downtime PostgreSQL Schema Migrations at Scale"
-                className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2 text-sm text-[#1A1464]"
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2 text-sm text-[#1A1464] dark:text-white"
               />
             </div>
             <div>
-              <label htmlFor="blog-cms-cat" className="block text-xs font-bold uppercase text-[#1A1464]">
+              <label htmlFor="blog-cms-cat" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                 Category *
               </label>
               <select
                 id="blog-cms-cat"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as BlogCategory)}
-                className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs font-semibold text-[#1A1464]"
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-white"
               >
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>
@@ -264,7 +264,7 @@ export const AdminBlogManager: React.FC = () => {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div className="sm:col-span-2">
-              <label htmlFor="blog-cms-excerpt" className="block text-xs font-bold uppercase text-[#1A1464]">
+              <label htmlFor="blog-cms-excerpt" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                 Executive Summary / Excerpt *
               </label>
               <input
@@ -273,12 +273,12 @@ export const AdminBlogManager: React.FC = () => {
                 value={excerpt}
                 onChange={(e) => setExcerpt(e.target.value)}
                 placeholder="Concise 1-2 sentence technical overview shown on the index card..."
-                className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2 text-xs text-[#1A1464]"
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2 text-xs text-[#1A1464] dark:text-white"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label htmlFor="blog-cms-readtime" className="block text-xs font-bold uppercase text-[#1A1464]">
+                <label htmlFor="blog-cms-readtime" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                   Read Min
                 </label>
                 <input
@@ -288,18 +288,18 @@ export const AdminBlogManager: React.FC = () => {
                   max={60}
                   value={readTimeMinutes}
                   onChange={(e) => setReadTimeMinutes(Number(e.target.value))}
-                  className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                  className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
                 />
               </div>
               <div>
-                <label htmlFor="blog-cms-cover" className="block text-xs font-bold uppercase text-[#1A1464]">
+                <label htmlFor="blog-cms-cover" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                   Schematic
                 </label>
                 <select
                   id="blog-cms-cover"
                   value={coverImage}
                   onChange={(e) => setCoverImage(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-2.5 py-2 text-xs text-[#1A1464]"
+                  className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-2 text-xs text-[#1A1464] dark:text-white"
                 >
                   {COVER_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -313,7 +313,7 @@ export const AdminBlogManager: React.FC = () => {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="blog-cms-tags" className="block text-xs font-bold uppercase text-[#1A1464]">
+              <label htmlFor="blog-cms-tags" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                 Stack Tags (· separated)
               </label>
               <input
@@ -321,11 +321,11 @@ export const AdminBlogManager: React.FC = () => {
                 type="text"
                 value={stackTags}
                 onChange={(e) => setStackTags(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
             </div>
             <div>
-              <label htmlFor="blog-cms-takeaways" className="block text-xs font-bold uppercase text-[#1A1464]">
+              <label htmlFor="blog-cms-takeaways" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                 Key Takeaways (one per line) *
               </label>
               <textarea
@@ -334,14 +334,14 @@ export const AdminBlogManager: React.FC = () => {
                 value={keyTakeaways}
                 onChange={(e) => setKeyTakeaways(e.target.value)}
                 placeholder={'Use expand-and-contract migrations\nBackfill in bounded batches'}
-                className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="blog-cms-s1h" className="block text-xs font-bold uppercase text-[#1A1464]">
+              <label htmlFor="blog-cms-s1h" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                 Section 01 Heading *
               </label>
               <input
@@ -349,7 +349,7 @@ export const AdminBlogManager: React.FC = () => {
                 type="text"
                 value={section1Heading}
                 onChange={(e) => setSection1Heading(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
               <textarea
                 aria-label="Section 01 Body"
@@ -357,11 +357,11 @@ export const AdminBlogManager: React.FC = () => {
                 value={section1Body}
                 onChange={(e) => setSection1Body(e.target.value)}
                 placeholder="Write detailed engineering prose for section 1 (20+ chars)..."
-                className="mt-2 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                className="mt-2 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
             </div>
             <div>
-              <label htmlFor="blog-cms-s2h" className="block text-xs font-bold uppercase text-[#1A1464]">
+              <label htmlFor="blog-cms-s2h" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                 Section 02 Heading *
               </label>
               <input
@@ -369,7 +369,7 @@ export const AdminBlogManager: React.FC = () => {
                 type="text"
                 value={section2Heading}
                 onChange={(e) => setSection2Heading(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
               <textarea
                 aria-label="Section 02 Body"
@@ -377,14 +377,14 @@ export const AdminBlogManager: React.FC = () => {
                 value={section2Body}
                 onChange={(e) => setSection2Body(e.target.value)}
                 placeholder="Write detailed implementation walkthrough for section 2 (20+ chars)..."
-                className="mt-2 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                className="mt-2 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="blog-cms-quote" className="block text-xs font-bold uppercase text-[#1A1464]">
+              <label htmlFor="blog-cms-quote" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                 Editorial Pull Quote (Optional)
               </label>
               <input
@@ -393,12 +393,12 @@ export const AdminBlogManager: React.FC = () => {
                 value={calloutQuote}
                 onChange={(e) => setCalloutQuote(e.target.value)}
                 placeholder="Core engineering principle highlighted in the article..."
-                className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs text-[#1A1464]"
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label htmlFor="blog-cms-codefile" className="block text-xs font-bold uppercase text-[#1A1464]">
+                <label htmlFor="blog-cms-codefile" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                   Code Filename
                 </label>
                 <input
@@ -406,11 +406,11 @@ export const AdminBlogManager: React.FC = () => {
                   type="text"
                   value={codeFilename}
                   onChange={(e) => setCodeFilename(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs font-mono text-[#1A1464]"
+                  className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-mono text-[#1A1464] dark:text-white"
                 />
               </div>
               <div>
-                <label htmlFor="blog-cms-codelang" className="block text-xs font-bold uppercase text-[#1A1464]">
+                <label htmlFor="blog-cms-codelang" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
                   Language
                 </label>
                 <input
@@ -418,14 +418,14 @@ export const AdminBlogManager: React.FC = () => {
                   type="text"
                   value={codeLanguage}
                   onChange={(e) => setCodeLanguage(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs font-mono text-[#1A1464]"
+                  className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-mono text-[#1A1464] dark:text-white"
                 />
               </div>
             </div>
           </div>
 
           <div>
-            <label htmlFor="blog-cms-code" className="block text-xs font-bold uppercase text-[#1A1464]">
+            <label htmlFor="blog-cms-code" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
               Reference Code Snippet (Optional)
             </label>
             <textarea
@@ -434,7 +434,7 @@ export const AdminBlogManager: React.FC = () => {
               value={codeSnippet}
               onChange={(e) => setCodeSnippet(e.target.value)}
               placeholder="// Optional production SQL, Go, Terraform, or TypeScript snippet"
-              className="mt-1 w-full rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 font-mono text-xs text-[#1A1464]"
+              className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 font-mono text-xs text-[#1A1464] dark:text-white"
             />
           </div>
 
@@ -452,7 +452,7 @@ export const AdminBlogManager: React.FC = () => {
       {/* Custom Firestore Blog Posts List */}
       <div className="mt-6">
         {customPosts.length === 0 ? (
-          <p className="text-xs text-[#6B7188]">
+          <p className="text-xs text-[#6B7188] dark:text-[#8E97B8]">
             6 flagship engineering articles are live on /blog. Articles published here appear immediately in Firestore and rank at the top of the Blog index.
           </p>
         ) : (
@@ -460,13 +460,13 @@ export const AdminBlogManager: React.FC = () => {
             {customPosts.map((post) => (
               <div
                 key={post.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-4"
+                className="flex items-center justify-between gap-3 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-4"
               >
                 <div className="min-w-0">
                   <p className="text-[11px] font-bold text-[#EE1119]">
                     {post.category} · {post.readTimeMinutes} min read
                   </p>
-                  <p className="font-display text-sm font-bold text-[#1A1464] truncate">
+                  <p className="font-display text-sm font-bold text-[#1A1464] dark:text-[#F4F6FC] truncate">
                     {post.title}
                   </p>
                 </div>
@@ -477,8 +477,8 @@ export const AdminBlogManager: React.FC = () => {
                     aria-label={`Toggle featured for ${post.title}`}
                     className={`rounded-lg border px-2.5 py-1 text-xs font-bold ${
                       post.featured
-                        ? 'border-[#1A1464] bg-[#1A1464] text-white'
-                        : 'border-[#E5E7F0] bg-white text-[#6B7188]'
+                        ? 'border-[#1A1464] dark:border-[#4F59B8] bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#6B7188] dark:text-[#8E97B8]'
                     }`}
                   >
                     <Star className="h-3.5 w-3.5" aria-hidden="true" />
@@ -487,7 +487,7 @@ export const AdminBlogManager: React.FC = () => {
                     type="button"
                     onClick={() => void handleDeleteCustom(post.id)}
                     aria-label={`Delete ${post.title}`}
-                    className="rounded-lg border border-[#E5E7F0] bg-white p-1.5 text-[#6B7188] hover:border-[#EE1119] hover:text-[#EE1119]"
+                    className="rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-1.5 text-[#6B7188] dark:text-[#8E97B8] hover:border-[#EE1119] hover:text-[#EE1119]"
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>

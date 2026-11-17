@@ -26,10 +26,10 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
       />
 
       {/* Interactive 5-Stage Timeline */}
-      <section className="bg-white py-16 sm:py-20">
+      <section className="bg-white dark:bg-[#090D1F] py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="relative mb-6 hidden lg:block">
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#E5E7F0]">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#E5E7F0] dark:bg-[#242C54]">
               <motion.div
                 className="h-full w-full origin-left rounded-full bg-[#EE1119]"
                 initial={false}
@@ -56,21 +56,21 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                   onClick={() => setActiveIndex(index)}
                   className={`group flex flex-col justify-between rounded-2xl border p-5 text-left transition-all duration-200 ${
                     isSelected
-                      ? 'border-[#1A1464] bg-[#1A1464] text-white shadow-lg -translate-y-0.5'
-                      : 'border-[#E5E7F0] bg-[#F6F7FB] text-[#1A1464] hover:border-[#1A1464]/40 hover:bg-white'
+                      ? 'border-[#1A1464] dark:border-[#3A459E] bg-[#1A1464] dark:bg-[#232B6E] text-white shadow-lg -translate-y-0.5'
+                      : 'border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#1A1464]/40 dark:hover:border-white/25 hover:bg-white dark:hover:bg-[#182044]'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
                     <span
                       className={`font-display text-xs font-extrabold tabular-nums ${
-                        isSelected ? 'text-[#EE1119]' : 'text-[#6B7188]'
+                        isSelected ? 'text-[#EE1119]' : 'text-[#6B7188] dark:text-[#8E97B8]'
                       }`}
                     >
                       STEP {item.step}
                     </span>
                     <span
                       className={`text-xs font-medium ${
-                        isSelected ? 'text-white/75' : 'text-[#6B7188]'
+                        isSelected ? 'text-white/75' : 'text-[#6B7188] dark:text-[#8E97B8]'
                       }`}
                     >
                       {item.duration}
@@ -81,7 +81,7 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                     <h2 className="font-display text-lg font-bold">{item.title}</h2>
                     <ArrowRight
                       className={`h-4 w-4 shrink-0 transition-transform ${
-                        isSelected ? 'text-[#EE1119] translate-x-0.5' : 'text-[#6B7188]'
+                        isSelected ? 'text-[#EE1119] translate-x-0.5' : 'text-[#6B7188] dark:text-[#8E97B8]'
                       }`}
                       aria-hidden="true"
                     />
@@ -92,7 +92,7 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Active Step Deep Breakdown */}
-          <div className="mt-8 overflow-hidden rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB] p-6 sm:p-9">
+          <div className="mt-8 overflow-hidden rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-6 sm:p-9">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep.id}
@@ -106,41 +106,41 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                   <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
                     <span>Phase {currentStep.step}</span>
                     <span aria-hidden="true">·</span>
-                    <span className="text-[#6B7188]">{currentStep.duration}</span>
+                    <span className="text-[#6B7188] dark:text-[#8E97B8]">{currentStep.duration}</span>
                   </div>
-                  <h3 className="mt-2 font-display text-2xl sm:text-3xl font-extrabold text-[#1A1464]">
+                  <h3 className="mt-2 font-display text-2xl sm:text-3xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
                     {currentStep.title}
                   </h3>
-                  <p className="mt-3 text-base leading-relaxed text-[#4A4F63]">
+                  <p className="mt-3 text-base leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                     {currentStep.description}
                   </p>
 
                   <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="rounded-xl border border-[#E5E7F0] bg-white p-4">
-                      <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464]">
+                    <div className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-4">
+                      <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
                         Client Touchpoint
                       </p>
-                      <p className="mt-1.5 text-sm text-[#4A4F63]">{currentStep.clientTouchpoint}</p>
+                      <p className="mt-1.5 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">{currentStep.clientTouchpoint}</p>
                     </div>
-                    <div className="rounded-xl border border-[#E5E7F0] bg-white p-4">
+                    <div className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-[#EE1119]">
                         Quality Gate
                       </p>
-                      <p className="mt-1.5 text-sm text-[#4A4F63]">{currentStep.qualityGate}</p>
+                      <p className="mt-1.5 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">{currentStep.qualityGate}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="lg:col-span-5 rounded-xl bg-white p-6 border border-[#E5E7F0] flex flex-col justify-between">
+                <div className="lg:col-span-5 rounded-xl bg-white dark:bg-[#141A38] p-6 border border-[#E5E7F0] dark:border-[#242C54] flex flex-col justify-between">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188]">
+                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188] dark:text-[#8E97B8]">
                       Tangible Phase Artifacts
                     </p>
                     <ul className="mt-4 space-y-3">
                       {currentStep.artifacts.map((artifact) => (
                         <li
                           key={artifact}
-                          className="flex items-center gap-2.5 text-sm font-semibold text-[#1A1464]"
+                          className="flex items-center gap-2.5 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
                         >
                           <CheckCircle2
                             className="h-4 w-4 text-[#EE1119] shrink-0"
@@ -152,11 +152,11 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                     </ul>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-[#E5E7F0]">
+                  <div className="mt-6 pt-4 border-t border-[#E5E7F0] dark:border-[#242C54]">
                     <button
                       type="button"
                       onClick={() => onNavigate('contact')}
-                      className="inline-flex items-center gap-2 text-xs font-bold text-[#1A1464] hover:text-[#EE1119] transition-colors"
+                      className="inline-flex items-center gap-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:text-[#EE1119] transition-colors"
                     >
                       <span>Book a Discovery Call for Phase 01</span>
                       <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -170,16 +170,16 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* Remote & Freelance Collaboration Standards */}
-      <section className="bg-[#F6F7FB] py-16 sm:py-20 border-t border-[#E5E7F0]">
+      <section className="bg-[#F6F7FB] dark:bg-[#101530] py-16 sm:py-20 border-t border-[#E5E7F0] dark:border-[#242C54]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
               Collaboration Standards
             </p>
-            <h2 className="mt-2 font-display text-3xl font-extrabold text-[#1A1464]">
+            <h2 className="mt-2 font-display text-3xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
               Built for smooth local &amp; remote freelance collaboration.
             </h2>
-            <p className="mt-3 text-base text-[#4A4F63]">
+            <p className="mt-3 text-base text-[#4A4F63] dark:text-[#C2C9E0]">
               From {COMPANY_CONTACT.location}, we partner seamlessly with organizations down the
               road or across continents.
             </p>
@@ -209,15 +209,15 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                   <motion.div
                     whileHover={{ y: -4 }}
                     transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
-                    className="h-full rounded-2xl border border-[#E5E7F0] bg-white p-6 sm:p-7"
+                    className="h-full rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-7"
                   >
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F6F7FB] text-[#1A1464]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#F4F6FC]">
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </div>
-                    <h3 className="mt-4 font-display text-lg font-bold text-[#1A1464]">
+                    <h3 className="mt-4 font-display text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                       {item.title}
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[#4A4F63]">{item.body}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">{item.body}</p>
                   </motion.div>
                 </StaggerItem>
               );

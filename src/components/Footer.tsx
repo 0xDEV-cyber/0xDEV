@@ -33,7 +33,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <footer className="bg-[#120D4A] text-white print:hidden">
+      <footer className="bg-[#120D4A] dark:bg-[#060917] dark:border-t dark:border-[#1E264A] text-white print:hidden">
         <div className="mx-auto max-w-7xl px-4 pt-16 pb-10 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-12">
             {/* Brand Summary */}
@@ -207,13 +207,13 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         </div>
       </footer>
 
-      {/* Back to Top Button */}
+      {/* Back to Top Button (bottom-left stacked above WhatsAppLauncher to avoid Netlify free-tier badge) */}
       {showBackToTop && (
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Back to top"
-          className="fixed right-5 bottom-20 z-40 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#1A1464] text-white shadow-[0_10px_25px_rgba(26,20,100,0.3)] border border-white/15 transition-all duration-150 hover:bg-[#EE1119] hover:-translate-y-0.5 print:hidden"
+          className="fixed left-5 bottom-20 z-40 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#1A1464] dark:bg-[#1B224B] text-white shadow-[0_10px_25px_rgba(26,20,100,0.3)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.55)] border border-white/15 dark:border-white/20 transition-all duration-150 hover:bg-[#EE1119] hover:-translate-y-0.5 print:hidden"
         >
           <ArrowUp className="h-5 w-5" aria-hidden="true" />
         </button>

@@ -9,10 +9,13 @@ import {
   EyeOff,
   LayoutGrid,
   Lock,
+  Moon,
   ShieldCheck,
+  Sun,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { COUNTRIES, stripLeadingDialCode } from '../data/countries';
 import { CaseStudy, COMPANY_CONTACT } from '../data/siteData';
 import { usePortfolioProjects } from '../hooks/usePortfolioProjects';
@@ -35,6 +38,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
   onModeChange,
   onBrowsePublic,
 }) => {
+  const { isDark, toggleTheme } = useTheme();
   const {
     authError,
     emailProviderDisabled,
@@ -220,9 +224,9 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F7FB] flex flex-col lg:grid lg:grid-cols-12">
+    <div className="min-h-screen bg-[#F6F7FB] dark:bg-[#090D1F] flex flex-col lg:grid lg:grid-cols-12 transition-colors duration-200">
       {/* Left Branded Portal Panel (Deep Navy) */}
-      <aside className="relative overflow-hidden bg-[#1A1464] px-6 py-10 text-white sm:px-10 lg:col-span-5 lg:flex lg:flex-col lg:justify-between lg:px-12 lg:py-14">
+      <aside className="relative overflow-hidden bg-[#1A1464] dark:bg-[#0E1330] dark:border-r dark:border-[#242C54] px-6 py-10 text-white sm:px-10 lg:col-span-5 lg:flex lg:flex-col lg:justify-between lg:px-12 lg:py-14">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -bottom-24 -right-20 h-72 w-72 -skew-x-12 bg-[#EE1119]/15"
@@ -347,23 +351,41 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
 
       {/* Right Authentication Form Area */}
       <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8 lg:col-span-7 lg:py-12">
-        <div className="w-full max-w-lg rounded-2xl border border-[#E5E7F0] bg-white p-6 sm:p-9 shadow-[0_20px_50px_rgba(26,20,100,0.08)]">
-          {onBrowsePublic && (
-            <div className="mb-4 flex items-center justify-between">
+        <div className="w-full max-w-lg rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-9 shadow-[0_20px_50px_rgba(26,20,100,0.08)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            {onBrowsePublic ? (
               <button
                 type="button"
                 onClick={onBrowsePublic}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] hover:text-[#EE1119] transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:text-[#EE1119] transition-colors"
               >
                 <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Browse 0xDEV Site Without Signing In</span>
               </button>
-            </div>
-          )}
+            ) : (
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
+                0xDEV Portal
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-pressed={isDark}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] px-2.5 py-1.5 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#1A1464]/40 dark:hover:border-white/30 transition-colors shrink-0"
+            >
+              {isDark ? (
+                <Sun className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" />
+              ) : (
+                <Moon className="h-3.5 w-3.5 text-[#1A1464]" aria-hidden="true" />
+              )}
+              <span>{isDark ? 'Light' : 'Dark'}</span>
+            </button>
+          </div>
 
           {/* Segmented Mode Tabs: Sign In | Create Account */}
           <div
-            className="grid grid-cols-2 gap-1.5 rounded-xl bg-[#F6F7FB] p-1.5 border border-[#E5E7F0]"
+            className="grid grid-cols-2 gap-1.5 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] p-1.5 border border-[#E5E7F0] dark:border-[#242C54]"
             role="tablist"
             aria-label="Authentication Mode"
           >
@@ -374,8 +396,8 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
               onClick={() => switchMode('login')}
               className={`rounded-lg py-2.5 text-sm font-bold transition-all ${
                 mode === 'login'
-                  ? 'bg-[#1A1464] text-white shadow-sm'
-                  : 'text-[#4A4F63] hover:text-[#1A1464]'
+                  ? 'bg-[#1A1464] dark:bg-[#2E368F] text-white shadow-sm'
+                  : 'text-[#4A4F63] dark:text-[#B8C0DA] hover:text-[#1A1464] dark:hover:text-white'
               }`}
             >
               Sign In
@@ -387,8 +409,8 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
               onClick={() => switchMode('register')}
               className={`rounded-lg py-2.5 text-sm font-bold transition-all ${
                 mode === 'register'
-                  ? 'bg-[#1A1464] text-white shadow-sm'
-                  : 'text-[#4A4F63] hover:text-[#1A1464]'
+                  ? 'bg-[#1A1464] dark:bg-[#2E368F] text-white shadow-sm'
+                  : 'text-[#4A4F63] dark:text-[#B8C0DA] hover:text-[#1A1464] dark:hover:text-white'
               }`}
             >
               Create Account
@@ -400,12 +422,12 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
               <Lock className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{mode === 'login' ? 'Member Sign In' : 'New Visitor Registration'}</span>
             </div>
-            <h2 className="mt-1.5 font-display text-2xl font-extrabold text-[#1A1464]">
+            <h2 className="mt-1.5 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
               {mode === 'login'
                 ? 'Log in to access 0xDEV'
                 : 'Register to view the 0xDEV platform'}
             </h2>
-            <p className="mt-1 text-sm text-[#6B7188]">
+            <p className="mt-1 text-sm text-[#6B7188] dark:text-[#8E97B8]">
               {mode === 'login'
                 ? 'Enter your credentials or continue with Google.'
                 : 'Create your free visitor account in seconds.'}
@@ -416,14 +438,14 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
           {authError && (
             <div
               role="alert"
-              className="mt-5 rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 p-4 text-xs sm:text-sm text-[#1A1464]"
+              className="mt-5 rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 dark:bg-[#EE1119]/10 p-4 text-xs sm:text-sm text-[#1A1464] dark:text-[#F4F6FC]"
             >
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="mt-0.5 h-4 w-4 text-[#EE1119] shrink-0" aria-hidden="true" />
                 <div>
                   <p className="font-semibold">{authError}</p>
                   {emailProviderDisabled && (
-                    <p className="mt-1.5 text-xs text-[#4A4F63]">
+                    <p className="mt-1.5 text-xs text-[#4A4F63] dark:text-[#C2C9E0]">
                       Use <strong>Continue with Google</strong> below right now, or enable
                       Email/Password in Firebase Console under Authentication → Sign-in method.
                     </p>
@@ -438,7 +460,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
             type="button"
             disabled={submitting}
             onClick={handleGoogleClick}
-            className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-[#E5E7F0] bg-white px-4 py-3 text-sm font-bold text-[#1A1464] transition-colors hover:border-[#1A1464]/40 hover:bg-[#F6F7FB] disabled:opacity-60"
+            className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-4 py-3 text-sm font-bold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:border-[#1A1464]/40 dark:hover:border-white/30 hover:bg-[#F6F7FB] dark:hover:bg-[#1C234B] disabled:opacity-60"
           >
             <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -464,20 +486,20 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
           </button>
 
           <div className="my-5 flex items-center gap-3">
-            <span className="h-px flex-1 bg-[#E5E7F0]" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#6B7188]">
+            <span className="h-px flex-1 bg-[#E5E7F0] dark:bg-[#242C54]" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
               {mode === 'login' ? 'or sign in with email' : 'or register with email'}
             </span>
-            <span className="h-px flex-1 bg-[#E5E7F0]" />
+            <span className="h-px flex-1 bg-[#E5E7F0] dark:bg-[#242C54]" />
           </div>
 
           {resetView ? (
             <form onSubmit={handleResetSubmit} noValidate className="space-y-4">
               <div>
-                <h3 className="font-display text-lg font-bold text-[#1A1464]">
+                <h3 className="font-display text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                   Reset Your Password
                 </h3>
-                <p className="mt-1 text-xs text-[#6B7188]">
+                <p className="mt-1 text-xs text-[#6B7188] dark:text-[#8E97B8]">
                   Enter your account email and we will send you a secure 0xDEV password reset link.
                 </p>
               </div>
@@ -485,7 +507,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
               {resetSentTo && (
                 <div
                   role="status"
-                  className="rounded-xl border border-[#1A1464]/20 bg-[#F6F7FB] p-4 text-xs sm:text-sm font-medium text-[#1A1464]"
+                  className="rounded-xl border border-[#1A1464]/20 dark:border-[#3A437A] bg-[#F6F7FB] dark:bg-[#101530] p-4 text-xs sm:text-sm font-medium text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   If an account exists for <strong>{resetSentTo}</strong>, a reset link has been
                   sent. Please check your inbox and spam folder.
@@ -495,7 +517,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
               <div>
                 <label
                   htmlFor="reset-email"
-                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   Email Address
                 </label>
@@ -511,10 +533,10 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                   }}
                   placeholder="arigyewisdom7@gmail.com"
                   aria-invalid={Boolean(resetError)}
-                  className={`mt-1.5 w-full rounded-xl border px-4 py-3 text-sm text-[#1A1464] bg-[#F6F7FB]/50 focus:bg-white ${
+                  className={`mt-1.5 w-full rounded-xl border px-4 py-3 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                     resetError
                       ? 'border-[#EE1119]'
-                      : 'border-[#E5E7F0] focus:border-[#1A1464]'
+                      : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#5D6BFF]'
                   }`}
                 />
                 {resetError && (
@@ -531,7 +553,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
 
-              <p className="pt-2 text-center text-xs text-[#6B7188]">
+              <p className="pt-2 text-center text-xs text-[#6B7188] dark:text-[#8E97B8]">
                 Remembered your password?{' '}
                 <button
                   type="button"
@@ -540,7 +562,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                     setResetError(null);
                     clearAuthError();
                   }}
-                  className="font-bold text-[#1A1464] hover:text-[#EE1119]"
+                  className="font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:text-[#EE1119]"
                 >
                   Back to Sign In
                 </button>
@@ -551,7 +573,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
               <div>
                 <label
                   htmlFor="login-email"
-                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                  className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                 >
                   Email Address
                 </label>
@@ -567,10 +589,10 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                   }}
                   placeholder="arigyewisdom7@gmail.com"
                   aria-invalid={Boolean(loginErrors.email)}
-                  className={`mt-1.5 w-full rounded-xl border px-4 py-3 text-sm text-[#1A1464] bg-[#F6F7FB]/50 focus:bg-white ${
+                  className={`mt-1.5 w-full rounded-xl border px-4 py-3 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                     loginErrors.email
                       ? 'border-[#EE1119]'
-                      : 'border-[#E5E7F0] focus:border-[#1A1464]'
+                      : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#5D6BFF]'
                   }`}
                 />
                 {loginErrors.email && (
@@ -582,7 +604,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="login-password"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Password
                   </label>
@@ -595,7 +617,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                       setResetError(null);
                       clearAuthError();
                     }}
-                    className="text-xs font-semibold text-[#1A1464] hover:text-[#EE1119]"
+                    className="text-xs font-semibold text-[#1A1464] dark:text-[#B8C0DA] hover:text-[#EE1119]"
                   >
                     Forgot password?
                   </button>
@@ -614,17 +636,17 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                     }}
                     placeholder="Enter your password"
                     aria-invalid={Boolean(loginErrors.password)}
-                    className={`w-full rounded-xl border px-4 py-3 pr-11 text-sm text-[#1A1464] bg-[#F6F7FB]/50 focus:bg-white ${
+                    className={`w-full rounded-xl border px-4 py-3 pr-11 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                       loginErrors.password
                         ? 'border-[#EE1119]'
-                        : 'border-[#E5E7F0] focus:border-[#1A1464]'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#5D6BFF]'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7188] hover:text-[#1A1464]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7188] dark:text-[#8E97B8] hover:text-[#1A1464] dark:hover:text-white"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -645,12 +667,12 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
 
-              <p className="pt-2 text-center text-xs text-[#6B7188]">
+              <p className="pt-2 text-center text-xs text-[#6B7188] dark:text-[#8E97B8]">
                 First time visiting?{' '}
                 <button
                   type="button"
                   onClick={() => switchMode('register')}
-                  className="font-bold text-[#1A1464] hover:text-[#EE1119]"
+                  className="font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:text-[#EE1119]"
                 >
                   Create an account
                 </button>
@@ -662,7 +684,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 <div>
                   <label
                     htmlFor="reg-name"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Full Name
                   </label>
@@ -677,8 +699,8 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                     }}
                     placeholder="Arigye Wisdom"
                     aria-invalid={Boolean(regErrors.name)}
-                    className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] bg-[#F6F7FB]/50 focus:bg-white ${
-                      regErrors.name ? 'border-[#EE1119]' : 'border-[#E5E7F0] focus:border-[#1A1464]'
+                    className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
+                      regErrors.name ? 'border-[#EE1119]' : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#5D6BFF]'
                     }`}
                   />
                   {regErrors.name && (
@@ -689,7 +711,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 <div>
                   <label
                     htmlFor="reg-email"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Email Address
                   </label>
@@ -704,10 +726,10 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                     }}
                     placeholder="arigyewisdom7@gmail.com"
                     aria-invalid={Boolean(regErrors.email)}
-                    className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] bg-[#F6F7FB]/50 focus:bg-white ${
+                    className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                       regErrors.email
                         ? 'border-[#EE1119]'
-                        : 'border-[#E5E7F0] focus:border-[#1A1464]'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#5D6BFF]'
                     }`}
                   />
                   {regErrors.email && (
@@ -720,7 +742,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 <div>
                   <label
                     htmlFor="reg-country"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Country
                   </label>
@@ -729,10 +751,10 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                     value={regCountry}
                     onChange={(e) => handleCountrySelect(e.target.value)}
                     aria-invalid={Boolean(regErrors.country)}
-                    className={`mt-1.5 w-full rounded-xl border px-3.5 py-2.5 text-sm font-medium text-[#1A1464] bg-[#F6F7FB]/50 focus:bg-white ${
+                    className={`mt-1.5 w-full rounded-xl border px-3.5 py-2.5 text-sm font-medium text-[#1A1464] dark:text-white bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                       regErrors.country
                         ? 'border-[#EE1119]'
-                        : 'border-[#E5E7F0] focus:border-[#1A1464]'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#5D6BFF]'
                     }`}
                   >
                     <option value="">Select country...</option>
@@ -750,7 +772,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 <div>
                   <label
                     htmlFor="reg-phone"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Phone Number
                   </label>
@@ -765,10 +787,10 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                     }}
                     placeholder="+256 766 922 566"
                     aria-invalid={Boolean(regErrors.phone)}
-                    className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] bg-[#F6F7FB]/50 focus:bg-white ${
+                    className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                       regErrors.phone
                         ? 'border-[#EE1119]'
-                        : 'border-[#E5E7F0] focus:border-[#1A1464]'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#5D6BFF]'
                     }`}
                   />
                   {regErrors.phone && (
@@ -781,7 +803,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 <div>
                   <label
                     htmlFor="reg-password"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Password
                   </label>
@@ -798,17 +820,17 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                       }}
                       placeholder="Min. 8 characters"
                       aria-invalid={Boolean(regErrors.password)}
-                      className={`w-full rounded-xl border px-4 py-2.5 pr-10 text-sm text-[#1A1464] bg-[#F6F7FB]/50 focus:bg-white ${
+                      className={`w-full rounded-xl border px-4 py-2.5 pr-10 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                         regErrors.password
                           ? 'border-[#EE1119]'
-                          : 'border-[#E5E7F0] focus:border-[#1A1464]'
+                          : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#5D6BFF]'
                       }`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7188] hover:text-[#1A1464]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7188] dark:text-[#8E97B8] hover:text-[#1A1464] dark:hover:text-white"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -823,7 +845,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 <div>
                   <label
                     htmlFor="reg-confirm"
-                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                    className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
                   >
                     Confirm Password
                   </label>
@@ -838,10 +860,10 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                     }}
                     placeholder="Repeat password"
                     aria-invalid={Boolean(regErrors.confirm)}
-                    className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] bg-[#F6F7FB]/50 focus:bg-white ${
+                    className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                       regErrors.confirm
                         ? 'border-[#EE1119]'
-                        : 'border-[#E5E7F0] focus:border-[#1A1464]'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#5D6BFF]'
                     }`}
                   />
                   {regErrors.confirm && (
@@ -859,12 +881,12 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
 
-              <p className="pt-2 text-center text-xs text-[#6B7188]">
+              <p className="pt-2 text-center text-xs text-[#6B7188] dark:text-[#8E97B8]">
                 Already registered?{' '}
                 <button
                   type="button"
                   onClick={() => switchMode('login')}
-                  className="font-bold text-[#1A1464] hover:text-[#EE1119]"
+                  className="font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:text-[#EE1119]"
                 >
                   Sign in here
                 </button>
@@ -872,8 +894,8 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
             </form>
           )}
 
-          <div className="mt-6 flex items-center justify-center gap-2 border-t border-[#E5E7F0] pt-4 text-[11px] text-[#6B7188]">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#1A1464]" aria-hidden="true" />
+          <div className="mt-6 flex items-center justify-center gap-2 border-t border-[#E5E7F0] dark:border-[#242C54] pt-4 text-[11px] text-[#6B7188] dark:text-[#8E97B8]">
+            <ShieldCheck className="h-3.5 w-3.5 text-[#1A1464] dark:text-[#EE1119]" aria-hidden="true" />
             <span>Encrypted Client Access · 0xDEV Kabale Studio</span>
           </div>
         </div>

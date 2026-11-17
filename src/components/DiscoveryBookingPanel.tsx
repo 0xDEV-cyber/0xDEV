@@ -229,17 +229,17 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E7F0] pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E7F0] dark:border-[#242C54] pb-4">
         <div>
-          <h2 className="font-display text-xl font-extrabold text-[#1A1464]">
+          <h2 className="font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
             Book a 30-Minute Discovery Call
           </h2>
-          <p className="mt-1 text-xs sm:text-sm text-[#6B7188]">
-            Slots are shown in your local timezone (<strong>{visitorTz}</strong>) synced to{' '}
+          <p className="mt-1 text-xs sm:text-sm text-[#6B7188] dark:text-[#8E97B8]">
+            Slots are shown in your local timezone (<strong className="text-[#1A1464] dark:text-white">{visitorTz}</strong>) synced to{' '}
             {COMPANY_CONTACT.location} (EAT / UTC+3).
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464]">
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC]">
           <Globe className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
           <span>{visitorTz}</span>
         </span>
@@ -247,21 +247,22 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
 
       {confirmedBookingId ? (
         <div className="py-4" role="status">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1A1464] text-white">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1A1464] dark:bg-[#232B6E] text-white">
             <CheckCircle2 className="h-6 w-6 text-[#EE1119]" aria-hidden="true" />
           </div>
-          <h3 className="mt-4 font-display text-xl font-extrabold text-[#1A1464]">
+          <h3 className="mt-4 font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
             Discovery Call Slot Requested
           </h3>
-          <p className="mt-2 text-sm text-[#4A4F63]">
+          <p className="mt-2 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
             Booking reference <strong className="text-[#EE1119]">{confirmedBookingId}</strong> for{' '}
-            <strong>{slotDate}</strong> at <strong>{slotTimeEat}</strong> has been logged for{' '}
+            <strong className="text-[#1A1464] dark:text-white">{slotDate}</strong> at{' '}
+            <strong className="text-[#1A1464] dark:text-white">{slotTimeEat}</strong> has been logged for{' '}
             {COMPANY_CONTACT.leadName}.
           </p>
           <button
             type="button"
             onClick={() => setConfirmedBookingId(null)}
-            className="mt-5 rounded-xl border border-[#1A1464] px-4 py-2 text-xs font-bold text-[#1A1464] hover:bg-[#1A1464] hover:text-white"
+            className="mt-5 rounded-xl border border-[#1A1464] dark:border-[#3A437A] px-4 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:bg-[#1A1464] dark:hover:bg-[#2E368F] hover:text-white"
           >
             Schedule Another Call
           </button>
@@ -271,7 +272,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
           {error && (
             <div
               role="alert"
-              className="rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 p-3.5 text-xs font-semibold text-[#1A1464]"
+              className="rounded-xl border border-[#EE1119]/40 bg-[#EE1119]/5 dark:bg-[#EE1119]/10 p-3.5 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
             >
               {error}
             </div>
@@ -279,7 +280,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
 
           {/* Date Picker */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] flex items-center gap-1.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC] flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
               <span>1. Select Date</span>
             </p>
@@ -293,8 +294,8 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
                     onClick={() => setSlotDate(day.iso)}
                     className={`rounded-xl border px-3 py-2 text-xs font-semibold transition-all tabular-nums ${
                       active
-                        ? 'border-[#1A1464] bg-[#1A1464] text-white'
-                        : 'border-[#E5E7F0] bg-[#F6F7FB] text-[#1A1464] hover:border-[#1A1464]/40'
+                        ? 'border-[#1A1464] dark:border-[#4F59B8] bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#C2C9E0] hover:border-[#1A1464]/40 dark:hover:border-[#4F59B8]'
                     }`}
                   >
                     {day.label}
@@ -306,7 +307,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
 
           {/* Time Slot Picker */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] flex items-center gap-1.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC] flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
               <span>2. Select Time (Local Time · Kabale EAT)</span>
             </p>
@@ -326,14 +327,14 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
                     onClick={() => setSlotTimeEat(slot.id)}
                     className={`flex items-center justify-between rounded-xl border px-3.5 py-2.5 text-left transition-all ${
                       active
-                        ? 'border-[#EE1119] bg-[#EE1119]/10 text-[#1A1464]'
-                        : 'border-[#E5E7F0] bg-white text-[#1A1464] hover:border-[#1A1464]/40'
+                        ? 'border-[#EE1119] bg-[#EE1119]/10 dark:bg-[#EE1119]/15 text-[#1A1464] dark:text-white'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] text-[#1A1464] dark:text-[#C2C9E0] hover:border-[#1A1464]/40 dark:hover:border-[#4F59B8]'
                     }`}
                   >
                     <span className="font-display text-xs font-bold tabular-nums">
                       {localFormatted} (Your Time)
                     </span>
-                    <span className="text-[11px] font-semibold text-[#6B7188] tabular-nums">
+                    <span className="text-[11px] font-semibold text-[#6B7188] dark:text-[#8E97B8] tabular-nums">
                       {slot.label}
                     </span>
                   </button>
@@ -344,7 +345,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
 
           {/* Meeting Channel */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] flex items-center gap-1.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC] flex items-center gap-1.5">
               <Video className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
               <span>3. Call Format</span>
             </p>
@@ -358,8 +359,8 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
                     onClick={() => setChannel(ch.id)}
                     className={`rounded-xl border px-3 py-2 text-xs font-semibold transition-all ${
                       active
-                        ? 'border-[#1A1464] bg-[#1A1464] text-white'
-                        : 'border-[#E5E7F0] bg-[#F6F7FB] text-[#1A1464]'
+                        ? 'border-[#1A1464] dark:border-[#4F59B8] bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#C2C9E0]'
                     }`}
                   >
                     {ch.label}
@@ -373,7 +374,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
             <div>
               <label
                 htmlFor="booking-name"
-                className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
               >
                 Your Name
               </label>
@@ -383,13 +384,13 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Arigye Wisdom"
-                className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-3.5 py-2.5 text-sm text-[#1A1464]"
+                className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:bg-white dark:focus:bg-[#182044] focus:border-[#1A1464] dark:focus:border-[#7C8CFF]"
               />
             </div>
             <div>
               <label
                 htmlFor="booking-email"
-                className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+                className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
               >
                 Email for Invite
               </label>
@@ -399,7 +400,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
-                className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-3.5 py-2.5 text-sm text-[#1A1464]"
+                className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:bg-white dark:focus:bg-[#182044] focus:border-[#1A1464] dark:focus:border-[#7C8CFF]"
               />
             </div>
           </div>
@@ -407,7 +408,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
           <div>
             <label
               htmlFor="booking-topic"
-              className="block text-xs font-bold uppercase tracking-wider text-[#1A1464]"
+              className="block text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]"
             >
               What should we prepare for this call?
             </label>
@@ -417,7 +418,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="E.g. Architecture review for our web platform, freelance mobile developer timeline, or cloud audit."
-              className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/50 px-3.5 py-2.5 text-sm text-[#1A1464]"
+              className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:bg-white dark:focus:bg-[#182044] focus:border-[#1A1464] dark:focus:border-[#7C8CFF]"
             />
           </div>
 
@@ -425,7 +426,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
             <button
               type="button"
               onClick={onRequestAuth}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A1464] px-6 py-3.5 text-sm font-bold text-white hover:bg-[#120D4A]"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-6 py-3.5 text-sm font-bold text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8]"
             >
               <Lock className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
               <span>Sign In / Register Free to Lock This Time Slot</span>
@@ -445,22 +446,22 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
 
       {/* Existing Bookings List */}
       {bookings.length > 0 && (
-        <div className="border-t border-[#E5E7F0] pt-5 space-y-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464]">
+        <div className="border-t border-[#E5E7F0] dark:border-[#242C54] pt-5 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
             {isPrimaryAdmin ? `Scheduled Discovery Calls (${bookings.length})` : 'Your Discovery Calls'}
           </p>
           <div className="space-y-2.5">
             {bookings.map((bk) => (
               <div
                 key={bk.bookingId}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-3.5 text-xs"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-3.5 text-xs"
               >
                 <div>
-                  <p className="font-bold text-[#1A1464]">
+                  <p className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                     {bk.slotDate} · {bk.slotTimeEat}{' '}
-                    <span className="font-normal text-[#6B7188]">({bk.channel.replace('_', ' ')})</span>
+                    <span className="font-normal text-[#6B7188] dark:text-[#8E97B8]">({bk.channel.replace('_', ' ')})</span>
                   </p>
-                  <p className="mt-0.5 text-[#4A4F63]">
+                  <p className="mt-0.5 text-[#4A4F63] dark:text-[#C2C9E0]">
                     {isPrimaryAdmin ? `${bk.name} (${bk.email}) — ` : ''}
                     {bk.topic}
                   </p>
@@ -471,7 +472,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
                     <button
                       type="button"
                       onClick={() => void handleUpdateBookingStatus(bk.bookingId, 'confirmed')}
-                      className="rounded-lg bg-[#1A1464] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#120D4A]"
+                      className="rounded-lg bg-[#1A1464] dark:bg-[#2E368F] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8]"
                     >
                       Confirm
                     </button>
@@ -480,7 +481,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
                     <button
                       type="button"
                       onClick={() => void handleUpdateBookingStatus(bk.bookingId, 'cancelled')}
-                      className="rounded-lg border border-[#E5E7F0] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#6B7188] hover:text-[#EE1119]"
+                      className="rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-1 text-[11px] font-semibold text-[#6B7188] dark:text-[#8E97B8] hover:text-[#EE1119]"
                     >
                       Cancel
                     </button>

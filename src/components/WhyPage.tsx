@@ -77,50 +77,50 @@ export const WhyPage: React.FC<WhyPageProps> = ({
       />
 
       {/* Side-by-Side Comparison */}
-      <section className="bg-white py-16 sm:py-20">
+      <section className="bg-white dark:bg-[#090D1F] py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-stretch">
             {/* Left: Messy 5-Vendor Reality */}
             <Reveal
               direction="right"
               distance={20}
-              className="lg:col-span-6 rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB]/50 p-6 sm:p-8 flex flex-col justify-between"
+              className="lg:col-span-6 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] p-6 sm:p-8 flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center justify-between gap-4 border-b border-[#E5E7F0] pb-4">
+                <div className="flex items-center justify-between gap-4 border-b border-[#E5E7F0] dark:border-[#242C54] pb-4">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188]">
+                    <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188] dark:text-[#8E97B8]">
                       Traditional Multi-Vendor Setup
                     </span>
-                    <h2 className="mt-1 font-display text-xl font-bold text-[#1A1464]">
+                    <h2 className="mt-1 font-display text-xl font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                       5 Separate Vendors, 5 Competing Priorities
                     </h2>
                   </div>
-                  <AlertTriangle className="h-6 w-6 text-[#6B7188] shrink-0" aria-hidden="true" />
+                  <AlertTriangle className="h-6 w-6 text-[#6B7188] dark:text-[#8E97B8] shrink-0" aria-hidden="true" />
                 </div>
 
                 <div className="mt-6 space-y-3">
                   {FRAGMENTED_VENDORS.map((vendor, index) => (
                     <div
                       key={vendor.role}
-                      className="flex items-start gap-3.5 rounded-xl border border-dashed border-[#D3D7E6] bg-white px-4 py-3"
+                      className="flex items-start gap-3.5 rounded-xl border border-dashed border-[#D3D7E6] dark:border-[#2E3766] bg-white dark:bg-[#141A38] px-4 py-3"
                     >
                       <XCircle
                         className="mt-0.5 h-4 w-4 text-[#EE1119]/75 shrink-0"
                         aria-hidden="true"
                       />
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-[#1A1464]">
+                        <p className="text-sm font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                           Vendor 0{index + 1}: {vendor.role}
                         </p>
-                        <p className="text-xs sm:text-sm text-[#4A4F63] mt-0.5">{vendor.pain}</p>
+                        <p className="text-xs sm:text-sm text-[#4A4F63] dark:text-[#C2C9E0] mt-0.5">{vendor.pain}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[#E5E7F0] flex items-center justify-between text-xs font-semibold text-[#6B7188]">
+              <div className="mt-6 pt-4 border-t border-[#E5E7F0] dark:border-[#242C54] flex items-center justify-between text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">
                 <span>Result: Slow handoffs &amp; unclear ownership</span>
                 <span className="text-[#EE1119]">5 Invoices / Month</span>
               </div>
@@ -131,7 +131,7 @@ export const WhyPage: React.FC<WhyPageProps> = ({
               direction="left"
               distance={20}
               delay={0.08}
-              className="relative lg:col-span-6 rounded-2xl bg-[#1A1464] p-6 sm:p-8 text-white shadow-[0_24px_48px_rgba(26,20,100,0.18)] flex flex-col justify-between overflow-hidden"
+              className="relative lg:col-span-6 rounded-2xl bg-[#1A1464] dark:bg-[#141A3B] dark:border dark:border-[#2B3466] p-6 sm:p-8 text-white shadow-[0_24px_48px_rgba(26,20,100,0.18)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.5)] flex flex-col justify-between overflow-hidden"
             >
               <div
                 aria-hidden="true"
@@ -208,15 +208,15 @@ export const WhyPage: React.FC<WhyPageProps> = ({
                   <motion.div
                     whileHover={{ y: -4 }}
                     transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
-                    className="h-full rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB]/50 p-6"
+                    className="h-full rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#141A38] p-6"
                   >
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white border border-[#E5E7F0] text-[#1A1464]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white dark:bg-[#101530] border border-[#E5E7F0] dark:border-[#242C54] text-[#1A1464] dark:text-[#F4F6FC]">
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </div>
-                    <h3 className="mt-4 font-display text-base font-bold text-[#1A1464]">
+                    <h3 className="mt-4 font-display text-base font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                       {benefit.title}
                     </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[#4A4F63]">
+                    <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                       {benefit.description}
                     </p>
                   </motion.div>
@@ -231,13 +231,13 @@ export const WhyPage: React.FC<WhyPageProps> = ({
       <ProjectEstimator onApplyEstimate={onApplyEstimate} />
 
       {/* Engagement Models */}
-      <section className="bg-[#F6F7FB] py-16 sm:py-20 border-t border-[#E5E7F0]">
+      <section className="bg-[#F6F7FB] dark:bg-[#101530] py-16 sm:py-20 border-t border-[#E5E7F0] dark:border-[#242C54]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
               Engagement &amp; Pricing Models
             </p>
-            <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464]">
+            <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC]">
               Flexible partnerships—from freelance sprints to full squads.
             </h2>
           </div>
@@ -252,8 +252,8 @@ export const WhyPage: React.FC<WhyPageProps> = ({
                     transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
                     className={`relative flex h-full flex-col justify-between rounded-2xl p-7 sm:p-8 ${
                       isHighlighted
-                        ? 'border-2 border-[#EE1119] bg-white shadow-[0_24px_50px_rgba(238,17,25,0.12)]'
-                        : 'border border-[#E5E7F0] bg-white'
+                        ? 'border-2 border-[#EE1119] bg-white dark:bg-[#141A38] shadow-[0_24px_50px_rgba(238,17,25,0.12)] dark:shadow-[0_24px_50px_rgba(238,17,25,0.18)]'
+                        : 'border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38]'
                     }`}
                   >
                     {isHighlighted && (
@@ -267,32 +267,32 @@ export const WhyPage: React.FC<WhyPageProps> = ({
                       <div className="flex items-center justify-between gap-2">
                         <span
                           className={`text-xs font-bold uppercase tracking-[0.14em] ${
-                            isHighlighted ? 'text-[#EE1119]' : 'text-[#6B7188]'
+                            isHighlighted ? 'text-[#EE1119]' : 'text-[#6B7188] dark:text-[#8E97B8]'
                           }`}
                         >
                           {model.subtitle}
                         </span>
-                        <span className="text-xs font-semibold text-[#6B7188]">{model.cadence}</span>
+                        <span className="text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">{model.cadence}</span>
                       </div>
 
-                      <h3 className="mt-3 font-display text-2xl font-extrabold text-[#1A1464]">
+                      <h3 className="mt-3 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
                         {model.name}
                       </h3>
-                      <p className="mt-3 text-sm leading-relaxed text-[#4A4F63]">
+                      <p className="mt-3 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                         {model.description}
                       </p>
 
-                      <div className="mt-5 rounded-xl bg-[#F6F7FB] p-3.5 border border-[#E5E7F0]">
-                        <p className="text-xs font-bold text-[#1A1464]">Best for:</p>
-                        <p className="mt-0.5 text-xs text-[#4A4F63]">{model.bestFor}</p>
+                      <div className="mt-5 rounded-xl bg-[#F6F7FB] dark:bg-[#101530] p-3.5 border border-[#E5E7F0] dark:border-[#242C54]">
+                        <p className="text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC]">Best for:</p>
+                        <p className="mt-0.5 text-xs text-[#4A4F63] dark:text-[#C2C9E0]">{model.bestFor}</p>
                       </div>
 
                       <ul className="mt-6 space-y-3">
                         {model.features.map((feature) => (
-                          <li key={feature} className="flex items-start gap-2.5 text-sm text-[#4A4F63]">
+                          <li key={feature} className="flex items-start gap-2.5 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
                             <Check
                               className={`mt-0.5 h-4 w-4 shrink-0 ${
-                                isHighlighted ? 'text-[#EE1119]' : 'text-[#1A1464]'
+                                isHighlighted ? 'text-[#EE1119]' : 'text-[#1A1464] dark:text-[#7C8CFF]'
                               }`}
                               aria-hidden="true"
                             />
@@ -302,10 +302,10 @@ export const WhyPage: React.FC<WhyPageProps> = ({
                       </ul>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-[#E5E7F0]">
-                      <div className="mb-4 flex items-center justify-between text-xs font-semibold text-[#6B7188]">
+                    <div className="mt-8 pt-6 border-t border-[#E5E7F0] dark:border-[#242C54]">
+                      <div className="mb-4 flex items-center justify-between text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">
                         <span>Typical investment</span>
-                        <span className="font-display text-sm font-bold text-[#1A1464] tabular-nums">
+                        <span className="font-display text-sm font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
                           {model.budgetHint}
                         </span>
                       </div>
@@ -316,7 +316,7 @@ export const WhyPage: React.FC<WhyPageProps> = ({
                         className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-semibold transition-colors duration-150 ${
                           isHighlighted
                             ? 'bg-[#EE1119] text-white shadow-sm hover:bg-[#D00D14]'
-                            : 'bg-[#1A1464] text-white hover:bg-[#120D4A]'
+                            : 'bg-[#1A1464] dark:bg-[#2E368F] text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8]'
                         }`}
                       >
                         <span>{model.ctaLabel}</span>
@@ -332,18 +332,18 @@ export const WhyPage: React.FC<WhyPageProps> = ({
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-white py-16 sm:py-20">
+      <section className="bg-white dark:bg-[#090D1F] py-16 sm:py-20">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <Reveal className="text-center">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
               Frequently Asked Questions
             </p>
-            <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464]">
+            <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC]">
               Honest answers before we begin.
             </h2>
           </Reveal>
 
-          <div className="mt-10 divide-y divide-[#E5E7F0] rounded-2xl border border-[#E5E7F0] bg-white">
+          <div className="mt-10 divide-y divide-[#E5E7F0] dark:divide-[#242C54] rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38]">
             {FAQS.map((faq) => {
               const isOpen = openFaqId === faq.id;
               return (
@@ -355,12 +355,12 @@ export const WhyPage: React.FC<WhyPageProps> = ({
                     onClick={() => setOpenFaqId((prev) => (prev === faq.id ? '' : faq.id))}
                     className="flex w-full items-center justify-between gap-4 text-left"
                   >
-                    <span className="font-display text-base sm:text-lg font-bold text-[#1A1464]">
+                    <span className="font-display text-base sm:text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                       {faq.question}
                     </span>
                     <span
                       className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                        isOpen ? 'bg-[#EE1119] text-white' : 'bg-[#F6F7FB] text-[#1A1464]'
+                        isOpen ? 'bg-[#EE1119] text-white' : 'bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#F4F6FC]'
                       }`}
                     >
                       <ChevronDown
@@ -379,7 +379,7 @@ export const WhyPage: React.FC<WhyPageProps> = ({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
-                        className="mt-3 pr-10 text-sm sm:text-base leading-relaxed text-[#4A4F63]"
+                        className="mt-3 pr-10 text-sm sm:text-base leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]"
                       >
                         {faq.answer}
                       </motion.div>
