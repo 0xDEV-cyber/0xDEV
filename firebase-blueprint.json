@@ -351,6 +351,436 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "ProjectMessage": {
+      "title": "ProjectMessage",
+      "description": "Direct client-to-admin chat message attached to a specific project inquiry.",
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "inquiryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "senderId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "senderRole": {
+          "type": "string",
+          "enum": ["client", "admin"]
+        },
+        "senderName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "messageId",
+        "inquiryId",
+        "authorId",
+        "senderId",
+        "senderRole",
+        "senderName",
+        "body",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProjectDeliverable": {
+      "title": "ProjectDeliverable",
+      "description": "Shared project link (Figma prototype, staging app, GitHub repo, docs) managed by 0xDEV admin.",
+      "type": "object",
+      "properties": {
+        "deliverableId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "inquiryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "category": {
+          "type": "string",
+          "enum": ["figma", "staging", "repository", "production", "document"]
+        },
+        "url": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "pattern": "^https://.*"
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 300
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "deliverableId",
+        "inquiryId",
+        "authorId",
+        "title",
+        "category",
+        "url",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProjectInvoice": {
+      "title": "ProjectInvoice",
+      "description": "Milestone invoice record linked to an active project inquiry.",
+      "type": "object",
+      "properties": {
+        "invoiceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "inquiryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "phase": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "amountUsd": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "dueDate": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "paid", "overdue"]
+        },
+        "paymentMethod": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 80
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 400
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "invoiceId",
+        "inquiryId",
+        "authorId",
+        "title",
+        "phase",
+        "amountUsd",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "DiscoveryBooking": {
+      "title": "DiscoveryBooking",
+      "description": "30-minute consultation call booking scheduled with 0xDEV Kabale studio.",
+      "type": "object",
+      "properties": {
+        "bookingId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "slotDate": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 30
+        },
+        "slotTimeEat": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 30
+        },
+        "channel": {
+          "type": "string",
+          "enum": ["google_meet", "whatsapp_call", "kabale_studio"]
+        },
+        "topic": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 600
+        },
+        "status": {
+          "type": "string",
+          "enum": ["requested", "confirmed", "completed", "cancelled"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "bookingId",
+        "authorId",
+        "name",
+        "email",
+        "timezone",
+        "slotDate",
+        "slotTimeEat",
+        "channel",
+        "topic",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PortfolioProject": {
+      "title": "PortfolioProject",
+      "description": "Public non-PII portfolio case study managed by 0xDEV admin.",
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": { "type": "string", "minLength": 3, "maxLength": 120 },
+        "sector": { "type": "string", "minLength": 2, "maxLength": 40 },
+        "region": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "timeline": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "clientType": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "deliverableType": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "previewUrl": { "type": "string", "minLength": 4, "maxLength": 120 },
+        "previewKind": {
+          "type": "string",
+          "enum": [
+            "fintech",
+            "telehealth",
+            "logistics",
+            "agritech",
+            "ecommerce",
+            "edtech",
+            "cleantech",
+            "saas",
+            "pharma",
+            "hospitality",
+            "security",
+            "govtech"
+          ]
+        },
+        "problem": { "type": "string", "minLength": 10, "maxLength": 800 },
+        "solution": { "type": "string", "minLength": 10, "maxLength": 800 },
+        "architectureNotes": { "type": "string", "minLength": 5, "maxLength": 500 },
+        "metric1Value": { "type": "string", "minLength": 1, "maxLength": 30 },
+        "metric1Label": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "metric2Value": { "type": "string", "minLength": 1, "maxLength": 30 },
+        "metric2Label": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "metric3Value": { "type": "string", "minLength": 1, "maxLength": 30 },
+        "metric3Label": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "stackSummary": { "type": "string", "minLength": 3, "maxLength": 160 },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "projectId",
+        "title",
+        "sector",
+        "region",
+        "timeline",
+        "clientType",
+        "deliverableType",
+        "previewUrl",
+        "previewKind",
+        "problem",
+        "solution",
+        "architectureNotes",
+        "metric1Value",
+        "metric1Label",
+        "metric2Value",
+        "metric2Label",
+        "metric3Value",
+        "metric3Label",
+        "stackSummary",
+        "featured",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BlogPost": {
+      "title": "BlogPost",
+      "description": "Public technical engineering article and architecture insight published by 0xDEV admin.",
+      "type": "object",
+      "properties": {
+        "postId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120,
+          "pattern": "^[a-z0-9\\-]+$"
+        },
+        "title": { "type": "string", "minLength": 5, "maxLength": 160 },
+        "excerpt": { "type": "string", "minLength": 15, "maxLength": 400 },
+        "category": {
+          "type": "string",
+          "enum": [
+            "Architecture",
+            "Cloud & DevOps",
+            "Mobile & Offline",
+            "Security",
+            "Fintech Systems"
+          ]
+        },
+        "authorName": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "authorRole": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "publishedDate": { "type": "string", "minLength": 4, "maxLength": 40 },
+        "readTimeMinutes": { "type": "integer", "minimum": 1, "maximum": 60 },
+        "featured": { "type": "boolean" },
+        "coverImage": { "type": "string", "minLength": 4, "maxLength": 300 },
+        "stackTags": { "type": "string", "minLength": 2, "maxLength": 200 },
+        "keyTakeaways": { "type": "string", "minLength": 10, "maxLength": 1000 },
+        "section1Heading": { "type": "string", "minLength": 3, "maxLength": 140 },
+        "section1Body": { "type": "string", "minLength": 20, "maxLength": 4000 },
+        "section2Heading": { "type": "string", "minLength": 3, "maxLength": 140 },
+        "section2Body": { "type": "string", "minLength": 20, "maxLength": 4000 },
+        "section3Heading": { "type": "string", "minLength": 0, "maxLength": 140 },
+        "section3Body": { "type": "string", "minLength": 0, "maxLength": 4000 },
+        "calloutQuote": { "type": "string", "minLength": 0, "maxLength": 500 },
+        "codeFilename": { "type": "string", "minLength": 0, "maxLength": 80 },
+        "codeLanguage": { "type": "string", "minLength": 0, "maxLength": 40 },
+        "codeSnippet": { "type": "string", "minLength": 0, "maxLength": 4000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "postId",
+        "slug",
+        "title",
+        "excerpt",
+        "category",
+        "authorName",
+        "authorRole",
+        "publishedDate",
+        "readTimeMinutes",
+        "featured",
+        "coverImage",
+        "stackTags",
+        "keyTakeaways",
+        "section1Heading",
+        "section1Body",
+        "section2Heading",
+        "section2Body",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -369,6 +799,30 @@
     "/inquiries/{inquiryId}/milestones/{milestoneId}": {
       "schema": { "$ref": "#/entities/ProjectMilestone" },
       "description": "Project delivery milestones and completion percentages scoped to the parent inquiry client."
+    },
+    "/inquiries/{inquiryId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ProjectMessage" },
+      "description": "Direct real-time project messages between the client and 0xDEV admin."
+    },
+    "/inquiries/{inquiryId}/deliverables/{deliverableId}": {
+      "schema": { "$ref": "#/entities/ProjectDeliverable" },
+      "description": "Project deliverable links (Figma, staging, repo, docs) scoped to parent inquiry."
+    },
+    "/inquiries/{inquiryId}/invoices/{invoiceId}": {
+      "schema": { "$ref": "#/entities/ProjectInvoice" },
+      "description": "Milestone invoices and payment status scoped to parent inquiry."
+    },
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/DiscoveryBooking" },
+      "description": "30-minute discovery call bookings created by verified users."
+    },
+    "/portfolioProjects/{projectId}": {
+      "schema": { "$ref": "#/entities/PortfolioProject" },
+      "description": "Public non-PII case study showcase managed by 0xDEV admin."
+    },
+    "/blogPosts/{postId}": {
+      "schema": { "$ref": "#/entities/BlogPost" },
+      "description": "Public technical engineering articles and insights managed by 0xDEV admin."
     },
     "/notifications/{notificationId}": {
       "schema": { "$ref": "#/entities/Notification" },

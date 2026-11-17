@@ -17,7 +17,8 @@ import {
   Truck,
   X,
 } from 'lucide-react';
-import { CASE_STUDIES, CaseStudy } from '../data/siteData';
+import { CaseStudy } from '../data/siteData';
+import { usePortfolioProjects } from '../hooks/usePortfolioProjects';
 import { EASE_OUT_EXPO } from './MotionPrimitives';
 
 interface ProjectPreviewScreenProps {
@@ -630,28 +631,16 @@ interface WorkShowcaseModalProps {
   onRequestAuth?: () => void;
 }
 
-const SHOWCASE_FILTERS = [
-  'All',
-  'Fintech',
-  'Healthcare',
-  'Logistics',
-  'AgriTech',
-  'SaaS',
-  'E-Commerce',
-  'EdTech',
-  'CleanTech',
-  'Hospitality',
-  'Cybersecurity',
-  'GovTech',
-] as const;
-
 export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
   open,
   onClose,
   onRequestAuth,
 }) => {
-  const [filter, setFilter] = useState<(typeof SHOWCASE_FILTERS)[number]>('All');
+  const { projects } = usePortfolioProjects();
+  const [filter, setFilter] = useState<string>('All');
   const [inspected, setInspected] = useState<CaseStudy | null>(null);
+
+  const dynamicFilters = ['All', ...Array.from(new Set(projects.map((p) => p.sector)))];
 
   useEffect(() => {
     if (!open) return;
@@ -663,7 +652,7 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
   }, [open, inspected, onClose]);
 
   const visibleProjects =
-    filter === 'All' ? CASE_STUDIES : CASE_STUDIES.filter((s) => s.sector === filter);
+    filter === 'All' ? projects : projects.filter((s) => s.sector === filter);
 
   return (
     <>
@@ -693,7 +682,7 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#EE1119] flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>See Some of Our Work · {CASE_STUDIES.length} Shipped Systems</span>
+                    <span>See Some of Our Work · {projects.length} Shipped Systems</span>
                   </p>
                   <h2
                     id="work-showcase-modal-title"
@@ -731,7 +720,7 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
               {/* Filter Strip */}
               <div className="border-b border-[#E5E7F0] bg-white px-5 py-3 sm:px-7 overflow-x-auto">
                 <div className="flex items-center gap-1.5 min-w-max" role="tablist" aria-label="Project categories">
-                  {SHOWCASE_FILTERS.map((item) => {
+                  {dynamicFilters.map((item) => {
                     const active = filter === item;
                     return (
                       <button
@@ -800,7 +789,7 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
                   <CheckCircle2 className="h-4 w-4 text-[#10B981] shrink-0" aria-hidden="true" />
                   <span>
                     Showing <strong className="text-[#1A1464] tabular-nums">{visibleProjects.length}</strong> of{' '}
-                    <strong className="text-[#1A1464] tabular-nums">{CASE_STUDIES.length}</strong> production builds by 0xDEV.
+                    <strong className="text-[#1A1464] tabular-nums">{projects.length}</strong> production builds by 0xDEV.
                   </span>
                 </p>
                 <button
@@ -808,7 +797,7 @@ export const WorkShowcaseModal: React.FC<WorkShowcaseModalProps> = ({
                   onClick={onClose}
                   className="rounded-xl border border-[#1A1464] px-4 py-1.5 text-xs font-bold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white"
                 >
-                  Back to Sign In
+                  Close Showcase
                 </button>
               </div>
             </motion.div>

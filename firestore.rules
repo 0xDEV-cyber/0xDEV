@@ -161,6 +161,176 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    function isValidProjectMessage(data, inquiryId, messageId) {
+      return data.keys().hasAll([
+          'messageId', 'inquiryId', 'authorId', 'senderId',
+          'senderRole', 'senderName', 'body', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'messageId', 'inquiryId', 'authorId', 'senderId',
+          'senderRole', 'senderName', 'body', 'createdAt', 'updatedAt'
+        ])
+        && data.messageId is string && isValidId(data.messageId) && data.messageId == messageId
+        && data.inquiryId is string && isValidId(data.inquiryId) && data.inquiryId == inquiryId
+        && data.authorId is string && isValidId(data.authorId)
+        && data.senderId is string && isValidId(data.senderId)
+        && data.senderRole in ['client', 'admin']
+        && data.senderName is string && data.senderName.size() >= 1 && data.senderName.size() <= 100
+        && data.body is string && data.body.size() >= 1 && data.body.size() <= 2000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProjectDeliverable(data, inquiryId, deliverableId) {
+      return data.keys().hasAll([
+          'deliverableId', 'inquiryId', 'authorId', 'title',
+          'category', 'url', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'deliverableId', 'inquiryId', 'authorId', 'title',
+          'category', 'url', 'notes', 'createdAt', 'updatedAt'
+        ])
+        && data.deliverableId is string && isValidId(data.deliverableId) && data.deliverableId == deliverableId
+        && data.inquiryId is string && isValidId(data.inquiryId) && data.inquiryId == inquiryId
+        && data.authorId is string && isValidId(data.authorId)
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 120
+        && data.category in ['figma', 'staging', 'repository', 'production', 'document']
+        && data.url is string && data.url.size() >= 8 && data.url.size() <= 500 && data.url.matches('^https://.*')
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 300))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProjectInvoice(data, inquiryId, invoiceId) {
+      return data.keys().hasAll([
+          'invoiceId', 'inquiryId', 'authorId', 'title', 'phase',
+          'amountUsd', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'invoiceId', 'inquiryId', 'authorId', 'title', 'phase',
+          'amountUsd', 'dueDate', 'status', 'paymentMethod', 'notes', 'createdAt', 'updatedAt'
+        ])
+        && data.invoiceId is string && isValidId(data.invoiceId) && data.invoiceId == invoiceId
+        && data.inquiryId is string && isValidId(data.inquiryId) && data.inquiryId == inquiryId
+        && data.authorId is string && isValidId(data.authorId)
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 120
+        && data.phase is string && data.phase.size() >= 2 && data.phase.size() <= 60
+        && data.amountUsd is int && data.amountUsd >= 1 && data.amountUsd <= 1000000
+        && (!('dueDate' in data) || (data.dueDate is string && data.dueDate.size() <= 40))
+        && data.status in ['pending', 'paid', 'overdue']
+        && (!('paymentMethod' in data) || (data.paymentMethod is string && data.paymentMethod.size() <= 80))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 400))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidDiscoveryBooking(data, bookingId) {
+      return data.keys().hasAll([
+          'bookingId', 'authorId', 'name', 'email', 'timezone',
+          'slotDate', 'slotTimeEat', 'channel', 'topic', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'bookingId', 'authorId', 'name', 'email', 'timezone',
+          'slotDate', 'slotTimeEat', 'channel', 'topic', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.bookingId is string && isValidId(data.bookingId) && data.bookingId == bookingId
+        && data.authorId is string && isValidId(data.authorId)
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 100
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 200
+        && data.timezone is string && data.timezone.size() >= 2 && data.timezone.size() <= 80
+        && data.slotDate is string && data.slotDate.size() >= 4 && data.slotDate.size() <= 30
+        && data.slotTimeEat is string && data.slotTimeEat.size() >= 4 && data.slotTimeEat.size() <= 30
+        && data.channel in ['google_meet', 'whatsapp_call', 'kabale_studio']
+        && data.topic is string && data.topic.size() >= 5 && data.topic.size() <= 600
+        && data.status in ['requested', 'confirmed', 'completed', 'cancelled']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPortfolioProject(data, projectId) {
+      return data.keys().hasAll([
+          'projectId', 'title', 'sector', 'region', 'timeline', 'clientType',
+          'deliverableType', 'previewUrl', 'previewKind', 'problem', 'solution',
+          'architectureNotes', 'metric1Value', 'metric1Label', 'metric2Value',
+          'metric2Label', 'metric3Value', 'metric3Label', 'stackSummary',
+          'featured', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'projectId', 'title', 'sector', 'region', 'timeline', 'clientType',
+          'deliverableType', 'previewUrl', 'previewKind', 'problem', 'solution',
+          'architectureNotes', 'metric1Value', 'metric1Label', 'metric2Value',
+          'metric2Label', 'metric3Value', 'metric3Label', 'stackSummary',
+          'featured', 'createdAt', 'updatedAt'
+        ])
+        && data.projectId is string && isValidId(data.projectId) && data.projectId == projectId
+        && data.title is string && data.title.size() >= 3 && data.title.size() <= 120
+        && data.sector is string && data.sector.size() >= 2 && data.sector.size() <= 40
+        && data.region is string && data.region.size() >= 2 && data.region.size() <= 80
+        && data.timeline is string && data.timeline.size() >= 2 && data.timeline.size() <= 80
+        && data.clientType is string && data.clientType.size() >= 2 && data.clientType.size() <= 80
+        && data.deliverableType is string && data.deliverableType.size() >= 2 && data.deliverableType.size() <= 80
+        && data.previewUrl is string && data.previewUrl.size() >= 4 && data.previewUrl.size() <= 120
+        && data.previewKind in [
+          'fintech', 'telehealth', 'logistics', 'agritech', 'ecommerce', 'edtech',
+          'cleantech', 'saas', 'pharma', 'hospitality', 'security', 'govtech'
+        ]
+        && data.problem is string && data.problem.size() >= 10 && data.problem.size() <= 800
+        && data.solution is string && data.solution.size() >= 10 && data.solution.size() <= 800
+        && data.architectureNotes is string && data.architectureNotes.size() >= 5 && data.architectureNotes.size() <= 500
+        && data.metric1Value is string && data.metric1Value.size() >= 1 && data.metric1Value.size() <= 30
+        && data.metric1Label is string && data.metric1Label.size() >= 2 && data.metric1Label.size() <= 60
+        && data.metric2Value is string && data.metric2Value.size() >= 1 && data.metric2Value.size() <= 30
+        && data.metric2Label is string && data.metric2Label.size() >= 2 && data.metric2Label.size() <= 60
+        && data.metric3Value is string && data.metric3Value.size() >= 1 && data.metric3Value.size() <= 30
+        && data.metric3Label is string && data.metric3Label.size() >= 2 && data.metric3Label.size() <= 60
+        && data.stackSummary is string && data.stackSummary.size() >= 3 && data.stackSummary.size() <= 160
+        && data.featured is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidBlogPost(data, postId) {
+      return data.keys().hasAll([
+          'postId', 'slug', 'title', 'excerpt', 'category', 'authorName',
+          'authorRole', 'publishedDate', 'readTimeMinutes', 'featured',
+          'coverImage', 'stackTags', 'keyTakeaways', 'section1Heading',
+          'section1Body', 'section2Heading', 'section2Body', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'postId', 'slug', 'title', 'excerpt', 'category', 'authorName',
+          'authorRole', 'publishedDate', 'readTimeMinutes', 'featured',
+          'coverImage', 'stackTags', 'keyTakeaways', 'section1Heading',
+          'section1Body', 'section2Heading', 'section2Body', 'section3Heading',
+          'section3Body', 'calloutQuote', 'codeFilename', 'codeLanguage',
+          'codeSnippet', 'createdAt', 'updatedAt'
+        ])
+        && data.postId is string && isValidId(data.postId) && data.postId == postId
+        && data.slug is string && data.slug.size() >= 3 && data.slug.size() <= 120 && data.slug.matches('^[a-z0-9\\-]+$')
+        && data.title is string && data.title.size() >= 5 && data.title.size() <= 160
+        && data.excerpt is string && data.excerpt.size() >= 15 && data.excerpt.size() <= 400
+        && data.category in ['Architecture', 'Cloud & DevOps', 'Mobile & Offline', 'Security', 'Fintech Systems']
+        && data.authorName is string && data.authorName.size() >= 2 && data.authorName.size() <= 80
+        && data.authorRole is string && data.authorRole.size() >= 2 && data.authorRole.size() <= 80
+        && data.publishedDate is string && data.publishedDate.size() >= 4 && data.publishedDate.size() <= 40
+        && data.readTimeMinutes is int && data.readTimeMinutes >= 1 && data.readTimeMinutes <= 60
+        && data.featured is bool
+        && data.coverImage is string && data.coverImage.size() >= 4 && data.coverImage.size() <= 300
+        && data.stackTags is string && data.stackTags.size() >= 2 && data.stackTags.size() <= 200
+        && data.keyTakeaways is string && data.keyTakeaways.size() >= 10 && data.keyTakeaways.size() <= 1000
+        && data.section1Heading is string && data.section1Heading.size() >= 3 && data.section1Heading.size() <= 140
+        && data.section1Body is string && data.section1Body.size() >= 20 && data.section1Body.size() <= 4000
+        && data.section2Heading is string && data.section2Heading.size() >= 3 && data.section2Heading.size() <= 140
+        && data.section2Body is string && data.section2Body.size() >= 20 && data.section2Body.size() <= 4000
+        && (!('section3Heading' in data) || (data.section3Heading is string && data.section3Heading.size() <= 140))
+        && (!('section3Body' in data) || (data.section3Body is string && data.section3Body.size() <= 4000))
+        && (!('calloutQuote' in data) || (data.calloutQuote is string && data.calloutQuote.size() <= 500))
+        && (!('codeFilename' in data) || (data.codeFilename is string && data.codeFilename.size() <= 80))
+        && (!('codeLanguage' in data) || (data.codeLanguage is string && data.codeLanguage.size() <= 40))
+        && (!('codeSnippet' in data) || (data.codeSnippet is string && data.codeSnippet.size() <= 4000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
     // -------------------------------------------------------------------------
     // Collection Rules
     // -------------------------------------------------------------------------
@@ -285,6 +455,205 @@ service cloud.firestore {
 
         allow delete: if isAdmin() && isValidId(inquiryId) && isValidId(milestoneId);
       }
+
+      match /messages/{messageId} {
+        allow get: if isValidId(inquiryId)
+          && isValidId(messageId)
+          && isSignedIn()
+          && (
+            isAdmin() || (
+              exists(/databases/$(database)/documents/inquiries/$(inquiryId))
+              && get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.authorId == request.auth.uid
+              && existing().authorId == request.auth.uid
+            )
+          );
+
+        allow list: if isSignedIn() && (
+          resource.data.authorId == request.auth.uid || isPrimaryAdmin()
+        );
+
+        allow create: if isVerifiedUser()
+          && isValidId(inquiryId)
+          && isValidId(messageId)
+          && exists(/databases/$(database)/documents/inquiries/$(inquiryId))
+          && isValidProjectMessage(incoming(), inquiryId, messageId)
+          && incoming().senderId == request.auth.uid
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && (
+            (isAdmin()
+              && incoming().senderRole == 'admin'
+              && incoming().authorId == get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.authorId) ||
+            (!isAdmin()
+              && incoming().senderRole == 'client'
+              && incoming().authorId == request.auth.uid
+              && get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.authorId == request.auth.uid)
+          );
+
+        allow update: if false;
+        allow delete: if isAdmin() && isValidId(inquiryId) && isValidId(messageId);
+      }
+
+      match /deliverables/{deliverableId} {
+        allow get: if isValidId(inquiryId)
+          && isValidId(deliverableId)
+          && isSignedIn()
+          && (
+            isAdmin() || (
+              exists(/databases/$(database)/documents/inquiries/$(inquiryId))
+              && get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.authorId == request.auth.uid
+              && existing().authorId == request.auth.uid
+            )
+          );
+
+        allow list: if isSignedIn() && (
+          resource.data.authorId == request.auth.uid || isPrimaryAdmin()
+        );
+
+        allow create: if isAdmin()
+          && isValidId(inquiryId)
+          && isValidId(deliverableId)
+          && exists(/databases/$(database)/documents/inquiries/$(inquiryId))
+          && isValidProjectDeliverable(incoming(), inquiryId, deliverableId)
+          && incoming().authorId == get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.authorId
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+
+        allow update: if isAdmin()
+          && isValidId(inquiryId)
+          && isValidId(deliverableId)
+          && exists(/databases/$(database)/documents/inquiries/$(inquiryId))
+          && isValidProjectDeliverable(incoming(), inquiryId, deliverableId)
+          && incoming().authorId == existing().authorId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'title', 'category', 'url', 'notes', 'updatedAt'
+          ]);
+
+        allow delete: if isAdmin() && isValidId(inquiryId) && isValidId(deliverableId);
+      }
+
+      match /invoices/{invoiceId} {
+        allow get: if isValidId(inquiryId)
+          && isValidId(invoiceId)
+          && isSignedIn()
+          && (
+            isAdmin() || (
+              exists(/databases/$(database)/documents/inquiries/$(inquiryId))
+              && get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.authorId == request.auth.uid
+              && existing().authorId == request.auth.uid
+            )
+          );
+
+        allow list: if isSignedIn() && (
+          resource.data.authorId == request.auth.uid || isPrimaryAdmin()
+        );
+
+        allow create: if isAdmin()
+          && isValidId(inquiryId)
+          && isValidId(invoiceId)
+          && exists(/databases/$(database)/documents/inquiries/$(inquiryId))
+          && isValidProjectInvoice(incoming(), inquiryId, invoiceId)
+          && incoming().authorId == get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.authorId
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+
+        allow update: if isAdmin()
+          && isValidId(inquiryId)
+          && isValidId(invoiceId)
+          && exists(/databases/$(database)/documents/inquiries/$(inquiryId))
+          && isValidProjectInvoice(incoming(), inquiryId, invoiceId)
+          && incoming().authorId == existing().authorId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'title', 'phase', 'amountUsd', 'dueDate', 'status', 'paymentMethod', 'notes', 'updatedAt'
+          ]);
+
+        allow delete: if isAdmin() && isValidId(inquiryId) && isValidId(invoiceId);
+      }
+    }
+
+    match /bookings/{bookingId} {
+      allow get: if isValidId(bookingId) && isSignedIn() && (
+        existing().authorId == request.auth.uid || isAdmin()
+      );
+      allow list: if isSignedIn() && (
+        resource.data.authorId == request.auth.uid || isPrimaryAdmin()
+      );
+
+      allow create: if isVerifiedUser()
+        && isValidId(bookingId)
+        && isValidDiscoveryBooking(incoming(), bookingId)
+        && incoming().authorId == request.auth.uid
+        && incoming().status == 'requested'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(bookingId)
+        && isValidDiscoveryBooking(incoming(), bookingId)
+        && (
+          (isAdmin()
+            && incoming().authorId == existing().authorId
+            && incoming().createdAt == existing().createdAt
+            && incoming().updatedAt == request.time) ||
+          (existing().authorId == request.auth.uid
+            && existing().status != 'completed'
+            && incoming().authorId == existing().authorId
+            && incoming().createdAt == existing().createdAt
+            && incoming().updatedAt == request.time
+            && incoming().status == 'cancelled'
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']))
+        );
+
+      allow delete: if isAdmin() && isValidId(bookingId);
+    }
+
+    match /portfolioProjects/{projectId} {
+      allow get: if isValidId(projectId);
+      allow list: if resource.data.featured in [true, false];
+
+      allow create: if isAdmin()
+        && isValidId(projectId)
+        && isValidPortfolioProject(incoming(), projectId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isAdmin()
+        && isValidId(projectId)
+        && isValidPortfolioProject(incoming(), projectId)
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time;
+
+      allow delete: if isAdmin() && isValidId(projectId);
+    }
+
+    match /blogPosts/{postId} {
+      allow get: if isValidId(postId);
+      allow list: if resource.data.featured in [true, false];
+
+      allow create: if isAdmin()
+        && isValidId(postId)
+        && isValidBlogPost(incoming(), postId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isAdmin()
+        && isValidId(postId)
+        && isValidBlogPost(incoming(), postId)
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'slug', 'title', 'excerpt', 'category', 'authorName', 'authorRole',
+          'publishedDate', 'readTimeMinutes', 'featured', 'coverImage',
+          'stackTags', 'keyTakeaways', 'section1Heading', 'section1Body',
+          'section2Heading', 'section2Body', 'section3Heading', 'section3Body',
+          'calloutQuote', 'codeFilename', 'codeLanguage', 'codeSnippet', 'updatedAt'
+        ]);
+
+      allow delete: if isAdmin() && isValidId(postId);
     }
 
     match /notifications/{notificationId} {

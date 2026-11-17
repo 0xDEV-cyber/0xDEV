@@ -33,7 +33,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <footer className="bg-[#120D4A] text-white">
+      <footer className="bg-[#120D4A] text-white print:hidden">
         <div className="mx-auto max-w-7xl px-4 pt-16 pb-10 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-12">
             {/* Brand Summary */}
@@ -213,7 +213,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Back to top"
-          className="fixed right-5 bottom-5 z-40 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#1A1464] text-white shadow-[0_10px_25px_rgba(26,20,100,0.3)] border border-white/15 transition-all duration-150 hover:bg-[#EE1119] hover:-translate-y-0.5"
+          className="fixed right-5 bottom-20 z-40 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#1A1464] text-white shadow-[0_10px_25px_rgba(26,20,100,0.3)] border border-white/15 transition-all duration-150 hover:bg-[#EE1119] hover:-translate-y-0.5 print:hidden"
         >
           <ArrowUp className="h-5 w-5" aria-hidden="true" />
         </button>

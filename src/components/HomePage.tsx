@@ -3,10 +3,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowRight,
   ArrowUpRight,
+  BookOpen,
   Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Eye,
   Layers,
   Quote,
@@ -16,7 +18,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import {
-  CASE_STUDIES,
   CaseStudy,
   COMPANY_CONTACT,
   HERO_STACK_LAYERS,
@@ -26,6 +27,8 @@ import {
   TESTIMONIALS,
   TRUST_PARTNERS,
 } from '../data/siteData';
+import { useBlogPosts } from '../hooks/useBlogPosts';
+import { usePortfolioProjects } from '../hooks/usePortfolioProjects';
 import { EASE_OUT_EXPO, Reveal, StaggerGrid, StaggerItem } from './MotionPrimitives';
 import { ProjectPreviewModal, ProjectPreviewScreen } from './ProjectPreviewVisual';
 import { SharedCtaBanner } from './SharedCtaBanner';
@@ -33,6 +36,7 @@ import { SharedCtaBanner } from './SharedCtaBanner';
 interface HomePageProps {
   onNavigate: (page: PageRoute) => void;
   onSelectService: (serviceTitle: string) => void;
+  onOpenArticle?: (slug: string) => void;
 }
 
 const layerIcons = [Layers, Terminal, Shield, Wrench];
@@ -83,7 +87,13 @@ const AnimatedCounter: React.FC<{
   );
 };
 
-export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService }) => {
+export const HomePage: React.FC<HomePageProps> = ({
+  onNavigate,
+  onSelectService,
+  onOpenArticle,
+}) => {
+  const { projects } = usePortfolioProjects();
+  const { articles } = useBlogPosts();
   const [activeLayerIndex, setActiveLayerIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [statsVisible, setStatsVisible] = useState(false);
@@ -220,7 +230,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService 
                   className="inline-flex items-center gap-2 rounded-xl border-2 border-[#1A1464] bg-white px-6 py-3.5 text-sm sm:text-base font-semibold text-[#1A1464] transition-colors duration-150 hover:bg-[#1A1464] hover:text-white whitespace-nowrap"
                 >
                   <Eye className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
-                  <span>See Some of Our Work ({CASE_STUDIES.length})</span>
+                  <span>See Some of Our Work ({projects.length})</span>
                 </motion.button>
 
                 <button
@@ -586,7 +596,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService 
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
-                  See Some of Our Work · {CASE_STUDIES.length} Production Builds
+                  See Some of Our Work · {projects.length} Production Builds
                 </p>
                 <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] text-balance">
                   Live screen previews across fintech, health, agritech &amp; cloud.
@@ -614,7 +624,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService 
               role="tablist"
               aria-label="Filter showcased work by sector"
             >
-              {['All', ...Array.from(new Set(CASE_STUDIES.map((s) => s.sector)))].map((sector) => {
+              {['All', ...Array.from(new Set(projects.map((s) => s.sector)))].map((sector) => {
                 const isActive = workSector === sector;
                 return (
                   <button
@@ -636,7 +646,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService 
                       />
                     )}
                     <span className="relative z-10">
-                      {sector === 'All' ? `All (${CASE_STUDIES.length})` : sector}
+                      {sector === 'All' ? `All (${projects.length})` : sector}
                     </span>
                   </button>
                 );
@@ -647,8 +657,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService 
           <motion.div layout className="mt-8 grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence mode="popLayout">
               {(workSector === 'All'
-                ? CASE_STUDIES
-                : CASE_STUDIES.filter((s) => s.sector === workSector)
+                ? projects
+                : projects.filter((s) => s.sector === workSector)
               ).map((study) => (
                 <motion.article
                   key={study.id}
@@ -779,6 +789,91 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService 
               </motion.div>
             </AnimatePresence>
           </div>
+        </div>
+      </section>
+
+      {/* 7. Engineering Insights Preview Strip */}
+      <section className="bg-white py-20 sm:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Reveal>
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
+                  Engineering Journal
+                </p>
+                <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] text-balance">
+                  Latest technical insights from our build floor.
+                </h2>
+                <p className="mt-3 text-base text-[#4A4F63]">
+                  Deep dives on payment idempotency, offline-first mobile sync, Terraform FinOps, and zero-trust rules.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onNavigate('blog')}
+                className="inline-flex items-center gap-2 self-start rounded-xl border border-[#1A1464] bg-white px-5 py-3 text-sm font-semibold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white whitespace-nowrap"
+              >
+                <BookOpen className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
+                <span>Explore All {articles.length} Articles</span>
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          </Reveal>
+
+          <StaggerGrid className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3 items-stretch">
+            {articles.slice(0, 3).map((article) => (
+              <StaggerItem key={article.id} className="h-full">
+                <article className="group flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB]/60 p-6 transition-colors hover:border-[#1A1464]/35 hover:bg-white">
+                  <div>
+                    <p className="font-mono text-xs font-semibold text-[#6B7188] tabular-nums">
+                      <span className="text-[#EE1119] font-bold">{article.category}</span>
+                      <span className="mx-1.5">·</span>
+                      <span>{article.publishedDate}</span>
+                    </p>
+                    <h3 className="mt-2.5 font-display text-lg font-extrabold leading-snug text-[#1A1464] group-hover:text-[#EE1119] transition-colors">
+                      <a
+                        href={`/blog/${article.slug}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (onOpenArticle) {
+                            onOpenArticle(article.slug);
+                          } else {
+                            onNavigate('blog');
+                          }
+                        }}
+                      >
+                        {article.title}
+                      </a>
+                    </h3>
+                    <p className="mt-2.5 text-sm leading-relaxed text-[#4A4F63] line-clamp-3">
+                      {article.excerpt}
+                    </p>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between border-t border-[#E5E7F0] pt-4">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7188] tabular-nums">
+                      <Clock className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                      <span>{article.readTimeMinutes} min read</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onOpenArticle) {
+                          onOpenArticle(article.slug);
+                        } else {
+                          onNavigate('blog');
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] group-hover:text-[#EE1119] transition-colors"
+                    >
+                      <span>Read Brief</span>
+                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </article>
+              </StaggerItem>
+            ))}
+          </StaggerGrid>
         </div>
       </section>
 

@@ -15,11 +15,13 @@ import {
 import { ENGAGEMENT_MODELS, FAQS, PageRoute } from '../data/siteData';
 import { EASE_OUT_EXPO, Reveal, StaggerGrid, StaggerItem } from './MotionPrimitives';
 import { PageHeader } from './PageHeader';
+import { EstimateSelectionPayload, ProjectEstimator } from './ProjectEstimator';
 import { SharedCtaBanner } from './SharedCtaBanner';
 
 interface WhyPageProps {
   onNavigate: (page: PageRoute) => void;
   onSelectEngagement: (modelName: string, budgetHint: string) => void;
+  onApplyEstimate: (payload: EstimateSelectionPayload) => void;
 }
 
 const FRAGMENTED_VENDORS = [
@@ -57,7 +59,11 @@ const UNIFIED_BENEFITS = [
   },
 ];
 
-export const WhyPage: React.FC<WhyPageProps> = ({ onNavigate, onSelectEngagement }) => {
+export const WhyPage: React.FC<WhyPageProps> = ({
+  onNavigate,
+  onSelectEngagement,
+  onApplyEstimate,
+}) => {
   const [openFaqId, setOpenFaqId] = useState<string>(FAQS[0].id);
 
   return (
@@ -220,6 +226,9 @@ export const WhyPage: React.FC<WhyPageProps> = ({ onNavigate, onSelectEngagement
           </StaggerGrid>
         </div>
       </section>
+
+      {/* Interactive Cost & Timeline Estimator */}
+      <ProjectEstimator onApplyEstimate={onApplyEstimate} />
 
       {/* Engagement Models */}
       <section className="bg-[#F6F7FB] py-16 sm:py-20 border-t border-[#E5E7F0]">

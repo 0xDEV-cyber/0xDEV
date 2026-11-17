@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, Eye } from 'lucide-react';
-import { CASE_STUDIES, CaseStudy, PageRoute } from '../data/siteData';
+import { CaseStudy, PageRoute } from '../data/siteData';
+import { usePortfolioProjects } from '../hooks/usePortfolioProjects';
 import { EASE_OUT_EXPO } from './MotionPrimitives';
 import { PageHeader } from './PageHeader';
 import { ProjectPreviewModal, ProjectPreviewScreen } from './ProjectPreviewVisual';
@@ -11,23 +12,27 @@ interface WorkPageProps {
   onNavigate: (page: PageRoute) => void;
 }
 
-const SECTORS = ['All', ...Array.from(new Set(CASE_STUDIES.map((s) => s.sector)))];
-
 export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
+  const { projects } = usePortfolioProjects();
   const [selectedSector, setSelectedSector] = useState<string>('All');
   const [inspectedStudy, setInspectedStudy] = useState<CaseStudy | null>(null);
 
+  const sectors = useMemo(
+    () => ['All', ...Array.from(new Set(projects.map((s) => s.sector)))],
+    [projects]
+  );
+
   const filteredStudies =
     selectedSector === 'All'
-      ? CASE_STUDIES
-      : CASE_STUDIES.filter((item) => item.sector === selectedSector);
+      ? projects
+      : projects.filter((item) => item.sector === selectedSector);
 
   return (
     <>
       <PageHeader
-        eyebrow={`See Some of Our Work · ${CASE_STUDIES.length} Production Case Studies`}
+        eyebrow={`See Some of Our Work · ${projects.length} Production Case Studies`}
         title="Systems engineered for uptime, speed, and clarity."
-        description="Explore interactive UI screen previews and production architectures across 12 shipped projects in fintech, healthcare, agritech, logistics, SaaS, and cloud security."
+        description={`Explore interactive UI screen previews and production architectures across ${projects.length} shipped projects in fintech, healthcare, agritech, logistics, SaaS, and cloud security.`}
         currentLabel="Work"
         onNavigate={onNavigate}
       />
@@ -41,7 +46,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                 role="tablist"
                 aria-label="Filter case studies by sector"
               >
-                {SECTORS.map((sector) => {
+                {sectors.map((sector) => {
                   const isActive = selectedSector === sector;
                   return (
                     <button
@@ -63,7 +68,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                         />
                       )}
                       <span className="relative z-10">
-                        {sector === 'All' ? `All (${CASE_STUDIES.length})` : sector}
+                        {sector === 'All' ? `All (${projects.length})` : sector}
                       </span>
                     </button>
                   );

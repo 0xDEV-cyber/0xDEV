@@ -57,6 +57,10 @@ export interface ProjectMilestoneRecord {
 
 interface ProjectTimelineProps {
   onNavigate: (page: PageRoute) => void;
+  onActiveStateChange?: (
+    inquiry: TrackedInquiry | null,
+    milestones: ProjectMilestoneRecord[]
+  ) => void;
 }
 
 const INQUIRY_STATUS_LABELS: Record<TrackedInquiry['status'], string> = {
@@ -153,7 +157,10 @@ function buildBaselineMilestones(inquiry: TrackedInquiry): ProjectMilestoneRecor
   });
 }
 
-export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ onNavigate }) => {
+export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
+  onNavigate,
+  onActiveStateChange,
+}) => {
   const { user } = useAuth();
   const isPrimaryAdmin =
     Boolean(user?.emailVerified) && user?.email?.toLowerCase() === 'arigyewisdom7@gmail.com';
@@ -302,6 +309,12 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ onNavigate }) 
   }, [selectedInquiry, customMilestones]);
 
   const isUsingBaseline = Boolean(selectedInquiry && customMilestones.length === 0);
+
+  useEffect(() => {
+    if (onActiveStateChange) {
+      onActiveStateChange(selectedInquiry, displayedMilestones);
+    }
+  }, [selectedInquiry, displayedMilestones, onActiveStateChange]);
 
   const summaryStats = useMemo(() => {
     if (displayedMilestones.length === 0) {

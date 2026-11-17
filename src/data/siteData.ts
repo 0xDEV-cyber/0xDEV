@@ -4,6 +4,7 @@ export type PageRoute =
   | 'why-0xdev'
   | 'process'
   | 'work'
+  | 'blog'
   | 'about'
   | 'contact'
   | 'dashboard';
@@ -154,6 +155,7 @@ export const NAV_LINKS: NavItem[] = [
   { id: 'why-0xdev', path: '/why-0xdev', label: 'Why 0xDEV' },
   { id: 'process', path: '/process', label: 'Process' },
   { id: 'work', path: '/work', label: 'Work' },
+  { id: 'blog', path: '/blog', label: 'Blog' },
   { id: 'about', path: '/about', label: 'About' },
   { id: 'contact', path: '/contact', label: 'Contact' },
   { id: 'dashboard', path: '/dashboard', label: 'Dashboard' },

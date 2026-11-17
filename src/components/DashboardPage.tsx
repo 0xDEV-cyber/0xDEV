@@ -1,10 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Calendar, CheckCircle2, LogOut, Mail, Save, ShieldCheck, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { PageRoute } from '../data/siteData';
+import { AdminBlogManager } from './AdminBlogManager';
+import { AdminPortfolioManager } from './AdminPortfolioManager';
 import { NotificationCenter } from './NotificationCenter';
 import { PageHeader } from './PageHeader';
-import { ProjectTimeline } from './ProjectTimeline';
+import {
+  ProjectMilestoneRecord,
+  ProjectTimeline,
+  TrackedInquiry,
+} from './ProjectTimeline';
+import { ProjectWorkspace } from './ProjectWorkspace';
 
 interface DashboardPageProps {
   onNavigate: (page: PageRoute) => void;
@@ -37,6 +44,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);
+  const [activeInquiry, setActiveInquiry] = useState<TrackedInquiry | null>(null);
+  const [activeMilestones, setActiveMilestones] = useState<ProjectMilestoneRecord[]>([]);
+
+  const handleTimelineStateChange = useCallback(
+    (inquiry: TrackedInquiry | null, milestones: ProjectMilestoneRecord[]) => {
+      setActiveInquiry(inquiry);
+      setActiveMilestones(milestones);
+    },
+    []
+  );
 
   useEffect(() => {
     setDisplayName(user?.displayName || '');
@@ -78,17 +95,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Account Dashboard"
-        title="Manage your 0xDEV profile."
-        description="View your registered account details, track live project milestones, and manage your 0xDEV notifications."
-        currentLabel="Dashboard"
-        onNavigate={onNavigate}
-      />
+      <div className="print:hidden">
+        <PageHeader
+          eyebrow="Account Dashboard"
+          title="Manage your 0xDEV profile."
+          description="View your registered account details, track live project milestones, collaborate with your engineering squad, and manage your 0xDEV notifications."
+          currentLabel="Dashboard"
+          onNavigate={onNavigate}
+        />
+      </div>
 
-      <section className="bg-white py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
+      <section className="bg-white py-16 sm:py-20 print:py-0">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 print:max-w-none print:px-0">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start print:hidden">
             {/* Left Card: Account Overview */}
             <div className="lg:col-span-6 rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB] p-6 sm:p-8">
               <div className="flex items-center gap-4 border-b border-[#E5E7F0] pb-6">
@@ -244,9 +263,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          <ProjectTimeline onNavigate={onNavigate} />
+          <div className="print:hidden">
+            <ProjectTimeline
+              onNavigate={onNavigate}
+              onActiveStateChange={handleTimelineStateChange}
+            />
+          </div>
 
-          <NotificationCenter />
+          <ProjectWorkspace inquiry={activeInquiry} milestones={activeMilestones} />
+
+          <div className="print:hidden">
+            <AdminPortfolioManager />
+            <AdminBlogManager />
+            <NotificationCenter />
+          </div>
         </div>
       </section>
     </>

@@ -3,6 +3,7 @@ import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { AboutPage } from './components/AboutPage';
 import { AuthActionPage } from './components/AuthActionPage';
 import { AuthGatePage } from './components/AuthGatePage';
+import { BlogPage } from './components/BlogPage';
 import { ContactPage } from './components/ContactPage';
 import { DashboardPage } from './components/DashboardPage';
 import { Footer } from './components/Footer';
@@ -10,10 +11,14 @@ import { HomePage } from './components/HomePage';
 import { Logo } from './components/Logo';
 import { Navbar } from './components/Navbar';
 import { ProcessPage } from './components/ProcessPage';
+import { EstimateSelectionPayload } from './components/ProjectEstimator';
+import { OfflineIndicator } from './components/PWAControls';
 import { ServicesPage } from './components/ServicesPage';
+import { WhatsAppLauncher } from './components/WhatsAppLauncher';
 import { WorkPage } from './components/WorkPage';
 import { WhyPage } from './components/WhyPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { BLOG_ARTICLES } from './data/blogData';
 import { PageRoute } from './data/siteData';
 
 const ROUTE_TO_PATH: Record<PageRoute, string> = {
@@ -22,6 +27,7 @@ const ROUTE_TO_PATH: Record<PageRoute, string> = {
   'why-0xdev': '/why-0xdev',
   process: '/process',
   work: '/work',
+  blog: '/blog',
   about: '/about',
   contact: '/contact',
   dashboard: '/dashboard',
@@ -33,6 +39,7 @@ const ROUTE_TITLES: Record<PageRoute, string> = {
   'why-0xdev': 'Why 0xDEV & Engagement Models — 0xDEV',
   process: 'Our 5-Stage Engineering Process — 0xDEV',
   work: 'Case Studies & Featured Work — 0xDEV',
+  blog: 'Engineering Blog & Technical Insights — 0xDEV',
   about: 'About Us (Kabale, Uganda) — 0xDEV',
   contact: 'Contact & Project Brief — 0xDEV',
   dashboard: 'User Dashboard — 0xDEV',
@@ -40,10 +47,20 @@ const ROUTE_TITLES: Record<PageRoute, string> = {
 
 function resolveRouteFromPathname(pathname: string): PageRoute {
   const normalized = pathname.toLowerCase().replace(/\/+$/, '') || '/';
+  if (normalized === '/blog' || normalized.startsWith('/blog/')) {
+    return 'blog';
+  }
   const matched = (Object.keys(ROUTE_TO_PATH) as PageRoute[]).find(
     (route) => ROUTE_TO_PATH[route] === normalized
   );
   return matched || 'home';
+}
+
+function resolveBlogSlugFromPathname(pathname: string): string | null {
+  const normalized = pathname.toLowerCase().replace(/\/+$/, '') || '/';
+  if (!normalized.startsWith('/blog/')) return null;
+  const slug = normalized.slice('/blog/'.length).split('/')[0]?.trim();
+  return slug || null;
 }
 
 interface ErrorBoundaryState {
@@ -114,6 +131,11 @@ function isEmailActionUrl(): boolean {
   return path === '/auth-action' || hasActionParams;
 }
 
+function isAuthPath(pathname: string): boolean {
+  const norm = pathname.toLowerCase().replace(/\/+$/, '') || '/';
+  return norm === '/login' || norm === '/register';
+}
+
 function AppShell() {
   const {
     user,
@@ -124,20 +146,26 @@ function AppShell() {
   } = useAuth();
 
   const [isAuthActionRoute, setIsAuthActionRoute] = useState<boolean>(() => isEmailActionUrl());
+  const [showAuthPortal, setShowAuthPortal] = useState<boolean>(() =>
+    isAuthPath(window.location.pathname)
+  );
   const [currentPage, setCurrentPage] = useState<PageRoute>(() =>
     resolveRouteFromPathname(window.location.pathname)
+  );
+  const [selectedArticleSlug, setSelectedArticleSlug] = useState<string | null>(() =>
+    resolveBlogSlugFromPathname(window.location.pathname)
   );
   const [authMode, setAuthMode] = useState<'login' | 'register'>(() =>
     window.location.pathname.toLowerCase().includes('register') ? 'register' : 'login'
   );
   const [preselectedService, setPreselectedService] = useState<string>('');
   const [preselectedBudget, setPreselectedBudget] = useState<string>('');
+  const [preselectedMessage, setPreselectedMessage] = useState<string>('');
   const [verifyFeedback, setVerifyFeedback] = useState<string | null>(null);
   const [verifyBusy, setVerifyBusy] = useState(false);
 
   const wasSignedInRef = useRef(false);
-  const isSignedInRef = useRef(false);
-  isSignedInRef.current = Boolean(user);
+  const returnPageRef = useRef<PageRoute>('dashboard');
 
   const navigateTo = useCallback((page: PageRoute) => {
     const targetPath = ROUTE_TO_PATH[page] || '/';
@@ -145,9 +173,37 @@ function AppShell() {
       window.history.pushState({ page }, '', targetPath);
     }
     setIsAuthActionRoute(false);
+    setShowAuthPortal(false);
+    setSelectedArticleSlug(null);
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  const navigateToArticle = useCallback((slug: string | null) => {
+    const targetPath = slug ? `/blog/${slug}` : '/blog';
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({ page: 'blog', slug }, '', targetPath);
+    }
+    setIsAuthActionRoute(false);
+    setShowAuthPortal(false);
+    setCurrentPage('blog');
+    setSelectedArticleSlug(slug);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const openAuthPortal = useCallback(
+    (mode: 'login' | 'register' = 'login', returnTo?: PageRoute) => {
+      returnPageRef.current = returnTo || currentPage || 'dashboard';
+      setAuthMode(mode);
+      setShowAuthPortal(true);
+      const authPath = mode === 'register' ? '/register' : '/login';
+      if (window.location.pathname !== authPath) {
+        window.history.pushState({ authMode: mode }, '', authPath);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [currentPage]
+  );
 
   // Keep browser URL aligned with authentication transitions
   useEffect(() => {
@@ -157,9 +213,12 @@ function AppShell() {
 
     if (user) {
       wasSignedInRef.current = true;
-      if (path === '/login' || path === '/register') {
-        const targetPath = ROUTE_TO_PATH[currentPage] || '/';
-        window.history.replaceState({ page: currentPage }, '', targetPath);
+      if (showAuthPortal || path === '/login' || path === '/register') {
+        const destPage = returnPageRef.current || currentPage || 'home';
+        const targetPath = ROUTE_TO_PATH[destPage] || '/';
+        setShowAuthPortal(false);
+        setCurrentPage(destPage);
+        window.history.replaceState({ page: destPage }, '', targetPath);
       }
       return;
     }
@@ -167,29 +226,35 @@ function AppShell() {
     // Signed out
     if (wasSignedInRef.current) {
       wasSignedInRef.current = false;
-      setCurrentPage('home');
       setVerifyFeedback(null);
+      if (currentPage === 'dashboard') {
+        setCurrentPage('home');
+        window.history.replaceState({ page: 'home' }, '', '/');
+      }
     }
-    const authPath = authMode === 'register' ? '/register' : '/login';
-    if (path !== '/login' && path !== '/register') {
-      window.history.replaceState({ authMode }, '', authPath);
-    }
-  }, [user, loading, authMode, currentPage, isAuthActionRoute]);
+  }, [user, loading, currentPage, isAuthActionRoute, showAuthPortal]);
 
   useEffect(() => {
     if (isAuthActionRoute) {
       document.title = 'Account Verification & Security — 0xDEV';
       return;
     }
-    if (!user) {
+    if (!user && (showAuthPortal || currentPage === 'dashboard')) {
       document.title =
         authMode === 'register'
           ? 'Create Account — 0xDEV Client Portal'
           : 'Sign In — 0xDEV Client Portal';
       return;
     }
+    if (currentPage === 'blog' && selectedArticleSlug) {
+      const matched = BLOG_ARTICLES.find((a) => a.slug === selectedArticleSlug);
+      document.title = matched
+        ? `${matched.title} — 0xDEV Blog`
+        : 'Engineering Article — 0xDEV Blog';
+      return;
+    }
     document.title = ROUTE_TITLES[currentPage];
-  }, [user, authMode, currentPage, isAuthActionRoute]);
+  }, [user, authMode, currentPage, selectedArticleSlug, isAuthActionRoute, showAuthPortal]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -199,13 +264,13 @@ function AppShell() {
       }
       setIsAuthActionRoute(false);
       const path = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
-      if (!isSignedInRef.current) {
+      if (isAuthPath(path)) {
         setAuthMode(path === '/register' ? 'register' : 'login');
-      } else if (path === '/login' || path === '/register') {
-        setCurrentPage('home');
-        window.history.replaceState({ page: 'home' }, '', '/');
+        setShowAuthPortal(true);
       } else {
+        setShowAuthPortal(false);
         setCurrentPage(resolveRouteFromPathname(window.location.pathname));
+        setSelectedArticleSlug(resolveBlogSlugFromPathname(window.location.pathname));
       }
       window.scrollTo({ top: 0, behavior: 'auto' });
     };
@@ -231,6 +296,16 @@ function AppShell() {
     [navigateTo]
   );
 
+  const handleApplyEstimate = useCallback(
+    (payload: EstimateSelectionPayload) => {
+      setPreselectedService(payload.service);
+      setPreselectedBudget(payload.budget);
+      setPreselectedMessage(payload.summaryMessage);
+      navigateTo('contact');
+    },
+    [navigateTo]
+  );
+
   // Branded email verification & password reset handler (/auth-action)
   if (isAuthActionRoute) {
     return (
@@ -242,6 +317,7 @@ function AppShell() {
             setCurrentPage('home');
           } else {
             setAuthMode('login');
+            setShowAuthPortal(true);
             window.history.replaceState({ authMode: 'login' }, '', '/login');
           }
         }}
@@ -249,8 +325,8 @@ function AppShell() {
     );
   }
 
-  // Loading state while checking Firebase Auth session
-  if (loading) {
+  // Loading state while checking Firebase Auth session (only block if on gated portal/dashboard)
+  if (loading && (showAuthPortal || currentPage === 'dashboard')) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#F6F7FB] px-4">
         <Logo variant="light" showEmblemAbove />
@@ -261,8 +337,8 @@ function AppShell() {
     );
   }
 
-  // Gate: every visitor must log in or register before viewing site content
-  if (!user) {
+  // Gate only /login, /register, and /dashboard when signed out
+  if (!user && (showAuthPortal || currentPage === 'dashboard')) {
     return (
       <AuthGatePage
         initialMode={authMode}
@@ -273,19 +349,27 @@ function AppShell() {
             window.history.pushState({ authMode: nextMode }, '', nextPath);
           }
         }}
+        onBrowsePublic={() => {
+          setShowAuthPortal(false);
+          navigateTo('home');
+        }}
       />
     );
   }
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#4A4F63]">
-      <Navbar currentPage={currentPage} onNavigate={navigateTo} />
+      <Navbar
+        currentPage={currentPage}
+        onNavigate={navigateTo}
+        onOpenAuth={(mode) => openAuthPortal(mode, currentPage)}
+      />
 
       {/* Quiet Verification Banner for newly registered email/password users */}
-      {!user.emailVerified && (
+      {user && !user.emailVerified && (
         <div
           role="status"
-          className="border-b border-[#EE1119]/25 bg-[#F6F7FB] px-4 py-2.5 text-xs sm:text-sm text-[#1A1464]"
+          className="border-b border-[#EE1119]/25 bg-[#F6F7FB] px-4 py-2.5 text-xs sm:text-sm text-[#1A1464] print:hidden"
         >
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
             <p>
@@ -345,37 +429,56 @@ function AppShell() {
       <main className="flex-1">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentPage}
+            key={currentPage === 'blog' && selectedArticleSlug ? `blog-${selectedArticleSlug}` : currentPage}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             {currentPage === 'home' && (
-              <HomePage onNavigate={navigateTo} onSelectService={handleSelectService} />
+              <HomePage
+                onNavigate={navigateTo}
+                onSelectService={handleSelectService}
+                onOpenArticle={(slug) => navigateToArticle(slug)}
+              />
             )}
             {currentPage === 'services' && (
               <ServicesPage onNavigate={navigateTo} onSelectService={handleSelectService} />
             )}
             {currentPage === 'why-0xdev' && (
-              <WhyPage onNavigate={navigateTo} onSelectEngagement={handleSelectEngagement} />
+              <WhyPage
+                onNavigate={navigateTo}
+                onSelectEngagement={handleSelectEngagement}
+                onApplyEstimate={handleApplyEstimate}
+              />
             )}
             {currentPage === 'process' && <ProcessPage onNavigate={navigateTo} />}
             {currentPage === 'work' && <WorkPage onNavigate={navigateTo} />}
+            {currentPage === 'blog' && (
+              <BlogPage
+                selectedSlug={selectedArticleSlug}
+                onSelectArticle={navigateToArticle}
+                onNavigate={navigateTo}
+              />
+            )}
             {currentPage === 'about' && <AboutPage onNavigate={navigateTo} />}
             {currentPage === 'contact' && (
               <ContactPage
                 preselectedService={preselectedService}
                 preselectedBudget={preselectedBudget}
+                preselectedMessage={preselectedMessage}
                 onNavigate={navigateTo}
+                onRequestAuth={() => openAuthPortal('login', 'contact')}
               />
             )}
-            {currentPage === 'dashboard' && <DashboardPage onNavigate={navigateTo} />}
+            {currentPage === 'dashboard' && user && <DashboardPage onNavigate={navigateTo} />}
           </motion.div>
         </AnimatePresence>
       </main>
 
       <Footer onNavigate={navigateTo} />
+      <WhatsAppLauncher />
+      <OfflineIndicator />
     </div>
   );
 }

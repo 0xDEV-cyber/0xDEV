@@ -10,6 +10,8 @@
 7. **List Query Isolation**: Listing `/inquiries`, `/inquiries/{inquiryId}/milestones`, and `/notifications` evaluates `resource.data.authorId == request.auth.uid` or `resource.data.recipientId == request.auth.uid` (or `isPrimaryAdmin()`), never allowing unauthenticated or cross-user list scraping or list-time DB lookups.
 8. **Notification Integrity**: Only verified admins may create or delete `/notifications/{notificationId}`. Recipients may only toggle `isRead` and `updatedAt` on their own alerts.
 9. **Milestone Parent & Bounds Integrity**: Every `/inquiries/{inquiryId}/milestones/{milestoneId}` document may only be created, updated, or deleted by verified admins, must reference an existing parent inquiry with matching `authorId`, and must constrain `progress` to `0..100` and `sortOrder` to `1..50`.
+10. **Project Chat, Deliverable & Invoice Ownership**: Messages, deliverables, and invoices under `/inquiries/{inquiryId}` inherit ownership from the parent inquiry's `authorId`. Clients may only read their own project's messages/deliverables/invoices and create client-authored messages; only verified admins may manage deliverables, invoices, or `admin`-role messages. Deliverable URLs must start with `https://`.
+11. **Booking Isolation & Portfolio Public Read**: `/bookings/{bookingId}` may only be created by verified users with `authorId == request.auth.uid` and `status == 'requested'`, and read/listed only by the author or admin. `/portfolioProjects/{projectId}` contains strictly non-PII showcase metadata, readable publicly and writable only by verified admins.
 
 ## 2. Adversarial "Dirty Dozen" Payloads
 1. **Unauthenticated Profile Create**: `{ "uid": "user1", "displayName": "Attacker", ... }` with `auth == null` -> **PERMISSION_DENIED**.
@@ -25,3 +27,7 @@
 11. **Terminal State Bypass**: Non-admin updating `/inquiries/inq1` after `status == 'archived'` -> **PERMISSION_DENIED**.
 12. **Blanket List Scraping**: User `userA` executing `getDocs(collection(db, 'inquiries'))` without `where('authorId', '==', userA)` -> **PERMISSION_DENIED**.
 13. **Client Milestone Forgery**: Non-admin attempting to create or boost `progress` on `/inquiries/inq1/milestones/ms1` -> **PERMISSION_DENIED**.
+14. **Client Admin-Role Chat Spoof**: Client posting `/inquiries/inq1/messages/m1` with `senderRole: 'admin'` -> **PERMISSION_DENIED**.
+15. **JavaScript URI Deliverable Injection**: Writing a deliverable with `url: "javascript:alert(1)"` -> **PERMISSION_DENIED** (`url.matches('^https://.*')` blocks non-HTTPS schemes).
+16. **Client Paid Invoice Forgery**: Client attempting to update `/inquiries/inq1/invoices/inv1` to `status: 'paid'` -> **PERMISSION_DENIED**.
+17. **Unauthorized Portfolio Write**: Non-admin attempting to publish to `/portfolioProjects/p1` -> **PERMISSION_DENIED**.

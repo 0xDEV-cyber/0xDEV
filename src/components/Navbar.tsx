@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { LogOut, Menu, X } from 'lucide-react';
+import { LogIn, LogOut, Menu, X } from 'lucide-react';
 import { AnimatePresence, motion, useScroll, useSpring } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { NAV_LINKS, PageRoute } from '../data/siteData';
 import { Logo } from './Logo';
+import { PWAInstallButton } from './PWAControls';
 
 interface NavbarProps {
   currentPage: PageRoute;
   onNavigate: (page: PageRoute) => void;
+  onOpenAuth?: (mode: 'login' | 'register') => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
+export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenAuth }) => {
   const { user, signOutUser } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -51,7 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-200 ${
+      className={`sticky top-0 z-50 w-full transition-all duration-200 print:hidden ${
         scrolled
           ? 'bg-white/95 backdrop-blur-md shadow-[0_8px_30px_rgba(26,20,100,0.08)] border-b border-[#E5E7F0] py-3'
           : 'bg-white/95 backdrop-blur-sm border-b border-[#E5E7F0]/70 py-4'
@@ -71,7 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
         </motion.a>
 
         {/* Zone 2: Single-line Page Navigation Links */}
-        <nav aria-label="Primary Navigation" className="hidden lg:flex items-center gap-4 xl:gap-6">
+        <nav aria-label="Primary Navigation" className="hidden lg:flex items-center gap-3.5 xl:gap-5">
           {NAV_LINKS.map((link) => {
             const isActive = currentPage === link.id;
             return (
@@ -98,8 +100,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
           })}
         </nav>
 
-        {/* Zone 3: Consultation CTA + Sign Out + Mobile Menu */}
+        {/* Zone 3: Consultation CTA + PWA Install + Auth + Mobile Menu */}
         <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden xl:block">
+            <PWAInstallButton compact />
+          </div>
+
           <motion.a
             href="/contact"
             onClick={(e) => handleLinkClick(e, 'contact')}
@@ -111,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
             Free Consultation
           </motion.a>
 
-          {user && (
+          {user ? (
             <motion.button
               type="button"
               onClick={handleSignOut}
@@ -123,6 +129,21 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
               <LogOut className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
               <span>Sign Out</span>
             </motion.button>
+          ) : (
+            onOpenAuth && (
+              <motion.button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  onOpenAuth('login');
+                }}
+                whileTap={{ scale: 0.97 }}
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] bg-white px-3 py-2 text-xs font-semibold text-[#1A1464] transition-colors hover:border-[#1A1464]/40 hover:bg-[#F6F7FB] whitespace-nowrap shrink-0"
+              >
+                <LogIn className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                <span>Sign In</span>
+              </motion.button>
+            )
           )}
 
           <motion.button
@@ -200,7 +221,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                 >
                   Get a Free Consultation
                 </a>
-                {user && (
+                <div className="flex justify-center">
+                  <PWAInstallButton />
+                </div>
+                {user ? (
                   <button
                     type="button"
                     onClick={handleSignOut}
@@ -209,6 +233,20 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                     <LogOut className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
                     <span>Sign Out ({user.email})</span>
                   </button>
+                ) : (
+                  onOpenAuth && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        onOpenAuth('login');
+                      }}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] px-5 py-3 text-sm font-semibold text-[#1A1464]"
+                    >
+                      <LogIn className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
+                      <span>Sign In / Register</span>
+                    </button>
+                  )
                 )}
               </div>
             </nav>

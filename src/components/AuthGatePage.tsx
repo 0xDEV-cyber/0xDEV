@@ -14,7 +14,8 @@ import {
 import { AnimatePresence, motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { COUNTRIES, stripLeadingDialCode } from '../data/countries';
-import { CASE_STUDIES, CaseStudy, COMPANY_CONTACT } from '../data/siteData';
+import { CaseStudy, COMPANY_CONTACT } from '../data/siteData';
+import { usePortfolioProjects } from '../hooks/usePortfolioProjects';
 import { Logo } from './Logo';
 import { EASE_OUT_EXPO } from './MotionPrimitives';
 import {
@@ -26,11 +27,13 @@ import {
 interface AuthGatePageProps {
   initialMode?: 'login' | 'register';
   onModeChange?: (mode: 'login' | 'register') => void;
+  onBrowsePublic?: () => void;
 }
 
 export const AuthGatePage: React.FC<AuthGatePageProps> = ({
   initialMode = 'login',
   onModeChange,
+  onBrowsePublic,
 }) => {
   const {
     authError,
@@ -49,6 +52,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
   const [resetSentTo, setResetSentTo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { projects } = usePortfolioProjects();
   const [previewIndex, setPreviewIndex] = useState(0);
   const [previewPaused, setPreviewPaused] = useState(false);
   const [showcaseOpen, setShowcaseOpen] = useState(false);
@@ -82,14 +86,14 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
   }, [initialMode]);
 
   useEffect(() => {
-    if (previewPaused || showcaseOpen || inspectedStudy) return;
+    if (previewPaused || showcaseOpen || inspectedStudy || projects.length === 0) return;
     const id = window.setInterval(() => {
-      setPreviewIndex((prev) => (prev + 1) % CASE_STUDIES.length);
+      setPreviewIndex((prev) => (prev + 1) % projects.length);
     }, 4500);
     return () => window.clearInterval(id);
-  }, [previewPaused, showcaseOpen, inspectedStudy]);
+  }, [previewPaused, showcaseOpen, inspectedStudy, projects.length]);
 
-  const activePreviewStudy = CASE_STUDIES[previewIndex];
+  const activePreviewStudy = projects[previewIndex % Math.max(1, projects.length)] || projects[0];
 
   const switchMode = (nextMode: 'login' | 'register') => {
     setMode(nextMode);
@@ -273,13 +277,13 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
                 <span className="text-[11px] font-bold text-white/75 tabular-nums mr-1">
-                  {String(previewIndex + 1).padStart(2, '0')} / {CASE_STUDIES.length}
+                  {String((previewIndex % projects.length) + 1).padStart(2, '0')} / {projects.length}
                 </span>
                 <button
                   type="button"
                   onClick={() =>
                     setPreviewIndex(
-                      (prev) => (prev - 1 + CASE_STUDIES.length) % CASE_STUDIES.length
+                      (prev) => (prev - 1 + projects.length) % projects.length
                     )
                   }
                   aria-label="Previous project preview"
@@ -289,7 +293,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setPreviewIndex((prev) => (prev + 1) % CASE_STUDIES.length)}
+                  onClick={() => setPreviewIndex((prev) => (prev + 1) % projects.length)}
                   aria-label="Next project preview"
                   className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white transition-colors hover:bg-white hover:text-[#1A1464]"
                 >
@@ -325,7 +329,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                 className="inline-flex items-center gap-1.5 rounded-lg bg-[#EE1119] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#D00D14]"
               >
                 <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>See All {CASE_STUDIES.length} Projects</span>
+                <span>See All {projects.length} Projects</span>
               </button>
             </div>
           </div>
@@ -344,6 +348,19 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
       {/* Right Authentication Form Area */}
       <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8 lg:col-span-7 lg:py-12">
         <div className="w-full max-w-lg rounded-2xl border border-[#E5E7F0] bg-white p-6 sm:p-9 shadow-[0_20px_50px_rgba(26,20,100,0.08)]">
+          {onBrowsePublic && (
+            <div className="mb-4 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={onBrowsePublic}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] hover:text-[#EE1119] transition-colors"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Browse 0xDEV Site Without Signing In</span>
+              </button>
+            </div>
+          )}
+
           {/* Segmented Mode Tabs: Sign In | Create Account */}
           <div
             className="grid grid-cols-2 gap-1.5 rounded-xl bg-[#F6F7FB] p-1.5 border border-[#E5E7F0]"

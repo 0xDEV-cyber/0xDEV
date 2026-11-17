@@ -10,9 +10,11 @@ import {
   where,
 } from 'firebase/firestore';
 import {
+  Calendar,
   CheckCircle2,
   Clock,
   Globe,
+  Lock,
   Mail,
   MapPin,
   Phone,
@@ -23,12 +25,15 @@ import { useAuth } from '../context/AuthContext';
 import { COUNTRIES, stripLeadingDialCode } from '../data/countries';
 import { COMPANY_CONTACT, PageRoute, SERVICES } from '../data/siteData';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { DiscoveryBookingPanel } from './DiscoveryBookingPanel';
 import { PageHeader } from './PageHeader';
 
 interface ContactPageProps {
   preselectedService: string;
   preselectedBudget: string;
+  preselectedMessage?: string;
   onNavigate: (page: PageRoute) => void;
+  onRequestAuth?: () => void;
 }
 
 interface FormState {
@@ -72,23 +77,37 @@ const BUDGET_RANGES = [
   'Managed Retainer ($1.5k – $15k/mo)',
 ];
 
+const CONTACT_DRAFT_STORAGE_KEY = '0xdev_contact_draft';
+
 export const ContactPage: React.FC<ContactPageProps> = ({
   preselectedService,
   preselectedBudget,
+  preselectedMessage,
   onNavigate,
+  onRequestAuth,
 }) => {
   const { user, resendVerificationEmail, refreshUserStatus } = useAuth();
 
-  const [form, setForm] = useState<FormState>({
-    name: user?.displayName || '',
-    email: user?.email || '',
-    country: '',
-    dialCode: '',
-    phone: '',
-    company: '',
-    service: SERVICES[0].title,
-    budget: BUDGET_RANGES[2],
-    message: '',
+  const [rightTab, setRightTab] = useState<'brief' | 'booking'>('brief');
+  const [form, setForm] = useState<FormState>(() => {
+    let saved: Partial<FormState> = {};
+    try {
+      const raw = window.sessionStorage.getItem(CONTACT_DRAFT_STORAGE_KEY);
+      if (raw) saved = JSON.parse(raw) as Partial<FormState>;
+    } catch {
+      saved = {};
+    }
+    return {
+      name: saved.name || user?.displayName || '',
+      email: saved.email || user?.email || '',
+      country: saved.country || '',
+      dialCode: saved.dialCode || '',
+      phone: saved.phone || '',
+      company: saved.company || '',
+      service: saved.service || SERVICES[0].title,
+      budget: saved.budget || BUDGET_RANGES[2],
+      message: saved.message || '',
+    };
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -102,6 +121,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({
     if (preselectedService) {
       setForm((prev) => ({ ...prev, service: preselectedService }));
       setSubmittedRef(null);
+      setRightTab('brief');
     }
   }, [preselectedService]);
 
@@ -110,8 +130,17 @@ export const ContactPage: React.FC<ContactPageProps> = ({
       const matched = BUDGET_RANGES.find((item) => item.includes(preselectedBudget));
       setForm((prev) => ({ ...prev, budget: matched || prev.budget }));
       setSubmittedRef(null);
+      setRightTab('brief');
     }
   }, [preselectedBudget]);
+
+  useEffect(() => {
+    if (preselectedMessage) {
+      setForm((prev) => ({ ...prev, message: preselectedMessage }));
+      setSubmittedRef(null);
+      setRightTab('brief');
+    }
+  }, [preselectedMessage]);
 
   useEffect(() => {
     if (!user) {
@@ -216,11 +245,25 @@ export const ContactPage: React.FC<ContactPageProps> = ({
     return nextErrors;
   };
 
+  const saveDraftAndRequestAuth = () => {
+    try {
+      window.sessionStorage.setItem(CONTACT_DRAFT_STORAGE_KEY, JSON.stringify(form));
+    } catch {
+      // Ignore storage quota errors
+    }
+    if (onRequestAuth) onRequestAuth();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationErrors = validateForm();
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0 || !user) return;
+    if (Object.keys(validationErrors).length > 0) return;
+
+    if (!user) {
+      saveDraftAndRequestAuth();
+      return;
+    }
 
     if (!user.emailVerified) {
       setErrors({
@@ -255,6 +298,11 @@ export const ContactPage: React.FC<ContactPageProps> = ({
       }
 
       await setDoc(doc(db, 'inquiries', inquiryId), payload);
+      try {
+        window.sessionStorage.removeItem(CONTACT_DRAFT_STORAGE_KEY);
+      } catch {
+        // ignore
+      }
       setSubmittedRef(inquiryId);
     } catch (error) {
       setErrors({
@@ -419,7 +467,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({
               )}
             </div>
 
-            {/* Right Intake Form */}
+            {/* Right Intake Form / Discovery Call Scheduler */}
             <div className="lg:col-span-7">
               <div className="relative rounded-2xl border border-[#E5E7F0] bg-white p-6 sm:p-9 shadow-[0_18px_45px_rgba(26,20,100,0.06)]">
                 <div
@@ -427,7 +475,45 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                   className="absolute top-0 right-8 h-1.5 w-24 -skew-x-24 bg-[#EE1119]"
                 />
 
-                {submittedRef ? (
+                {/* Segmented Mode Switcher: Project Brief vs Discovery Call */}
+                <div
+                  className="mb-6 grid grid-cols-2 gap-1.5 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-1.5"
+                  role="tablist"
+                  aria-label="Contact options"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={rightTab === 'brief'}
+                    onClick={() => setRightTab('brief')}
+                    className={`inline-flex items-center justify-center gap-2 rounded-lg py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
+                      rightTab === 'brief'
+                        ? 'bg-[#1A1464] text-white shadow-sm'
+                        : 'text-[#4A4F63] hover:text-[#1A1464]'
+                    }`}
+                  >
+                    <Send className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Send Project Brief</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={rightTab === 'booking'}
+                    onClick={() => setRightTab('booking')}
+                    className={`inline-flex items-center justify-center gap-2 rounded-lg py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
+                      rightTab === 'booking'
+                        ? 'bg-[#1A1464] text-white shadow-sm'
+                        : 'text-[#4A4F63] hover:text-[#1A1464]'
+                    }`}
+                  >
+                    <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Book 30-Min Discovery Call</span>
+                  </button>
+                </div>
+
+                {rightTab === 'booking' ? (
+                  <DiscoveryBookingPanel onRequestAuth={saveDraftAndRequestAuth} />
+                ) : submittedRef ? (
                   <div className="py-6" role="status" aria-live="polite">
                     <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1A1464] text-white">
                       <CheckCircle2 className="h-7 w-7 text-[#EE1119]" aria-hidden="true" />
@@ -764,20 +850,37 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
-                      <p className="text-xs text-[#6B7188]">
-                        Direct reply from {COMPANY_CONTACT.leadName} · Protected under NDA on
-                        request.
-                      </p>
-                      <button
-                        type="submit"
-                        disabled={submitting}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#EE1119] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(238,17,25,0.22)] transition-all duration-150 hover:bg-[#D00D14] disabled:opacity-60 whitespace-nowrap"
-                      >
-                        <span>{submitting ? 'Saving Brief...' : 'Send Project Brief'}</span>
-                        <Send className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                    </div>
+                    {!user ? (
+                      <div className="rounded-xl border border-[#1A1464]/20 bg-[#F6F7FB] p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs text-[#4A4F63]">
+                          Sign in or register free to save your project brief and unlock your live
+                          0xDEV client timeline, chat, and invoices. Your draft is preserved.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={saveDraftAndRequestAuth}
+                          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#EE1119] px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-[0_10px_24px_rgba(238,17,25,0.22)] hover:bg-[#D00D14] whitespace-nowrap"
+                        >
+                          <Lock className="h-4 w-4" aria-hidden="true" />
+                          <span>Sign In &amp; Submit Brief</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
+                        <p className="text-xs text-[#6B7188]">
+                          Direct reply from {COMPANY_CONTACT.leadName} · Protected under NDA on
+                          request.
+                        </p>
+                        <button
+                          type="submit"
+                          disabled={submitting}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#EE1119] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(238,17,25,0.22)] transition-all duration-150 hover:bg-[#D00D14] disabled:opacity-60 whitespace-nowrap"
+                        >
+                          <span>{submitting ? 'Saving Brief...' : 'Send Project Brief'}</span>
+                          <Send className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                      </div>
+                    )}
                   </form>
                 )}
               </div>
