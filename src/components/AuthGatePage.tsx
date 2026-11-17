@@ -3,15 +3,25 @@ import {
   AlertCircle,
   ArrowRight,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Eye,
   EyeOff,
+  LayoutGrid,
   Lock,
   ShieldCheck,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { COUNTRIES, stripLeadingDialCode } from '../data/countries';
-import { COMPANY_CONTACT } from '../data/siteData';
+import { CASE_STUDIES, CaseStudy, COMPANY_CONTACT } from '../data/siteData';
 import { Logo } from './Logo';
+import { EASE_OUT_EXPO } from './MotionPrimitives';
+import {
+  ProjectPreviewModal,
+  ProjectPreviewScreen,
+  WorkShowcaseModal,
+} from './ProjectPreviewVisual';
 
 interface AuthGatePageProps {
   initialMode?: 'login' | 'register';
@@ -39,6 +49,10 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
   const [resetSentTo, setResetSentTo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const [previewPaused, setPreviewPaused] = useState(false);
+  const [showcaseOpen, setShowcaseOpen] = useState(false);
+  const [inspectedStudy, setInspectedStudy] = useState<CaseStudy | null>(null);
 
   // Login fields
   const [loginEmail, setLoginEmail] = useState('');
@@ -66,6 +80,16 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
     setMode(initialMode);
     setResetView(false);
   }, [initialMode]);
+
+  useEffect(() => {
+    if (previewPaused || showcaseOpen || inspectedStudy) return;
+    const id = window.setInterval(() => {
+      setPreviewIndex((prev) => (prev + 1) % CASE_STUDIES.length);
+    }, 4500);
+    return () => window.clearInterval(id);
+  }, [previewPaused, showcaseOpen, inspectedStudy]);
+
+  const activePreviewStudy = CASE_STUDIES[previewIndex];
 
   const switchMode = (nextMode: 'login' | 'register') => {
     setMode(nextMode);
@@ -232,9 +256,82 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
               </li>
             ))}
           </ul>
+          {/* Interactive "See Some of Our Work" Live Preview Strip */}
+          <div
+            className="mt-8 rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-sm"
+            onMouseEnter={() => setPreviewPaused(true)}
+            onMouseLeave={() => setPreviewPaused(false)}
+          >
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#EE1119]">
+                  See Some of Our Work
+                </p>
+                <p className="font-display text-sm font-bold text-white truncate">
+                  {activePreviewStudy.title}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[11px] font-bold text-white/75 tabular-nums mr-1">
+                  {String(previewIndex + 1).padStart(2, '0')} / {CASE_STUDIES.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPreviewIndex(
+                      (prev) => (prev - 1 + CASE_STUDIES.length) % CASE_STUDIES.length
+                    )
+                  }
+                  aria-label="Previous project preview"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white transition-colors hover:bg-white hover:text-[#1A1464]"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewIndex((prev) => (prev + 1) % CASE_STUDIES.length)}
+                  aria-label="Next project preview"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white transition-colors hover:bg-white hover:text-[#1A1464]"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activePreviewStudy.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.22, ease: EASE_OUT_EXPO }}
+              >
+                <ProjectPreviewScreen
+                  study={activePreviewStudy}
+                  compact
+                  onInspect={(study) => setInspectedStudy(study)}
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-[11px] text-white/80">
+                {activePreviewStudy.sector} · {activePreviewStudy.metrics[0]?.value}{' '}
+                {activePreviewStudy.metrics[0]?.label}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowcaseOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#EE1119] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#D00D14]"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>See All {CASE_STUDIES.length} Projects</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="relative mt-10 border-t border-white/15 pt-6 text-xs text-white/75 space-y-1">
+        <div className="relative mt-8 border-t border-white/15 pt-5 text-xs text-white/75 space-y-1">
           <p className="font-display font-bold text-white">
             {COMPANY_CONTACT.location} · Open for Remote &amp; Freelance Work
           </p>
@@ -764,6 +861,22 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
           </div>
         </div>
       </main>
+
+      <WorkShowcaseModal
+        open={showcaseOpen}
+        onClose={() => setShowcaseOpen(false)}
+        onRequestAuth={() => switchMode('register')}
+      />
+
+      <ProjectPreviewModal
+        study={inspectedStudy}
+        onClose={() => setInspectedStudy(null)}
+        actionLabel="Create Free Account to Start Build"
+        onAction={() => {
+          setInspectedStudy(null);
+          switchMode('register');
+        }}
+      />
     </div>
   );
 };

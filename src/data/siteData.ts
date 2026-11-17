@@ -60,12 +60,30 @@ export interface TechItem {
   role: string;
 }
 
+export type ProjectPreviewKind =
+  | 'fintech'
+  | 'telehealth'
+  | 'logistics'
+  | 'agritech'
+  | 'ecommerce'
+  | 'edtech'
+  | 'cleantech'
+  | 'saas'
+  | 'pharma'
+  | 'hospitality'
+  | 'security'
+  | 'govtech';
+
 export interface CaseStudy {
   id: string;
   sector: string;
   region: string;
   timeline: string;
   title: string;
+  clientType: string;
+  deliverableType: string;
+  previewUrl: string;
+  previewKind: ProjectPreviewKind;
   problem: string;
   solution: string;
   architectureNotes: string;
@@ -384,6 +402,10 @@ export const CASE_STUDIES: CaseStudy[] = [
     region: 'East & West Africa',
     timeline: '14 Weeks · Full-Stack Consolidation',
     title: 'NilePay Merchant Settlement Platform',
+    clientType: 'Payment Infrastructure Provider',
+    deliverableType: 'Web Platform & Settlement API',
+    previewUrl: 'app.nilepay.co/settlements',
+    previewKind: 'fintech',
     problem:
       'Three disconnected contractors maintained the merchant portal, settlement API, and cloud servers—causing 4-hour reconciliation delays and weekly outage finger-pointing.',
     solution:
@@ -403,6 +425,10 @@ export const CASE_STUDIES: CaseStudy[] = [
     region: 'Uganda, Kenya & UK',
     timeline: '11 Weeks · Design, Mobile & Cloud',
     title: 'CareBridge Patient & Clinician Portal',
+    clientType: 'Multi-Branch Clinic Network',
+    deliverableType: 'Mobile App & Clinician Web Suite',
+    previewUrl: 'clinic.carebridgehealth.org',
+    previewKind: 'telehealth',
     problem:
       'A growing clinic network needed encrypted patient onboarding, mobile video consultations, and automated lab syncing under a strict 12-week launch window.',
     solution:
@@ -422,6 +448,10 @@ export const CASE_STUDIES: CaseStudy[] = [
     region: 'Pan-African Corridor',
     timeline: '10 Weeks · Cloud Modernization',
     title: 'AtlasFreight Live Fleet & Cloud Modernization',
+    clientType: 'Cross-Border Freight Operator',
+    deliverableType: 'Telemetry Dashboard & Cloud Infra',
+    previewUrl: 'dispatch.atlasfreight.africa',
+    previewKind: 'logistics',
     problem:
       'Legacy monolithic servers crashed during peak dispatch hours while unoptimized cloud databases drove monthly hosting spend upward without visibility.',
     solution:
@@ -434,6 +464,213 @@ export const CASE_STUDIES: CaseStudy[] = [
       { value: '24/7', label: 'SLA Incident Coverage' },
     ],
     stackSummary: 'TypeScript · Python · Redis · Docker · GCP',
+  },
+  {
+    id: 'kigezi-agricoop',
+    sector: 'AgriTech',
+    region: 'Kabale & Western Uganda',
+    timeline: '8 Weeks · Mobile & Mobile Money APIs',
+    title: 'Kigezi AgriCoop Harvest & Farmer Payout Hub',
+    clientType: 'Regional Agricultural Cooperative',
+    deliverableType: 'Offline Field App & Web Exchange',
+    previewUrl: 'coop.kigeziagri.ug/harvest',
+    previewKind: 'agritech',
+    problem:
+      'Cooperative collection centers across Kabale tracked produce weights on paper ledgers, delaying farmer mobile money payouts by up to 9 days.',
+    solution:
+      'Built an offline-first Flutter collection app for field clerks synced to a real-time buyer exchange and automated MTN/Airtel Mobile Money bulk disbursement engine.',
+    architectureNotes:
+      'Conflict-free local SQLite queueing with cryptographic batch payout verification.',
+    metrics: [
+      { value: '18 min', label: 'Average Farmer Payout' },
+      { value: '6,400+', label: 'Registered Smallholders' },
+      { value: '100%', label: 'Digital Weight Traceability' },
+    ],
+    stackSummary: 'Flutter · TypeScript · Node.js · PostgreSQL · MoMo API',
+  },
+  {
+    id: 'bantumart-commerce',
+    sector: 'E-Commerce',
+    region: 'Kampala · Kigali · Nairobi',
+    timeline: '12 Weeks · Headless Storefront & Ops',
+    title: 'BantuMart Multi-Vendor Marketplace',
+    clientType: 'Retail & Wholesale Marketplace',
+    deliverableType: 'Headless Web Storefront & Vendor Portal',
+    previewUrl: 'shop.bantumart.com/vendors',
+    previewKind: 'ecommerce',
+    problem:
+      'A slow template storefront failed under flash-sale traffic and lacked automated commission splits across 300+ regional suppliers.',
+    solution:
+      'Engineered a Next.js storefront with edge caching, real-time warehouse stock locking, and automated split-settlement payouts via card and mobile money.',
+    architectureNotes:
+      'Redis atomic inventory reservations prevent overselling during concurrent checkout spikes.',
+    metrics: [
+      { value: '0.8s', label: 'Median Storefront Load' },
+      { value: '+142%', label: 'Checkout Conversion Lift' },
+      { value: '320+', label: 'Active Regional Vendors' },
+    ],
+    stackSummary: 'Next.js · TypeScript · Redis · PostgreSQL · AWS CloudFront',
+  },
+  {
+    id: 'scholarpulse-erp',
+    sector: 'EdTech',
+    region: 'Uganda & East Africa',
+    timeline: '9 Weeks · Full-Stack SaaS',
+    title: 'ScholarPulse Campus ERP & Tuition Ledger',
+    clientType: 'Multi-Campus School Group',
+    deliverableType: 'Admin Portal, Parent Web & SMS Engine',
+    previewUrl: 'portal.scholarpulse.edu/fees',
+    previewKind: 'edtech',
+    problem:
+      'Bursars reconciled bank slips and mobile money school fees manually every term while parents waited days for official fee receipts.',
+    solution:
+      'Delivered an integrated school ERP with instant bank/MoMo fee matching, automated PDF receipts, report card generation, and attendance SMS alerts.',
+    architectureNotes:
+      'Role-scoped multi-campus tenancy with immutable audit trails on every financial adjustment.',
+    metrics: [
+      { value: '14,500', label: 'Students Managed Daily' },
+      { value: '-85%', label: 'Term Reconciliation Time' },
+      { value: '99.9%', label: 'Receipt Delivery Rate' },
+    ],
+    stackSummary: 'React · TypeScript · Python · PostgreSQL · Docker',
+  },
+  {
+    id: 'solargrid-paygo',
+    sector: 'CleanTech',
+    region: 'Rural East Africa',
+    timeline: '11 Weeks · IoT Telemetry & Billing',
+    title: 'SolarGrid Microgrid Telemetry & PayGo Cloud',
+    clientType: 'Off-Grid Clean Energy Operator',
+    deliverableType: 'IoT Operations Console & Billing API',
+    previewUrl: 'ops.solargrid.energy/nodes',
+    previewKind: 'cleantech',
+    problem:
+      'Field technicians had zero remote visibility into rural battery inverters, forcing costly truck dispatches before diagnosing simple voltage drops.',
+    solution:
+      'Built an MQTT telemetry ingestion pipeline, live inverter health dashboard, and automated Pay-As-You-Go token provisioning tied to customer payments.',
+    architectureNotes:
+      'Time-series telemetry aggregation with anomaly threshold alerts routed directly to regional engineers.',
+    metrics: [
+      { value: '-47%', label: 'Unnecessary Field Visits' },
+      { value: '1,850', label: 'Monitored Solar Nodes' },
+      { value: '<3s', label: 'PayGo Token Activation' },
+    ],
+    stackSummary: 'Go · React · TimescaleDB · MQTT · Google Cloud',
+  },
+  {
+    id: 'nileledger-saas',
+    sector: 'SaaS',
+    region: 'Global Remote & Africa',
+    timeline: '10 Weeks · FinOps Web Platform',
+    title: 'NileLedger SME Accounting & Tax Automation',
+    clientType: 'B2B Financial SaaS Startup',
+    deliverableType: 'Multi-Tenant SaaS Web Application',
+    previewUrl: 'app.nileledger.io/cashflow',
+    previewKind: 'saas',
+    problem:
+      'Growing SMEs struggled to sync multi-branch expenses, tax compliance receipts, and real-time cashflow forecasts across spreadsheets.',
+    solution:
+      'Designed and built a fast multi-tenant accounting suite featuring automated receipt OCR, bank feed matching, and interactive 90-day cashflow projections.',
+    architectureNotes:
+      'Row-level PostgreSQL tenant isolation paired with background queue workers for bulk tax exports.',
+    metrics: [
+      { value: '940+', label: 'Active SME Workspaces' },
+      { value: '12 hrs', label: 'Saved Weekly per Team' },
+      { value: '99.95%', label: 'API Availability' },
+    ],
+    stackSummary: 'React · TypeScript · Node.js · PostgreSQL · AWS',
+  },
+  {
+    id: 'swiftmed-pharma',
+    sector: 'Healthcare',
+    region: 'East Africa',
+    timeline: '9 Weeks · Supply & Cold-Chain App',
+    title: 'SwiftMed Pharmacy Cold-Chain & Stock Portal',
+    clientType: 'Medical Wholesale Distributor',
+    deliverableType: 'B2B Ordering & Temperature Monitor',
+    previewUrl: 'supply.swiftmed.co/coldchain',
+    previewKind: 'pharma',
+    problem:
+      'Regional pharmacies lacked real-time batch expiry visibility and cold-chain temperature alerts for temperature-sensitive vaccines and insulin.',
+    solution:
+      'Delivered a B2B pharmacy restocking portal coupled with continuous cold-room sensor monitoring, batch recall tracing, and automated expiry warnings.',
+    architectureNotes:
+      'Event-driven threshold engine dispatches instant SMS and dashboard alerts if cold storage drifts.',
+    metrics: [
+      { value: '-72%', label: 'Expired Stock Waste' },
+      { value: '410+', label: 'Connected Pharmacies' },
+      { value: '24/7', label: 'Cold-Chain Telemetry' },
+    ],
+    stackSummary: 'Next.js · Flutter · Python · PostgreSQL · Terraform',
+  },
+  {
+    id: 'rifttour-booking',
+    sector: 'Hospitality',
+    region: 'Western Uganda & Global Tourists',
+    timeline: '7 Weeks · Custom Design & Booking',
+    title: 'RiftTour Eco-Lodge & Gorilla Trekking Engine',
+    clientType: 'Destination Hospitality Group',
+    deliverableType: 'Custom Booking Website & Admin Desk',
+    previewUrl: 'book.rifttour.ug/itineraries',
+    previewKind: 'hospitality',
+    problem:
+      'International travelers booking eco-lodges near Bwindi and Kabale abandoned slow PDF quote emails that took days to confirm availability.',
+    solution:
+      'Crafted an editorial booking experience with live room/permit availability, multi-currency USD/EUR/UGX card deposits, and instant itinerary PDFs.',
+    architectureNotes:
+      'Zero double-bookings across direct web checkout and partner tour operator channels.',
+    metrics: [
+      { value: '+118%', label: 'Direct Web Bookings' },
+      { value: '4 min', label: 'Average Booking Flow' },
+      { value: '38', label: 'Countries Served' },
+    ],
+    stackSummary: 'React · TypeScript · Node.js · Stripe · Cloud Run',
+  },
+  {
+    id: 'vaultguard-security',
+    sector: 'Cybersecurity',
+    region: 'UK, EU & East Africa',
+    timeline: '8 Weeks · Zero-Trust Security Suite',
+    title: 'VaultGuard Zero-Trust IAM & Audit Console',
+    clientType: 'Regulated FinTech & Enterprise Clients',
+    deliverableType: 'Security Posture & Audit Portal',
+    previewUrl: 'console.vaultguard.sec/posture',
+    previewKind: 'security',
+    problem:
+      'Engineering teams spent weeks manually gathering IAM logs, SSL expiry reports, and CVE patches ahead of annual ISO 27001 and partner security audits.',
+    solution:
+      'Engineered an automated security posture monitor tracking cloud IAM drift, secret rotation schedules, TLS health, and exportable compliance evidence.',
+    architectureNotes:
+      'Read-only cross-account cloud audit roles with signed immutable compliance snapshots.',
+    metrics: [
+      { value: '82%', label: 'Faster Audit Prep' },
+      { value: '100%', label: 'Automated CVE Triage' },
+      { value: '<5 min', label: 'Drift Alert Detection' },
+    ],
+    stackSummary: 'Go · React · PostgreSQL · AWS IAM · Kubernetes',
+  },
+  {
+    id: 'civicserve-utility',
+    sector: 'GovTech',
+    region: 'Western Uganda Municipalities',
+    timeline: '10 Weeks · Citizen Utility Portal',
+    title: 'CivicServe Municipal Water & Utility Billing',
+    clientType: 'Public Water & Infrastructure Utility',
+    deliverableType: 'Citizen Portal & Meter Reader App',
+    previewUrl: 'pay.civicserve.go.ug/meters',
+    previewKind: 'govtech',
+    problem:
+      'Residents queued in person to verify water bills while field meter readers logged readings on clipboards with frequent transcription errors.',
+    solution:
+      'Built a GPS-stamped Android/Flutter meter reading app paired with a lightweight citizen web portal for instant bill lookup and mobile money payment.',
+    architectureNotes:
+      'Optimized under-120KB citizen web bundle so pages load cleanly even on 3G rural connections.',
+    metrics: [
+      { value: '3.8x', label: 'On-Time Bill Collection' },
+      { value: '28,000+', label: 'Households Connected' },
+      { value: '98.4%', label: 'Verified Meter Accuracy' },
+    ],
+    stackSummary: 'Flutter · TypeScript · Node.js · PostgreSQL · Nginx',
   },
 ];
 

@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Eye,
   Layers,
   Quote,
   Shield,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import {
   CASE_STUDIES,
+  CaseStudy,
   COMPANY_CONTACT,
   HERO_STACK_LAYERS,
   PageRoute,
@@ -25,6 +27,7 @@ import {
   TRUST_PARTNERS,
 } from '../data/siteData';
 import { EASE_OUT_EXPO, Reveal, StaggerGrid, StaggerItem } from './MotionPrimitives';
+import { ProjectPreviewModal, ProjectPreviewScreen } from './ProjectPreviewVisual';
 import { SharedCtaBanner } from './SharedCtaBanner';
 
 interface HomePageProps {
@@ -85,6 +88,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService 
   const [paused, setPaused] = useState(false);
   const [statsVisible, setStatsVisible] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
+  const [workSector, setWorkSector] = useState<string>('All');
+  const [inspectedProject, setInspectedProject] = useState<CaseStudy | null>(null);
   const statsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -201,14 +206,31 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService 
 
                 <motion.button
                   type="button"
-                  onClick={() => onNavigate('services')}
+                  onClick={() => {
+                    const el = document.getElementById('our-work-showcase');
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      onNavigate('work');
+                    }
+                  }}
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className="inline-flex items-center gap-2 rounded-xl border-2 border-[#1A1464] bg-white px-7 py-3.5 text-sm sm:text-base font-semibold text-[#1A1464] transition-colors duration-150 hover:bg-[#1A1464] hover:text-white whitespace-nowrap"
+                  className="inline-flex items-center gap-2 rounded-xl border-2 border-[#1A1464] bg-white px-6 py-3.5 text-sm sm:text-base font-semibold text-[#1A1464] transition-colors duration-150 hover:bg-[#1A1464] hover:text-white whitespace-nowrap"
+                >
+                  <Eye className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
+                  <span>See Some of Our Work ({CASE_STUDIES.length})</span>
+                </motion.button>
+
+                <button
+                  type="button"
+                  onClick={() => onNavigate('services')}
+                  className="inline-flex items-center gap-1.5 px-2 py-2 text-sm font-semibold text-[#1A1464] hover:text-[#EE1119] transition-colors whitespace-nowrap"
                 >
                   <span>Explore Services</span>
-                </motion.button>
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </button>
               </motion.div>
 
               <motion.div
@@ -557,64 +579,130 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService 
         </div>
       </section>
 
-      {/* 5. Featured Work Snapshot */}
-      <section className="bg-white py-20 sm:py-24">
+      {/* 5. See Some of Our Work Showcase (All 12 Live Screen Previews) */}
+      <section id="our-work-showcase" className="bg-white py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
-                  Featured Case Studies
+                  See Some of Our Work · {CASE_STUDIES.length} Production Builds
                 </p>
                 <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] text-balance">
-                  Proven engineering across fintech, health &amp; logistics.
+                  Live screen previews across fintech, health, agritech &amp; cloud.
                 </h2>
+                <p className="mt-3 text-base text-[#4A4F63]">
+                  Click any interactive screen preview below to inspect the UI, system
+                  architecture, and verified outcomes shipped by 0xDEV.
+                </p>
               </div>
               <button
                 type="button"
                 onClick={() => onNavigate('work')}
                 className="inline-flex items-center gap-2 self-start rounded-xl border border-[#1A1464] bg-white px-5 py-3 text-sm font-semibold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white whitespace-nowrap"
               >
-                <span>Read Full Case Studies</span>
+                <span>Open Full Work Archive</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
           </Reveal>
 
-          <StaggerGrid className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
-            {CASE_STUDIES.map((study) => (
-              <StaggerItem key={study.id} className="h-full">
+          {/* Sector Filter Tabs */}
+          <div className="mt-8 overflow-x-auto pb-2">
+            <div
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-1.5"
+              role="tablist"
+              aria-label="Filter showcased work by sector"
+            >
+              {['All', ...Array.from(new Set(CASE_STUDIES.map((s) => s.sector)))].map((sector) => {
+                const isActive = workSector === sector;
+                return (
+                  <button
+                    key={sector}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setWorkSector(sector)}
+                    className={`relative rounded-lg px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors ${
+                      isActive ? 'text-white' : 'text-[#4A4F63] hover:text-[#1A1464]'
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="home-work-filter"
+                        aria-hidden="true"
+                        transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                        className="absolute inset-0 rounded-lg bg-[#1A1464] shadow-sm"
+                      />
+                    )}
+                    <span className="relative z-10">
+                      {sector === 'All' ? `All (${CASE_STUDIES.length})` : sector}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <motion.div layout className="mt-8 grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
+            <AnimatePresence mode="popLayout">
+              {(workSector === 'All'
+                ? CASE_STUDIES
+                : CASE_STUDIES.filter((s) => s.sector === workSector)
+              ).map((study) => (
                 <motion.article
+                  key={study.id}
+                  layout
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
                   whileHover={{ y: -4 }}
-                  transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
-                  className="flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] bg-white p-6 transition-shadow duration-200 hover:shadow-md"
+                  transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
+                  className="flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] bg-white p-5 shadow-sm transition-shadow duration-200 hover:border-[#1A1464]/35 hover:shadow-md"
                 >
                   <div>
-                    <div className="flex items-center gap-2 text-xs font-semibold text-[#6B7188]">
+                    <ProjectPreviewScreen
+                      study={study}
+                      onInspect={(selected) => setInspectedProject(selected)}
+                    />
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6B7188]">
                       <span className="text-[#EE1119]">{study.sector}</span>
                       <span aria-hidden="true">·</span>
                       <span>{study.region}</span>
                     </div>
-                    <h3 className="mt-2.5 font-display text-xl font-bold text-[#1A1464]">
+                    <h3 className="mt-1.5 font-display text-lg font-bold text-[#1A1464]">
                       {study.title}
                     </h3>
-                    <p className="mt-3 text-sm leading-relaxed text-[#4A4F63]">{study.solution}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] line-clamp-3">
+                      {study.solution}
+                    </p>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-[#E5E7F0] grid grid-cols-3 gap-3">
-                    {study.metrics.map((metric) => (
-                      <div key={metric.label}>
-                        <p className="font-display text-lg font-extrabold text-[#1A1464] tabular-nums">
-                          {metric.value}
-                        </p>
-                        <p className="text-[11px] text-[#6B7188]">{metric.label}</p>
-                      </div>
-                    ))}
+                  <div className="mt-5 pt-4 border-t border-[#E5E7F0]">
+                    <div className="grid grid-cols-3 gap-2">
+                      {study.metrics.map((metric) => (
+                        <div key={metric.label}>
+                          <p className="font-display text-base font-extrabold text-[#1A1464] tabular-nums">
+                            {metric.value}
+                          </p>
+                          <p className="text-[11px] leading-tight text-[#6B7188]">{metric.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setInspectedProject(study)}
+                      className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#F6F7FB] border border-[#E5E7F0] px-4 py-2 text-xs font-bold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white"
+                    >
+                      <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>Open Live Screen Preview</span>
+                    </button>
                   </div>
                 </motion.article>
-              </StaggerItem>
-            ))}
-          </StaggerGrid>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         </div>
       </section>
 
@@ -695,6 +783,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectService 
       </section>
 
       <SharedCtaBanner onNavigate={onNavigate} />
+
+      <ProjectPreviewModal
+        study={inspectedProject}
+        onClose={() => setInspectedProject(null)}
+        actionLabel="Plan a Similar Build"
+        onAction={(study) => {
+          setInspectedProject(null);
+          onSelectService(study.deliverableType);
+        }}
+      />
     </>
   );
 };
