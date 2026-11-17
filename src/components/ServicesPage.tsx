@@ -1,0 +1,212 @@
+import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import {
+  Activity,
+  ArrowUpRight,
+  Cloud,
+  Code2,
+  Compass,
+  Cpu,
+  GitBranch,
+  Layers,
+  ShieldCheck,
+  Smartphone,
+} from 'lucide-react';
+import { PageRoute, SERVICES, ServiceItem, TECH_STACK, TechItem } from '../data/siteData';
+import { EASE_OUT_EXPO, StaggerGrid, StaggerItem } from './MotionPrimitives';
+import { PageHeader } from './PageHeader';
+import { SharedCtaBanner } from './SharedCtaBanner';
+
+interface ServicesPageProps {
+  onNavigate: (page: PageRoute) => void;
+  onSelectService: (serviceTitle: string) => void;
+}
+
+type CategoryFilter = 'All' | TechItem['category'];
+const CATEGORIES: CategoryFilter[] = [
+  'All',
+  'Frontend & Mobile',
+  'Backend & APIs',
+  'Cloud & DevOps',
+  'Data & Security',
+];
+
+const iconMap: Record<ServiceItem['iconName'], React.ComponentType<{ className?: string }>> = {
+  Compass,
+  Smartphone,
+  Code2,
+  Cloud,
+  GitBranch,
+  ShieldCheck,
+  Cpu,
+  Activity,
+  Layers,
+};
+
+export const ServicesPage: React.FC<ServicesPageProps> = ({ onNavigate, onSelectService }) => {
+  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('All');
+
+  const filteredTech =
+    selectedCategory === 'All'
+      ? TECH_STACK
+      : TECH_STACK.filter((item) => item.category === selectedCategory);
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="Full-Lifecycle Capabilities"
+        title="Nine disciplines. One accountable engineering team."
+        description="Whether you need an end-to-end software platform or a targeted freelance specialist from our Kabale studio, every layer works together under one roof."
+        currentLabel="Services"
+        onNavigate={onNavigate}
+      />
+
+      {/* Detailed Services Grid */}
+      <section className="bg-white py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <StaggerGrid className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {SERVICES.map((service) => {
+              const Icon = iconMap[service.iconName];
+              return (
+                <StaggerItem key={service.id} className="h-full">
+                  <motion.article
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
+                    className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[#E5E7F0] bg-white p-7 transition-shadow duration-200 hover:border-[#1A1464]/35 hover:shadow-[0_18px_38px_rgba(26,20,100,0.08)]"
+                  >
+                    <div
+                      aria-hidden="true"
+                      className="absolute top-0 left-0 right-0 h-1 bg-[#EE1119] scale-x-0 origin-left transition-transform duration-200 group-hover:scale-x-100"
+                    />
+
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F6F7FB] text-[#1A1464] transition-colors group-hover:bg-[#1A1464] group-hover:text-white">
+                          <Icon className="h-5 w-5" aria-hidden="true" />
+                        </div>
+                        <span className="font-display text-xs font-bold tabular-nums text-[#6B7188] group-hover:text-[#EE1119]">
+                          {service.number}
+                        </span>
+                      </div>
+
+                      <h2 className="mt-5 font-display text-xl font-bold text-[#1A1464]">
+                        {service.title}
+                      </h2>
+                      <p className="mt-2.5 text-sm font-medium leading-relaxed text-[#4A4F63]">
+                        {service.summary}
+                      </p>
+                      <p className="mt-3 text-sm leading-relaxed text-[#6B7188]">
+                        {service.deepDive}
+                      </p>
+
+                      <div className="mt-4 rounded-xl bg-[#F6F7FB] p-3.5 border border-[#E5E7F0]">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#1A1464]">
+                          Ideal For
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-[#4A4F63]">
+                          {service.idealFor}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-[#E5E7F0]">
+                      <p className="text-xs font-medium text-[#6B7188]">{service.deliverables}</p>
+                      <button
+                        type="button"
+                        onClick={() => onSelectService(service.title)}
+                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] transition-colors group-hover:text-[#EE1119]"
+                      >
+                        <span>Discuss this service</span>
+                        <ArrowUpRight
+                          className="h-3.5 w-3.5 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </div>
+                  </motion.article>
+                </StaggerItem>
+              );
+            })}
+          </StaggerGrid>
+        </div>
+      </section>
+
+      {/* Technology Stack Section */}
+      <section className="bg-[#F6F7FB] py-16 sm:py-20 border-t border-[#E5E7F0]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-xl">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
+                Modern Technology Stack
+              </p>
+              <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#1A1464]">
+                Battle-tested tools across every layer.
+              </h2>
+            </div>
+
+            <div
+              className="flex flex-wrap gap-1.5 rounded-xl bg-white p-1.5 border border-[#E5E7F0]"
+              role="tablist"
+              aria-label="Filter technologies by layer"
+            >
+              {CATEGORIES.map((category) => {
+                const isActive = selectedCategory === category;
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`relative rounded-lg px-3.5 py-2 text-xs font-semibold transition-colors duration-150 whitespace-nowrap shrink-0 ${
+                      isActive ? 'text-white' : 'text-[#4A4F63] hover:text-[#1A1464]'
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="services-category-pill"
+                        aria-hidden="true"
+                        transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                        className="absolute inset-0 rounded-lg bg-[#1A1464] shadow-sm"
+                      />
+                    )}
+                    <span className="relative z-10">{category}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <motion.div layout className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <AnimatePresence mode="popLayout">
+              {filteredTech.map((tech) => (
+                <motion.div
+                  key={tech.name}
+                  layout
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
+                  className="group flex items-center justify-between rounded-xl border border-[#E5E7F0] bg-white px-4 py-4 transition-colors duration-150 hover:border-[#1A1464]/35"
+                >
+                  <div className="min-w-0">
+                    <p className="font-display text-sm sm:text-base font-bold text-[#1A1464] truncate">
+                      {tech.name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-[#6B7188] truncate">{tech.role}</p>
+                  </div>
+                  <span
+                    aria-hidden="true"
+                    className="h-5 w-1.5 shrink-0 -skew-x-12 rounded-xs bg-[#E5E7F0] transition-colors group-hover:bg-[#EE1119]"
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+      </section>
+
+      <SharedCtaBanner onNavigate={onNavigate} />
+    </>
+  );
+};

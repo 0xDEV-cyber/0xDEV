@@ -1,0 +1,378 @@
+{
+  "entities": {
+    "UserPublic": {
+      "title": "UserPublic",
+      "description": "Non-sensitive display profile for an authenticated 0xDEV visitor.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID matching the document ID."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Visitor full name."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": ["uid", "displayName", "createdAt", "updatedAt"]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Isolated PII record for an authenticated 0xDEV visitor.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID matching parent userId."
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200,
+          "description": "Registered email address."
+        },
+        "country": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 100,
+          "description": "Selected country name."
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40,
+          "description": "Phone number with international dial code."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": ["uid", "email", "createdAt", "updatedAt"]
+    },
+    "ProjectInquiry": {
+      "title": "ProjectInquiry",
+      "description": "Consultation or freelance project brief submitted by a signed-in visitor.",
+      "type": "object",
+      "properties": {
+        "inquiryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Document ID for the inquiry."
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the submitting user."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Submitter full name."
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200,
+          "description": "Submitter email address."
+        },
+        "country": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Selected country name."
+        },
+        "dialCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16,
+          "description": "Country dial code prefix."
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 40,
+          "description": "Contact phone number."
+        },
+        "company": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 120,
+          "description": "Optional company or project name."
+        },
+        "service": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "description": "Selected 0xDEV service."
+        },
+        "budget": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80,
+          "description": "Estimated budget range."
+        },
+        "message": {
+          "type": "string",
+          "minLength": 15,
+          "maxLength": 3000,
+          "description": "Project scope and goals."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["submitted", "reviewed", "in_progress", "completed", "archived"],
+          "description": "Lifecycle status of the inquiry."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "inquiryId",
+        "authorId",
+        "name",
+        "email",
+        "country",
+        "dialCode",
+        "phone",
+        "service",
+        "budget",
+        "message",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Dashboard alert delivered to a user on project status update or admin message.",
+      "type": "object",
+      "properties": {
+        "notificationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Document ID for the notification."
+        },
+        "recipientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID of the receiving user."
+        },
+        "senderEmail": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200,
+          "description": "Admin email that dispatched the alert."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["status_update", "admin_message"],
+          "description": "Category of notification alert."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140,
+          "description": "Short alert headline."
+        },
+        "body": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 2000,
+          "description": "Alert message or status explanation."
+        },
+        "inquiryId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 128,
+          "description": "Optional related project inquiry ID."
+        },
+        "projectStatus": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40,
+          "description": "Optional updated project status label."
+        },
+        "isRead": {
+          "type": "boolean",
+          "description": "Whether the recipient has read the alert."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "notificationId",
+        "recipientId",
+        "senderEmail",
+        "type",
+        "title",
+        "body",
+        "isRead",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProjectMilestone": {
+      "title": "ProjectMilestone",
+      "description": "Tracked delivery milestone with completion percentage for an active client inquiry.",
+      "type": "object",
+      "properties": {
+        "milestoneId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Document ID for the milestone."
+        },
+        "inquiryId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Parent inquiry ID."
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID of the project client matching the parent inquiry."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120,
+          "description": "Milestone deliverable headline."
+        },
+        "phase": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60,
+          "description": "Project delivery phase label."
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 600,
+          "description": "Scope and deliverable details for the milestone."
+        },
+        "dueDate": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40,
+          "description": "Optional target delivery date."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in_progress", "completed"],
+          "description": "Lifecycle state of the milestone."
+        },
+        "progress": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Completion percentage (0-100)."
+        },
+        "sortOrder": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "description": "Chronological step position on the timeline."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "milestoneId",
+        "inquiryId",
+        "authorId",
+        "title",
+        "phase",
+        "summary",
+        "status",
+        "progress",
+        "sortOrder",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserPublic" },
+      "description": "Public-safe user profile keyed by Firebase Auth UID."
+    },
+    "/users/{userId}/private/info": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Owner-only PII record storing email, country, and phone number."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": { "$ref": "#/entities/ProjectInquiry" },
+      "description": "Consultation briefs submitted by verified authenticated users."
+    },
+    "/inquiries/{inquiryId}/milestones/{milestoneId}": {
+      "schema": { "$ref": "#/entities/ProjectMilestone" },
+      "description": "Project delivery milestones and completion percentages scoped to the parent inquiry client."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "Project status update and admin message alerts scoped to recipientId."
+    }
+  }
+}

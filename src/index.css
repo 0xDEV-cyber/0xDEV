@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   0xDEV Brand & Design System Variables
+   Update these variables to re-theme the entire site consistently.
+   ========================================================================== */
+:root {
+  --brand-navy: #1A1464;
+  --brand-navy-deep: #120D4A;
+  --brand-navy-muted: #282080;
+  --brand-red: #EE1119;
+  --brand-red-hover: #D00D14;
+  --brand-bg: #FFFFFF;
+  --brand-surface: #F6F7FB;
+  --brand-text-heading: #1A1464;
+  --brand-text-body: #4A4F63;
+  --brand-text-muted: #6B7188;
+  --brand-border: #E5E7F0;
+
+  --font-display: 'Sora', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-body);
+    color: var(--brand-text-body);
+    background-color: var(--brand-bg);
+    scroll-behavior: smooth;
+    scroll-padding-top: 84px;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+
+  /* Accessible focus ring across all interactive elements */
+  :focus-visible {
+    outline: 2px solid var(--brand-red);
+    outline-offset: 2px;
+  }
+}
+
+/* Signature 0xDEV Diagonal Swoosh Cut Motifs */
+.slash-divider-top {
+  clip-path: polygon(0 28px, 100% 0, 100% 100%, 0 100%);
+}
+
+.slash-divider-bottom {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 28px), 0 100%);
+}
+
+.slash-accent-bar {
+  position: relative;
+}
+
+.slash-accent-bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 5px;
+  background: var(--brand-red);
+  transform: skewX(-24deg);
+  border-radius: 2px;
+}
+
+/* Scroll Reveal Animations (Compositor-only: transform & opacity) */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 550ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 550ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Tabular numbers utility for stats and pricing */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
