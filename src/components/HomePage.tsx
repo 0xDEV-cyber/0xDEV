@@ -28,6 +28,7 @@ import {
   TRUST_PARTNERS,
 } from '../data/siteData';
 import { useBlogPosts } from '../hooks/useBlogPosts';
+import { useDailyTechNews } from '../hooks/useDailyTechNews';
 import { usePortfolioProjects } from '../hooks/usePortfolioProjects';
 import { EASE_OUT_EXPO, Reveal, StaggerGrid, StaggerItem } from './MotionPrimitives';
 import { ProjectPreviewModal, ProjectPreviewScreen } from './ProjectPreviewVisual';
@@ -94,6 +95,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 }) => {
   const { projects } = usePortfolioProjects();
   const { articles } = useBlogPosts();
+  const { liveArticles } = useDailyTechNews();
   const [activeLayerIndex, setActiveLayerIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [statsVisible, setStatsVisible] = useState(false);
@@ -805,7 +807,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   Latest technical insights from our build floor.
                 </h2>
                 <p className="mt-3 text-base text-[#4A4F63]">
-                  Deep dives on payment idempotency, offline-first mobile sync, Terraform FinOps, and zero-trust rules.
+                  Original 0xDEV architecture deep dives plus an auto-updated daily engineering news wire.
                 </p>
               </div>
               <button
@@ -814,14 +816,16 @@ export const HomePage: React.FC<HomePageProps> = ({
                 className="inline-flex items-center gap-2 self-start rounded-xl border border-[#1A1464] bg-white px-5 py-3 text-sm font-semibold text-[#1A1464] transition-colors hover:bg-[#1A1464] hover:text-white whitespace-nowrap"
               >
                 <BookOpen className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
-                <span>Explore All {articles.length} Articles</span>
+                <span>Explore All {articles.length + liveArticles.length} Briefings</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
           </Reveal>
 
           <StaggerGrid className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3 items-stretch">
-            {articles.slice(0, 3).map((article) => (
+            {[...articles.slice(0, 2), ...liveArticles.slice(0, 1), ...articles.slice(2, 3)]
+              .slice(0, 3)
+              .map((article) => (
               <StaggerItem key={article.id} className="h-full">
                 <article className="group flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB]/60 p-6 transition-colors hover:border-[#1A1464]/35 hover:bg-white">
                   <div>

@@ -235,25 +235,48 @@ function AppShell() {
   }, [user, loading, currentPage, isAuthActionRoute, showAuthPortal]);
 
   useEffect(() => {
+    let nextTitle = ROUTE_TITLES[currentPage];
     if (isAuthActionRoute) {
-      document.title = 'Account Verification & Security — 0xDEV';
-      return;
-    }
-    if (!user && (showAuthPortal || currentPage === 'dashboard')) {
-      document.title =
+      nextTitle = 'Account Verification & Security — 0xDEV';
+    } else if (!user && (showAuthPortal || currentPage === 'dashboard')) {
+      nextTitle =
         authMode === 'register'
           ? 'Create Account — 0xDEV Client Portal'
           : 'Sign In — 0xDEV Client Portal';
-      return;
-    }
-    if (currentPage === 'blog' && selectedArticleSlug) {
+    } else if (currentPage === 'blog' && selectedArticleSlug) {
       const matched = BLOG_ARTICLES.find((a) => a.slug === selectedArticleSlug);
-      document.title = matched
+      nextTitle = matched
         ? `${matched.title} — 0xDEV Blog`
         : 'Engineering Article — 0xDEV Blog';
-      return;
     }
-    document.title = ROUTE_TITLES[currentPage];
+    document.title = nextTitle;
+
+    const fullUrl = window.location.origin + window.location.pathname;
+    const ogImageUrl = `${window.location.origin}/og-share.png`;
+
+    let ogUrlMeta = document.querySelector('meta[property="og:url"]');
+    if (!ogUrlMeta) {
+      ogUrlMeta = document.createElement('meta');
+      ogUrlMeta.setAttribute('property', 'og:url');
+      document.head.appendChild(ogUrlMeta);
+    }
+    ogUrlMeta.setAttribute('content', fullUrl);
+
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link');
+      canonicalLink.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.setAttribute('href', fullUrl);
+
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', nextTitle);
+    document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', nextTitle);
+    document.querySelector('meta[property="og:image"]')?.setAttribute('content', ogImageUrl);
+    document
+      .querySelector('meta[property="og:image:secure_url"]')
+      ?.setAttribute('content', ogImageUrl);
+    document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', ogImageUrl);
   }, [user, authMode, currentPage, selectedArticleSlug, isAuthActionRoute, showAuthPortal]);
 
   useEffect(() => {

@@ -14,6 +14,7 @@ export default defineConfig(() => {
         registerType: 'autoUpdate',
         includeAssets: [
           'icon.svg',
+          'og-share.png',
           'apple-touch-icon.png',
           'pwa-192x192.png',
           'pwa-512x512.png',
@@ -106,6 +107,26 @@ export default defineConfig(() => {
           if (fs.existsSync(distDir) && fs.existsSync(srcAssets)) {
             fs.cpSync(srcAssets, distAssets, {recursive: true, force: true});
           }
+        },
+      },
+      {
+        name: 'resolve-social-meta-urls',
+        transformIndexHtml(html: string): string {
+          const rawOrigin =
+            process.env.URL ||
+            process.env.DEPLOY_PRIME_URL ||
+            process.env.APP_URL ||
+            '';
+          const origin = rawOrigin.replace(/\/+$/, '');
+          if (!origin) return html;
+          return html
+            .replace(/content="\/og-share\.png"/g, `content="${origin}/og-share.png"`)
+            .replace(/"\/og-share\.png"/g, `"${origin}/og-share.png"`)
+            .replace(/"\/pwa-512x512\.png"/g, `"${origin}/pwa-512x512.png"`)
+            .replace(
+              '<meta property="og:site_name" content="0xDEV" />',
+              `<meta property="og:site_name" content="0xDEV" />\n    <meta property="og:url" content="${origin}/" />\n    <link rel="canonical" href="${origin}/" />`
+            );
         },
       },
     ],

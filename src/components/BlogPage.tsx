@@ -3,10 +3,13 @@ import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpRight,
   BookOpen,
   Check,
   Clock,
   Copy,
+  MessageSquare,
+  RefreshCw,
   Search,
   Share2,
   Terminal,
@@ -15,6 +18,13 @@ import {
 import { BLOG_CATEGORIES, BlogArticle, BlogCategory } from '../data/blogData';
 import { PageRoute } from '../data/siteData';
 import { useBlogPosts } from '../hooks/useBlogPosts';
+import {
+  extractExternalDevIdFromSlug,
+  fetchLiveDevArticleById,
+  fetchLiveDevArticleDetail,
+  LiveNewsArticle,
+  useDailyTechNews,
+} from '../hooks/useDailyTechNews';
 import { EASE_OUT_EXPO, Reveal } from './MotionPrimitives';
 import { PageHeader } from './PageHeader';
 import { SharedCtaBanner } from './SharedCtaBanner';
@@ -25,6 +35,12 @@ interface BlogPageProps {
   onNavigate: (page: PageRoute) => void;
 }
 
+type FeedScope = 'all' | 'originals' | 'daily-wire';
+
+function isLiveNewsArticle(article: BlogArticle): article is LiveNewsArticle {
+  return Boolean((article as LiveNewsArticle).isLiveNews);
+}
+
 const ArticleCoverVisual: React.FC<{
   src: string;
   alt: string;
@@ -32,6 +48,10 @@ const ArticleCoverVisual: React.FC<{
   aspectClass?: string;
 }> = ({ src, alt, category, aspectClass = 'aspect-[16/9]' }) => {
   const [errored, setErrored] = useState(false);
+
+  useEffect(() => {
+    setErrored(false);
+  }, [src]);
 
   return (
     <div
@@ -69,10 +89,35 @@ const ArticleDetailView: React.FC<{
   const [readProgress, setReadProgress] = useState(0);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [hydratedSections, setHydratedSections] = useState(article.sections);
+  const [hydratedCode, setHydratedCode] = useState(article.codeExample);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  const liveMeta = isLiveNewsArticle(article) ? article : null;
 
   useEffect(() => {
     document.title = `${article.title} — 0xDEV Blog`;
   }, [article.title]);
+
+  useEffect(() => {
+    setHydratedSections(article.sections);
+    setHydratedCode(article.codeExample);
+
+    if (!liveMeta) return;
+    let cancelled = false;
+    setLoadingDetail(true);
+    void fetchLiveDevArticleDetail(liveMeta.externalId).then((detail) => {
+      if (cancelled) return;
+      if (detail) {
+        if (detail.sections.length > 0) setHydratedSections(detail.sections);
+        if (detail.codeExample) setHydratedCode(detail.codeExample);
+      }
+      setLoadingDetail(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [article, liveMeta]);
 
   useEffect(() => {
     const updateProgress = () => {
@@ -91,9 +136,9 @@ const ArticleDetailView: React.FC<{
   }, [article.slug]);
 
   const handleCopyCode = async () => {
-    if (!article.codeExample) return;
+    if (!hydratedCode) return;
     try {
-      await navigator.clipboard.writeText(article.codeExample.code);
+      await navigator.clipboard.writeText(hydratedCode.code);
       setCopiedCode(true);
       window.setTimeout(() => setCopiedCode(false), 2200);
     } catch {
@@ -147,28 +192,43 @@ const ArticleDetailView: React.FC<{
               <span>All Engineering Insights</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => void handleShareLink()}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2 text-xs font-semibold text-[#1A1464] transition-colors hover:border-[#1A1464]/40"
-            >
-              {copiedLink ? (
-                <>
-                  <Check className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
-                  <span>Link Copied</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
-                  <span>Copy Article Link</span>
-                </>
+            <div className="flex flex-wrap items-center gap-2.5">
+              {liveMeta && (
+                <a
+                  href={liveMeta.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2 text-xs font-semibold text-[#1A1464] transition-colors hover:border-[#1A1464]/40"
+                >
+                  <span>Original on {liveMeta.sourceName}</span>
+                  <ArrowUpRight className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                </a>
               )}
-            </button>
+              <button
+                type="button"
+                onClick={() => void handleShareLink()}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] bg-white px-3.5 py-2 text-xs font-semibold text-[#1A1464] transition-colors hover:border-[#1A1464]/40"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                    <span>Link Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                    <span>Copy Article Link</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="mt-7 max-w-4xl">
             <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-[#6B7188] tabular-nums">
-              <span className="text-[#EE1119] font-bold">{article.category}</span>
+              <span className="text-[#EE1119] font-bold">
+                {liveMeta ? `${liveMeta.sourceName} · ${article.category}` : article.category}
+              </span>
               <span className="mx-2 text-[#E5E7F0]" aria-hidden="true">/</span>
               <span>{article.publishedDate}</span>
               <span className="mx-2 text-[#E5E7F0]" aria-hidden="true">·</span>
@@ -218,23 +278,29 @@ const ArticleDetailView: React.FC<{
               <figure>
                 <ArticleCoverVisual
                   src={article.coverImage}
-                  alt={`Architectural diagram illustrating ${article.title}`}
+                  alt={`Architectural visual for ${article.title}`}
                   category={article.category}
                   aspectClass="aspect-[16/9] rounded-2xl"
                 />
                 <figcaption className="mt-2.5 font-mono text-xs text-[#6B7188]">
-                  Fig. 01 — Systems schematic for {article.category.toLowerCase()} architecture ({article.stackTags.slice(0, 3).join(' · ')})
+                  Fig. 01 — {liveMeta ? `Daily Wire dispatch visual (${liveMeta.sourceName})` : `Systems schematic for ${article.category.toLowerCase()} architecture`} ({article.stackTags.slice(0, 3).join(' · ')})
                 </figcaption>
               </figure>
 
-              {article.sections.map((section, idx) => (
+              {loadingDetail && (
+                <p className="font-mono text-xs text-[#6B7188]" role="status">
+                  Fetching full technical dispatch from {liveMeta?.sourceName}...
+                </p>
+              )}
+
+              {hydratedSections.map((section, idx) => (
                 <section
                   key={section.id}
                   id={`article-${section.id}`}
                   className="max-w-prose space-y-4 scroll-mt-24"
                 >
                   <p className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119] tabular-nums">
-                    0{idx + 1} / Architecture Notes
+                    0{idx + 1} / {liveMeta ? 'Dispatch Notes' : 'Architecture Notes'}
                   </p>
                   <h2 className="font-display text-2xl sm:text-[1.75rem] font-extrabold leading-tight tracking-tight text-[#1A1464] text-balance">
                     {section.heading}
@@ -267,15 +333,15 @@ const ArticleDetailView: React.FC<{
               )}
 
               {/* Copyable Code Reference Block */}
-              {article.codeExample && (
+              {hydratedCode && (
                 <div className="max-w-prose overflow-hidden rounded-2xl border border-[#1A1464]/20 bg-[#120D4A] text-white shadow-sm">
                   <div className="flex items-center justify-between border-b border-white/15 px-4 py-3">
                     <div className="flex items-center gap-2 font-mono text-xs text-white/80">
                       <Terminal className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
-                      <span>{article.codeExample.filename}</span>
+                      <span>{hydratedCode.filename}</span>
                       <span className="text-white/35" aria-hidden="true">·</span>
                       <span className="uppercase text-white/55">
-                        {article.codeExample.language}
+                        {hydratedCode.language}
                       </span>
                     </div>
                     <button
@@ -297,8 +363,26 @@ const ArticleDetailView: React.FC<{
                     </button>
                   </div>
                   <pre className="overflow-x-auto p-5 font-mono text-xs sm:text-[13px] leading-relaxed text-white/90">
-                    <code>{article.codeExample.code}</code>
+                    <code>{hydratedCode.code}</code>
                   </pre>
+                </div>
+              )}
+
+              {liveMeta && (
+                <div className="max-w-prose rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB] p-5 flex flex-wrap items-center justify-between gap-4">
+                  <p className="text-xs sm:text-sm text-[#4A4F63]">
+                    Curated automatically in 0xDEV&apos;s Daily Engineering Wire from{' '}
+                    <strong className="text-[#1A1464]">{liveMeta.sourceName}</strong>.
+                  </p>
+                  <a
+                    href={liveMeta.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#EE1119] hover:underline"
+                  >
+                    <span>Read original publication</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
                 </div>
               )}
             </article>
@@ -326,13 +410,13 @@ const ArticleDetailView: React.FC<{
               </div>
 
               {/* Section Outline Navigation */}
-              {article.sections.length > 0 && (
+              {hydratedSections.length > 0 && (
                 <div className="rounded-2xl border border-[#E5E7F0] bg-white p-6">
                   <p className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188]">
                     In This Brief
                   </p>
                   <nav aria-label="Article section outline" className="mt-3 space-y-2.5">
-                    {article.sections.map((section, idx) => (
+                    {hydratedSections.map((section, idx) => (
                       <a
                         key={`toc-${section.id}`}
                         href={`#article-${section.id}`}
@@ -361,7 +445,9 @@ const ArticleDetailView: React.FC<{
                   Architect your system with 0xDEV.
                 </h3>
                 <p className="mt-2 text-xs sm:text-sm leading-relaxed text-white/80">
-                  Our engineering team designs, ships, and maintains {article.category.toLowerCase()} infrastructure under a single accountable contract.
+                  Our engineering team designs, ships, and maintains{' '}
+                  {article.category.toLowerCase()} infrastructure under a single accountable
+                  contract.
                 </p>
                 <button
                   type="button"
@@ -453,27 +539,71 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   onNavigate,
 }) => {
   const { articles } = useBlogPosts();
+  const {
+    liveArticles,
+    headlines,
+    loading: newsLoading,
+    error: newsError,
+    lastUpdatedIso,
+    refreshFeed,
+  } = useDailyTechNews();
+
   const [selectedCategory, setSelectedCategory] = useState<'All' | BlogCategory>('All');
+  const [feedScope, setFeedScope] = useState<FeedScope>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [resolvedDirectArticle, setResolvedDirectArticle] = useState<LiveNewsArticle | null>(
+    null
+  );
+
+  const combinedArticles = useMemo<BlogArticle[]>(() => {
+    if (feedScope === 'originals') return articles;
+    if (feedScope === 'daily-wire') return liveArticles;
+    return [...articles, ...liveArticles];
+  }, [articles, liveArticles, feedScope]);
+
+  const allPool = useMemo<BlogArticle[]>(
+    () => [...articles, ...liveArticles],
+    [articles, liveArticles]
+  );
+
+  // Handle direct deep-link refresh to /blog/news-dev-<id>
+  useEffect(() => {
+    setResolvedDirectArticle(null);
+    if (!selectedSlug) return;
+    if (allPool.some((a) => a.slug === selectedSlug)) return;
+
+    const extId = extractExternalDevIdFromSlug(selectedSlug);
+    if (!extId) return;
+
+    let cancelled = false;
+    void fetchLiveDevArticleById(extId).then((fetched) => {
+      if (!cancelled && fetched) {
+        setResolvedDirectArticle(fetched);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedSlug, allPool]);
 
   const activeArticle = useMemo(() => {
     if (!selectedSlug) return null;
-    return articles.find((a) => a.slug === selectedSlug) || null;
-  }, [articles, selectedSlug]);
+    return allPool.find((a) => a.slug === selectedSlug) || resolvedDirectArticle;
+  }, [allPool, selectedSlug, resolvedDirectArticle]);
 
   const relatedArticles = useMemo(() => {
     if (!activeArticle) return [];
-    return articles
+    return allPool
       .filter((a) => a.slug !== activeArticle.slug)
       .sort((a, b) =>
         a.category === activeArticle.category && b.category !== activeArticle.category ? -1 : 1
       )
       .slice(0, 3);
-  }, [articles, activeArticle]);
+  }, [allPool, activeArticle]);
 
   const filteredArticles = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return articles.filter((article) => {
+    return combinedArticles.filter((article) => {
       const matchesCat =
         selectedCategory === 'All' || article.category === selectedCategory;
       if (!matchesCat) return false;
@@ -485,17 +615,47 @@ export const BlogPage: React.FC<BlogPageProps> = ({
         article.stackTags.some((tag) => tag.toLowerCase().includes(q))
       );
     });
-  }, [articles, selectedCategory, searchQuery]);
+  }, [combinedArticles, selectedCategory, searchQuery]);
+
+  const filteredHeadlines = useMemo(() => {
+    if (feedScope === 'originals') return [];
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return headlines;
+    return headlines.filter(
+      (h) =>
+        h.title.toLowerCase().includes(q) ||
+        h.domain.toLowerCase().includes(q) ||
+        h.author.toLowerCase().includes(q)
+    );
+  }, [headlines, feedScope, searchQuery]);
 
   const featuredLead = useMemo(() => {
-    if (selectedCategory !== 'All' || searchQuery.trim() !== '') return null;
+    if (
+      selectedCategory !== 'All' ||
+      searchQuery.trim() !== '' ||
+      feedScope === 'daily-wire'
+    ) {
+      return null;
+    }
     return articles.find((a) => a.featured) || articles[0] || null;
-  }, [articles, selectedCategory, searchQuery]);
+  }, [articles, selectedCategory, searchQuery, feedScope]);
 
   const gridArticles = useMemo(() => {
     if (!featuredLead) return filteredArticles;
     return filteredArticles.filter((a) => a.slug !== featuredLead.slug);
   }, [filteredArticles, featuredLead]);
+
+  const formattedSyncTime = useMemo(() => {
+    if (!lastUpdatedIso) return 'Daily auto-sync active';
+    const d = new Date(lastUpdatedIso);
+    if (Number.isNaN(d.getTime())) return 'Synced today';
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d);
+  }, [lastUpdatedIso]);
 
   if (activeArticle) {
     return (
@@ -512,18 +672,69 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   return (
     <>
       <PageHeader
-        eyebrow="Engineering Blog & Technical Briefings"
-        title="Field-tested insights on software, cloud & security."
-        description="Architectural post-mortems, database invariants, FinOps benchmarks, and production code patterns authored directly by the 0xDEV engineering team."
+        eyebrow="Engineering Blog & Daily Tech Wire"
+        title="Field-tested insights & daily software engineering dispatches."
+        description="Original 0xDEV architectural deep dives paired with an automated daily engineering news wire curated from top developer publications and front-page systems threads."
         currentLabel="Blog"
         onNavigate={onNavigate}
       />
 
-      {/* Filter & Search Bar */}
-      <section className="border-b border-[#E5E7F0] bg-white py-7">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* Filter, Scope & Daily Sync Utility Bar */}
+      <section className="border-b border-[#E5E7F0] bg-white py-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
+          {/* Top Utility Line: Source Scope + Daily Sync Timestamp */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E7F0] pb-4">
+            <div
+              className="inline-flex items-center gap-1 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-1"
+              role="tablist"
+              aria-label="Filter by article source"
+            >
+              {[
+                { id: 'all' as FeedScope, label: `All (${articles.length + liveArticles.length})` },
+                { id: 'originals' as FeedScope, label: `0xDEV Originals (${articles.length})` },
+                { id: 'daily-wire' as FeedScope, label: `Daily Tech Wire (${liveArticles.length})` },
+              ].map((tab) => {
+                const isActive = feedScope === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setFeedScope(tab.id)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap ${
+                      isActive
+                        ? 'bg-[#1A1464] text-white'
+                        : 'text-[#4A4F63] hover:text-[#1A1464]'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="font-mono text-xs text-[#6B7188] tabular-nums">
+                Auto-updates daily · {formattedSyncTime}
+              </p>
+              <button
+                type="button"
+                onClick={() => void refreshFeed()}
+                disabled={newsLoading}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] px-3 py-1.5 text-xs font-bold text-[#1A1464] transition-colors hover:border-[#1A1464]/40 hover:bg-white disabled:opacity-60"
+              >
+                <RefreshCw
+                  className={`h-3.5 w-3.5 text-[#EE1119] ${newsLoading ? 'animate-spin' : ''}`}
+                  aria-hidden="true"
+                />
+                <span>{newsLoading ? 'Syncing Wire...' : 'Refresh Feed'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Topic Filter Tabs + Search Input */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            {/* Category Tabs */}
             <div className="overflow-x-auto pb-1 lg:pb-0">
               <div
                 className="inline-flex items-center gap-1 rounded-xl border border-[#E5E7F0] bg-[#F6F7FB] p-1.5"
@@ -560,7 +771,6 @@ export const BlogPage: React.FC<BlogPageProps> = ({
               </div>
             </div>
 
-            {/* Search Input */}
             <div className="relative w-full lg:w-80">
               <Search
                 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7188]"
@@ -570,18 +780,24 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Search engineering articles"
-                placeholder="Search topics, stacks, or keywords..."
+                aria-label="Search engineering articles and daily tech news"
+                placeholder="Search articles, stacks, or headlines..."
                 className="w-full rounded-xl border border-[#E5E7F0] bg-[#F6F7FB]/70 py-2.5 pl-10 pr-4 text-sm text-[#1A1464] placeholder:text-[#6B7188] focus:border-[#1A1464] focus:bg-white transition-colors"
               />
             </div>
           </div>
+
+          {newsError && (
+            <p className="text-xs font-medium text-[#6B7188]" role="status">
+              {newsError}
+            </p>
+          )}
         </div>
       </section>
 
       {/* Main Editorial Index */}
       <section className="bg-white py-14 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
           {/* Lead Editorial Feature (Tier 1 Salience) */}
           {featuredLead && (
             <Reveal>
@@ -667,16 +883,19 @@ export const BlogPage: React.FC<BlogPageProps> = ({
           {gridArticles.length === 0 && !featuredLead ? (
             <div className="rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB] p-10 text-center">
               <p className="font-display text-lg font-bold text-[#1A1464]">
-                No technical articles matched “{searchQuery}”.
+                {newsLoading && feedScope === 'daily-wire'
+                  ? 'Fetching today’s engineering dispatches...'
+                  : 'No technical articles matched your current filters.'}
               </p>
               <p className="mt-2 text-sm text-[#4A4F63]">
-                Try clearing your search or switching back to all engineering categories.
+                Try clearing your search or switching back to all engineering insights.
               </p>
               <button
                 type="button"
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedCategory('All');
+                  setFeedScope('all');
                 }}
                 className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#1A1464] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#EE1119] transition-colors"
               >
@@ -689,83 +908,167 @@ export const BlogPage: React.FC<BlogPageProps> = ({
               className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3 items-stretch"
             >
               <AnimatePresence mode="popLayout">
-                {gridArticles.map((article) => (
-                  <motion.article
-                    key={article.id}
-                    layout
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    whileHover={{ y: -4 }}
-                    transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
-                    className="group flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] bg-white p-5 shadow-sm transition-colors duration-200 hover:border-[#1A1464]/35 hover:shadow-md"
-                  >
-                    <div>
-                      <a
-                        href={`/blog/${article.slug}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          onSelectArticle(article.slug);
-                        }}
-                        className="block"
-                      >
-                        <ArticleCoverVisual
-                          src={article.coverImage}
-                          alt={`Schematic for ${article.title}`}
-                          category={article.category}
-                          aspectClass="aspect-[16/9] rounded-xl"
-                        />
-                      </a>
-
-                      <p className="mt-4 font-mono text-xs font-semibold text-[#6B7188] tabular-nums">
-                        <span className="text-[#EE1119] font-bold">{article.category}</span>
-                        <span className="mx-1.5">·</span>
-                        <span>{article.publishedDate}</span>
-                      </p>
-
-                      <h2 className="mt-2 font-display text-lg font-extrabold leading-snug text-[#1A1464] group-hover:text-[#EE1119] transition-colors">
+                {gridArticles.map((article) => {
+                  const liveMeta = isLiveNewsArticle(article) ? article : null;
+                  return (
+                    <motion.article
+                      key={article.id}
+                      layout
+                      initial={{ opacity: 0, y: 14 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      whileHover={{ y: -4 }}
+                      transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
+                      className="group flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] bg-white p-5 shadow-sm transition-colors duration-200 hover:border-[#1A1464]/35 hover:shadow-md"
+                    >
+                      <div>
                         <a
                           href={`/blog/${article.slug}`}
                           onClick={(e) => {
                             e.preventDefault();
                             onSelectArticle(article.slug);
                           }}
+                          className="block"
                         >
-                          {article.title}
-                        </a>
-                      </h2>
-
-                      <p className="mt-2.5 text-sm leading-relaxed text-[#4A4F63] line-clamp-3">
-                        {article.excerpt}
-                      </p>
-                    </div>
-
-                    <div className="mt-5 border-t border-[#E5E7F0] pt-4">
-                      <p className="font-mono text-[11px] font-medium text-[#6B7188] truncate">
-                        {article.stackTags.join(' · ')}
-                      </p>
-                      <div className="mt-3 flex items-center justify-between gap-3">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7188] tabular-nums">
-                          <Clock className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
-                          <span>{article.readTimeMinutes} min read</span>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => onSelectArticle(article.slug)}
-                          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] group-hover:text-[#EE1119] transition-colors"
-                        >
-                          <span>Read Article</span>
-                          <ArrowRight
-                            className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
-                            aria-hidden="true"
+                          <ArticleCoverVisual
+                            src={article.coverImage}
+                            alt={`Visual for ${article.title}`}
+                            category={article.category}
+                            aspectClass="aspect-[16/9] rounded-xl"
                           />
-                        </button>
+                        </a>
+
+                        <p className="mt-4 font-mono text-xs font-semibold text-[#6B7188] tabular-nums">
+                          <span className="text-[#EE1119] font-bold">
+                            {liveMeta ? `${liveMeta.sourceName}` : '0xDEV Original'}
+                          </span>
+                          <span className="mx-1.5">·</span>
+                          <span>{article.category}</span>
+                          <span className="mx-1.5">·</span>
+                          <span>{article.publishedDate}</span>
+                        </p>
+
+                        <h2 className="mt-2 font-display text-lg font-extrabold leading-snug text-[#1A1464] group-hover:text-[#EE1119] transition-colors">
+                          <a
+                            href={`/blog/${article.slug}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              onSelectArticle(article.slug);
+                            }}
+                          >
+                            {article.title}
+                          </a>
+                        </h2>
+
+                        <p className="mt-2.5 text-sm leading-relaxed text-[#4A4F63] line-clamp-3">
+                          {article.excerpt}
+                        </p>
                       </div>
-                    </div>
-                  </motion.article>
-                ))}
+
+                      <div className="mt-5 border-t border-[#E5E7F0] pt-4">
+                        <p className="font-mono text-[11px] font-medium text-[#6B7188] truncate">
+                          {article.stackTags.join(' · ')}
+                        </p>
+                        <div className="mt-3 flex items-center justify-between gap-3">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7188] tabular-nums">
+                            <Clock className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                            <span>{article.readTimeMinutes} min read</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onSelectArticle(article.slug)}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A1464] group-hover:text-[#EE1119] transition-colors"
+                          >
+                            <span>Read Article</span>
+                            <ArrowRight
+                              className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+                              aria-hidden="true"
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.article>
+                  );
+                })}
               </AnimatePresence>
             </motion.div>
+          )}
+
+          {/* Tier 3 Salience: Today's Industry Headlines (Hacker News Front Page Wire) */}
+          {filteredHeadlines.length > 0 && (
+            <section
+              aria-labelledby="daily-wire-headlines-heading"
+              className="border-t border-[#E5E7F0] pt-12"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
+                    Today&apos;s Front-Page Engineering Wire
+                  </p>
+                  <h2
+                    id="daily-wire-headlines-heading"
+                    className="mt-1.5 font-display text-2xl sm:text-3xl font-extrabold text-[#1A1464]"
+                  >
+                    Daily Software &amp; Systems News
+                  </h2>
+                </div>
+                <p className="font-mono text-xs text-[#6B7188]">
+                  Live from Hacker News · Refreshes automatically every 24h
+                </p>
+              </div>
+
+              <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-2">
+                {filteredHeadlines.map((item, idx) => (
+                  <article
+                    key={item.id}
+                    className="group flex items-start justify-between gap-4 rounded-2xl border border-[#E5E7F0] bg-[#F6F7FB]/50 p-5 transition-colors hover:border-[#1A1464]/35 hover:bg-white"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-mono text-xs font-semibold text-[#6B7188] tabular-nums">
+                        <span className="text-[#EE1119] font-bold">
+                          0{idx + 1}
+                        </span>
+                        <span className="mx-1.5">·</span>
+                        <span>{item.domain}</span>
+                        <span className="mx-1.5">·</span>
+                        <span>{item.points} pts</span>
+                      </p>
+                      <h3 className="mt-1.5 font-display text-base font-bold leading-snug text-[#1A1464] group-hover:text-[#EE1119] transition-colors">
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {item.title}
+                        </a>
+                      </h3>
+                      <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-[#6B7188] tabular-nums">
+                        <span>by {item.author}</span>
+                        <a
+                          href={item.discussionUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-semibold text-[#1A1464] hover:text-[#EE1119] transition-colors"
+                        >
+                          <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+                          <span>{item.commentsCount} discussions</span>
+                        </a>
+                      </div>
+                    </div>
+
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Open ${item.title}`}
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#E5E7F0] bg-white text-[#1A1464] transition-colors group-hover:border-[#1A1464] group-hover:bg-[#1A1464] group-hover:text-white"
+                    >
+                      <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                    </a>
+                  </article>
+                ))}
+              </div>
+            </section>
           )}
         </div>
       </section>
