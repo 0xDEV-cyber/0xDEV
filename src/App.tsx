@@ -252,7 +252,7 @@ function AppShell() {
     document.title = nextTitle;
 
     const fullUrl = window.location.origin + window.location.pathname;
-    const ogImageUrl = `${window.location.origin}/og-share.png`;
+    const ogImageUrl = `${window.location.origin}/og-logo-card.png`;
 
     let ogUrlMeta = document.querySelector('meta[property="og:url"]');
     if (!ogUrlMeta) {

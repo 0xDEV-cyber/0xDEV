@@ -14,6 +14,7 @@ export default defineConfig(() => {
         registerType: 'autoUpdate',
         includeAssets: [
           'icon.svg',
+          'og-logo-card.png',
           'og-share.png',
           'apple-touch-icon.png',
           'pwa-192x192.png',
@@ -112,14 +113,19 @@ export default defineConfig(() => {
       {
         name: 'resolve-social-meta-urls',
         transformIndexHtml(html: string): string {
-          const rawOrigin =
-            process.env.URL ||
-            process.env.DEPLOY_PRIME_URL ||
-            process.env.APP_URL ||
-            '';
-          const origin = rawOrigin.replace(/\/+$/, '');
-          if (!origin) return html;
+          const netlifyOrigin = process.env.URL || process.env.DEPLOY_PRIME_URL || '';
+          const appOrigin =
+            process.env.APP_URL && !process.env.APP_URL.includes('ais-dev-')
+              ? process.env.APP_URL
+              : '';
+          const origin = (
+            netlifyOrigin ||
+            appOrigin ||
+            'https://0x4dev.netlify.app'
+          ).replace(/\/+$/, '');
           return html
+            .replace(/content="\/og-logo-card\.png"/g, `content="${origin}/og-logo-card.png"`)
+            .replace(/"\/og-logo-card\.png"/g, `"${origin}/og-logo-card.png"`)
             .replace(/content="\/og-share\.png"/g, `content="${origin}/og-share.png"`)
             .replace(/"\/og-share\.png"/g, `"${origin}/og-share.png"`)
             .replace(/"\/pwa-512x512\.png"/g, `"${origin}/pwa-512x512.png"`)
