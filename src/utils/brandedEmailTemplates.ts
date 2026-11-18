@@ -136,3 +136,133 @@ export function buildBrandedEmailHtml({
   </body>
 </html>`;
 }
+
+export interface MovieReleaseEmailParams {
+  movieTitle: string;
+  category: string;
+  releaseYear: string;
+  durationLabel: string;
+  qualityLabel: string;
+  fileSizeLabel: string;
+  synopsis: string;
+  recipientName?: string;
+  moviesPageUrl?: string;
+}
+
+function escapeHtmlText(raw: string): string {
+  return raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+export function buildMovieReleaseEmailHtml({
+  movieTitle,
+  category,
+  releaseYear,
+  durationLabel,
+  qualityLabel,
+  fileSizeLabel,
+  synopsis,
+  recipientName = 'Movie Subscriber',
+  moviesPageUrl = 'https://0x4dev.netlify.app/movies',
+}: MovieReleaseEmailParams): string {
+  const safeName = escapeHtmlText(recipientName);
+  const safeTitle = escapeHtmlText(movieTitle);
+  const safeCategory = escapeHtmlText(category);
+  const safeYear = escapeHtmlText(releaseYear);
+  const safeDuration = escapeHtmlText(durationLabel);
+  const safeQuality = escapeHtmlText(qualityLabel);
+  const safeSize = escapeHtmlText(fileSizeLabel);
+  const safeSynopsis = escapeHtmlText(synopsis);
+  const safeUrl = moviesPageUrl.replace(/"/g, '&quot;');
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Movie Uploaded: ${safeTitle} | 0xDEV</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#F6F7FB;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#4A4F63;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#F6F7FB;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background-color:#FFFFFF;border:1px solid #E5E7F0;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td style="background-color:#1A1464;padding:28px 32px;border-bottom:4px solid #EE1119;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td>
+                      <span style="font-size:24px;font-weight:800;letter-spacing:-0.03em;color:#FFFFFF;">0x</span><span style="font-size:24px;font-weight:800;letter-spacing:-0.03em;color:#EE1119;">DEV</span>
+                    </td>
+                    <td align="right" style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#FFFFFF;opacity:0.85;">
+                      Free Cinema Hub
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:36px 32px 28px 32px;">
+                <p style="margin:0 0 8px 0;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#EE1119;">
+                  New Movie Uploaded &middot; Ready to Stream &amp; Save
+                </p>
+                <h1 style="margin:0 0 12px 0;font-size:24px;line-height:1.25;font-weight:800;color:#1A1464;">
+                  ${safeTitle}
+                </h1>
+                <p style="margin:0 0 18px 0;font-size:12px;font-weight:700;color:#6B7188;">
+                  ${safeCategory} &middot; ${safeYear} &middot; ${safeDuration} &middot; ${safeQuality} &middot; ${safeSize}
+                </p>
+                <p style="margin:0 0 24px 0;font-size:15px;line-height:1.65;color:#4A4F63;">
+                  Hello ${safeName}, a new free film has just been published on 0xDEV. You can stream it online right now or download a local copy directly into your browser storage for offline viewing.
+                </p>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 26px 0;background-color:#F6F7FB;border:1px solid #E5E7F0;border-radius:12px;">
+                  <tr>
+                    <td style="padding:16px 20px;">
+                      <p style="margin:0 0 6px 0;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#1A1464;">
+                        Synopsis
+                      </p>
+                      <p style="margin:0;font-size:14px;line-height:1.6;color:#4A4F63;">
+                        ${safeSynopsis}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td style="border-radius:12px;background-color:#EE1119;">
+                      <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:14px 28px;font-size:14px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:12px;">
+                        Watch &amp; Save Offline Now &rarr;
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:24px 0 0 0;font-size:12px;line-height:1.6;color:#6B7188;">
+                  Direct link:<br />
+                  <a href="${safeUrl}" style="color:#1A1464;word-break:break-all;">${safeUrl}</a>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:#F6F7FB;padding:22px 32px;border-top:1px solid #E5E7F0;">
+                <p style="margin:0 0 8px 0;font-size:12px;line-height:1.5;color:#6B7188;">
+                  You received this release notification because you subscribed to 0xDEV Movie Release Alerts.
+                </p>
+                <p style="margin:0;font-size:12px;font-weight:600;color:#1A1464;">
+                  0xDEV Technology Studio &middot; Kabale, Western Uganda
+                </p>
+                <p style="margin:4px 0 0 0;font-size:11px;color:#6B7188;">
+                  Lead Contact: Arigye Wisdom &middot; +256 766 922 566 &middot; arigyewisdom7@gmail.com
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+

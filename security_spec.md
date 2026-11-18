@@ -12,6 +12,7 @@
 9. **Milestone Parent & Bounds Integrity**: Every `/inquiries/{inquiryId}/milestones/{milestoneId}` document may only be created, updated, or deleted by verified admins, must reference an existing parent inquiry with matching `authorId`, and must constrain `progress` to `0..100` and `sortOrder` to `1..50`.
 10. **Project Chat, Deliverable & Invoice Ownership**: Messages, deliverables, and invoices under `/inquiries/{inquiryId}` inherit ownership from the parent inquiry's `authorId`. Clients may only read their own project's messages/deliverables/invoices and create client-authored messages; only verified admins may manage deliverables, invoices, or `admin`-role messages. Deliverable URLs must start with `https://`.
 11. **Booking Isolation & Portfolio Public Read**: `/bookings/{bookingId}` may only be created by verified users with `authorId == request.auth.uid` and `status == 'requested'`, and read/listed only by the author or admin. `/portfolioProjects/{projectId}` contains strictly non-PII showcase metadata, readable publicly and writable only by verified admins.
+12. **Movie Catalog & Subscriber PII Isolation**: `/movies/{movieId}` may only be created, updated, or deleted by verified admins; public users may only read/list `published == true` movies, and `videoUrl` must start with `https://`. `/movieSubscribers/{subscriberId}` stores private subscriber emails keyed by `request.auth.uid`; only verified owners may manage their own subscription document, and only the primary admin may list subscribers.
 
 ## 2. Adversarial "Dirty Dozen" Payloads
 1. **Unauthenticated Profile Create**: `{ "uid": "user1", "displayName": "Attacker", ... }` with `auth == null` -> **PERMISSION_DENIED**.
@@ -33,3 +34,6 @@
 17. **Unauthorized Portfolio Write**: Non-admin attempting to publish to `/portfolioProjects/p1` -> **PERMISSION_DENIED**.
 18. **Unsafe Profile Picture Payload**: User attempting to write `photoUrl: "data:image/svg+xml;base64,..."` or `photoUrl: "javascript:alert(1)"` or >150KB string to `/users/{uid}` -> **PERMISSION_DENIED** (`isValidUserPublic` regex and size bounds enforce safe raster data URIs or `https://` URLs only).
 19. **Invalid Contact Channel or Oversized Bio**: Writing an unallowlisted `preferredChannel` (e.g. `"telegram"`) to `/users/{uid}/private/info` or >300-char `bio` to `/users/{uid}` -> **PERMISSION_DENIED** (`isValidUserPrivateInfo` enum and `isValidUserPublic` size bounds reject malformed values).
+20. **Unauthorized Movie Upload or Unsafe Video URI**: Non-admin writing to `/movies/mov1`, or admin writing `videoUrl: "javascript:alert(1)"` -> **PERMISSION_DENIED**.
+21. **Movie Subscriber Email List Scraping**: Non-admin running `getDocs(collection(db, 'movieSubscribers'))` or userA reading `/movieSubscribers/userB` -> **PERMISSION_DENIED**.
+

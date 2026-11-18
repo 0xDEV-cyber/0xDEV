@@ -945,23 +945,23 @@ export const HomePage: React.FC<HomePageProps> = ({
               <div className="relative z-10 grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
                 <div className="lg:col-span-6">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
-                    Coming Soon · Free Media Hub
+                    Free Cinema &amp; Local Vault
                   </p>
                   <h2 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC] text-balance">
-                    Movies &amp; free offline downloads are coming to 0xDEV.
+                    Watch movies online or save them to local storage on 0xDEV.
                   </h2>
                   <p className="mt-3 text-base leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
-                    Stream open-license classics, independent films, and engineering documentaries
-                    or download lightweight 480p, 720p, and 1080p MP4 packages completely free with
-                    zero paywalls.
+                    Stream studio-curated films, cache full videos inside your browser for offline
+                    playback, download MP4 copies, and subscribe for instant email alerts when new
+                    titles arrive.
                   </p>
 
                   <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">
-                    <span>480p · 720p · 1080p MP4</span>
+                    <span>Stream &amp; Offline Cache</span>
                     <span className="text-[#EE1119]" aria-hidden="true">/</span>
                     <span>Zero Subscriptions</span>
                     <span className="text-[#EE1119]" aria-hidden="true">/</span>
-                    <span>Offline Playback Ready</span>
+                    <span>Instant Release Emails</span>
                   </div>
 
                   <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -974,7 +974,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                       className="inline-flex items-center gap-2 rounded-xl bg-[#EE1119] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#D00D14] whitespace-nowrap shrink-0"
                     >
                       <Download className="h-4 w-4" aria-hidden="true" />
-                      <span>Preview Upcoming Hub</span>
+                      <span>Open Movies Hub</span>
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </motion.button>
                   </div>
@@ -984,13 +984,13 @@ export const HomePage: React.FC<HomePageProps> = ({
                   <button
                     type="button"
                     onClick={() => onNavigate('movies')}
-                    aria-label="Open Movies and Free Downloads preview page"
+                    aria-label="Open Movies and Free Offline Downloads hub"
                     className="group/media relative block w-full overflow-hidden rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#120D4A] aspect-video text-left"
                   >
                     {!moviesBannerImgFailed ? (
                       <img
                         src="/src/assets/images/movies_cinema_hub_1795014042309.jpg"
-                        alt="0xDEV upcoming free cinema and download hub"
+                        alt="0xDEV free cinema and offline local storage download hub"
                         referrerPolicy="no-referrer"
                         onError={() => setMoviesBannerImgFailed(true)}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover/media:scale-105"
@@ -1010,14 +1010,14 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3 text-white">
                       <div>
                         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#EE1119]">
-                          Launching Soon
+                          Offline Ready
                         </p>
                         <p className="font-display text-sm sm:text-base font-bold">
-                          Free Streaming &amp; Direct MP4 Downloads
+                          Stream &amp; Save Movies Into Local Storage
                         </p>
                       </div>
                       <span className="inline-flex items-center gap-1 rounded-lg bg-white/15 backdrop-blur-md px-3 py-1.5 text-xs font-bold border border-white/20 whitespace-nowrap shrink-0">
-                        <span>Get Notified</span>
+                        <span>Explore Hub</span>
                         <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                       </span>
                     </div>

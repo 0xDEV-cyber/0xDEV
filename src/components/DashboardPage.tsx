@@ -23,6 +23,7 @@ import {
   PreferredContactChannel,
 } from '../firebase';
 import { AdminBlogManager } from './AdminBlogManager';
+import { AdminMoviesManager } from './AdminMoviesManager';
 import { AdminPortfolioManager } from './AdminPortfolioManager';
 import { EditProfileModal } from './EditProfileModal';
 import { EASE_OUT_EXPO, Reveal, SPRING_SNAPPY } from './MotionPrimitives';
@@ -768,6 +769,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <div className="print:hidden">
             <AdminPortfolioManager />
             <AdminBlogManager />
+            <AdminMoviesManager />
             <NotificationCenter />
           </div>
         </div>

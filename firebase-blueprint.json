@@ -807,6 +807,99 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "MovieItem": {
+      "title": "MovieItem",
+      "description": "Free streamable and downloadable movie published by 0xDEV admin.",
+      "type": "object",
+      "properties": {
+        "movieId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": { "type": "string", "minLength": 2, "maxLength": 140 },
+        "category": {
+          "type": "string",
+          "enum": ["Open Classics", "Indie & Regional", "Tech Documentaries", "Short Films"]
+        },
+        "releaseYear": { "type": "string", "minLength": 4, "maxLength": 12 },
+        "durationLabel": { "type": "string", "minLength": 2, "maxLength": 30 },
+        "qualityLabel": {
+          "type": "string",
+          "enum": ["480p Lite", "720p HD", "1080p Full HD"]
+        },
+        "fileSizeLabel": { "type": "string", "minLength": 2, "maxLength": 30 },
+        "synopsis": { "type": "string", "minLength": 10, "maxLength": 800 },
+        "posterUrl": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 500,
+          "pattern": "^(https://.*|/src/assets/images/.*)$"
+        },
+        "videoUrl": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 1000,
+          "pattern": "^https://.*"
+        },
+        "published": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "movieId",
+        "title",
+        "category",
+        "releaseYear",
+        "durationLabel",
+        "qualityLabel",
+        "fileSizeLabel",
+        "synopsis",
+        "posterUrl",
+        "videoUrl",
+        "published",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MovieSubscriber": {
+      "title": "MovieSubscriber",
+      "description": "Verified user subscription to receive email and portal alerts when 0xDEV admin uploads a new movie.",
+      "type": "object",
+      "properties": {
+        "subscriberId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "subscriberUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200,
+          "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+        },
+        "subscriberName": { "type": "string", "minLength": 0, "maxLength": 100 },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "subscriberId",
+        "subscriberUid",
+        "email",
+        "active",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -853,6 +946,14 @@
     "/notifications/{notificationId}": {
       "schema": { "$ref": "#/entities/Notification" },
       "description": "Project status update and admin message alerts scoped to recipientId."
+    },
+    "/movies/{movieId}": {
+      "schema": { "$ref": "#/entities/MovieItem" },
+      "description": "Free streamable and downloadable movie catalog managed by 0xDEV admin."
+    },
+    "/movieSubscribers/{subscriberId}": {
+      "schema": { "$ref": "#/entities/MovieSubscriber" },
+      "description": "Verified subscriber records for movie upload notifications."
     }
   }
 }

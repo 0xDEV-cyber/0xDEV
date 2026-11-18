@@ -43,7 +43,7 @@ const ROUTE_TITLES: Record<PageRoute, string> = {
   process: 'Our 5-Stage Engineering Process | 0xDEV',
   work: 'Case Studies & Featured Work | 0xDEV',
   blog: 'Engineering Blog & Technical Insights | 0xDEV',
-  movies: 'Movies & Free Downloads (Coming Soon) | 0xDEV',
+  movies: 'Movies & Free Offline Downloads | 0xDEV',
   about: 'About Us (Kabale, Uganda) | 0xDEV',
   contact: 'Contact & Project Brief | 0xDEV',
   dashboard: 'User Dashboard | 0xDEV',
@@ -53,6 +53,9 @@ function resolveRouteFromPathname(pathname: string): PageRoute {
   const normalized = pathname.toLowerCase().replace(/\/+$/, '') || '/';
   if (normalized === '/blog' || normalized.startsWith('/blog/')) {
     return 'blog';
+  }
+  if (normalized === '/movies' || normalized.startsWith('/movies/')) {
+    return 'movies';
   }
   const matched = (Object.keys(ROUTE_TO_PATH) as PageRoute[]).find(
     (route) => ROUTE_TO_PATH[route] === normalized
@@ -65,6 +68,13 @@ function resolveBlogSlugFromPathname(pathname: string): string | null {
   if (!normalized.startsWith('/blog/')) return null;
   const slug = normalized.slice('/blog/'.length).split('/')[0]?.trim();
   return slug || null;
+}
+
+function resolveMovieIdFromPathname(pathname: string): string | null {
+  const trimmed = pathname.replace(/\/+$/, '') || '/';
+  if (!trimmed.toLowerCase().startsWith('/movies/')) return null;
+  const id = trimmed.slice('/movies/'.length).split('/')[0]?.trim();
+  return id || null;
 }
 
 interface ErrorBoundaryState {
@@ -165,6 +175,9 @@ function AppShell() {
   const [selectedArticleSlug, setSelectedArticleSlug] = useState<string | null>(() =>
     resolveBlogSlugFromPathname(window.location.pathname)
   );
+  const [selectedMovieId, setSelectedMovieId] = useState<string | null>(() =>
+    resolveMovieIdFromPathname(window.location.pathname)
+  );
   const [authMode, setAuthMode] = useState<'login' | 'register'>(() =>
     window.location.pathname.toLowerCase().includes('register') ? 'register' : 'login'
   );
@@ -185,6 +198,7 @@ function AppShell() {
     setIsAuthActionRoute(false);
     setShowAuthPortal(false);
     setSelectedArticleSlug(null);
+    setSelectedMovieId(null);
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
@@ -196,8 +210,22 @@ function AppShell() {
     }
     setIsAuthActionRoute(false);
     setShowAuthPortal(false);
+    setSelectedMovieId(null);
     setCurrentPage('blog');
     setSelectedArticleSlug(slug);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const navigateToMovie = useCallback((movieId: string | null) => {
+    const targetPath = movieId ? `/movies/${movieId}` : '/movies';
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({ page: 'movies', movieId }, '', targetPath);
+    }
+    setIsAuthActionRoute(false);
+    setShowAuthPortal(false);
+    setSelectedArticleSlug(null);
+    setCurrentPage('movies');
+    setSelectedMovieId(movieId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
@@ -258,6 +286,8 @@ function AppShell() {
       nextTitle = matched
         ? `${matched.title} | 0xDEV Blog`
         : 'Engineering Article | 0xDEV Blog';
+    } else if (currentPage === 'movies' && selectedMovieId) {
+      nextTitle = 'Movie Details & Offline Download | 0xDEV';
     }
     document.title = nextTitle;
 
@@ -287,7 +317,15 @@ function AppShell() {
       .querySelector('meta[property="og:image:secure_url"]')
       ?.setAttribute('content', ogImageUrl);
     document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', ogImageUrl);
-  }, [user, authMode, currentPage, selectedArticleSlug, isAuthActionRoute, showAuthPortal]);
+  }, [
+    user,
+    authMode,
+    currentPage,
+    selectedArticleSlug,
+    selectedMovieId,
+    isAuthActionRoute,
+    showAuthPortal,
+  ]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -304,6 +342,7 @@ function AppShell() {
         setShowAuthPortal(false);
         setCurrentPage(resolveRouteFromPathname(window.location.pathname));
         setSelectedArticleSlug(resolveBlogSlugFromPathname(window.location.pathname));
+        setSelectedMovieId(resolveMovieIdFromPathname(window.location.pathname));
       }
       window.scrollTo({ top: 0, behavior: 'auto' });
     };
@@ -462,7 +501,13 @@ function AppShell() {
       <main className="flex-1">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentPage === 'blog' && selectedArticleSlug ? `blog-${selectedArticleSlug}` : currentPage}
+            key={
+              currentPage === 'blog' && selectedArticleSlug
+                ? `blog-${selectedArticleSlug}`
+                : currentPage === 'movies' && selectedMovieId
+                  ? `movies-${selectedMovieId}`
+                  : currentPage
+            }
             initial={{ opacity: 0, y: 14, scale: 0.995 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.995 }}
@@ -494,7 +539,14 @@ function AppShell() {
                 onNavigate={navigateTo}
               />
             )}
-            {currentPage === 'movies' && <MoviesPage onNavigate={navigateTo} />}
+            {currentPage === 'movies' && (
+              <MoviesPage
+                selectedMovieId={selectedMovieId}
+                onSelectMovie={navigateToMovie}
+                onNavigate={navigateTo}
+                onRequestAuth={() => openAuthPortal('login', 'movies')}
+              />
+            )}
             {currentPage === 'about' && <AboutPage onNavigate={navigateTo} />}
             {currentPage === 'contact' && (
               <ContactPage

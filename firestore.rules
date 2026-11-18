@@ -343,6 +343,51 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    function isValidMovieItem(data, movieId) {
+      return data.keys().hasAll([
+          'movieId', 'title', 'category', 'releaseYear', 'durationLabel',
+          'qualityLabel', 'fileSizeLabel', 'synopsis', 'posterUrl',
+          'videoUrl', 'published', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'movieId', 'title', 'category', 'releaseYear', 'durationLabel',
+          'qualityLabel', 'fileSizeLabel', 'synopsis', 'posterUrl',
+          'videoUrl', 'published', 'createdAt', 'updatedAt'
+        ])
+        && data.movieId is string && isValidId(data.movieId) && data.movieId == movieId
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 140
+        && data.category in ['Open Classics', 'Indie & Regional', 'Tech Documentaries', 'Short Films']
+        && data.releaseYear is string && data.releaseYear.size() >= 4 && data.releaseYear.size() <= 12
+        && data.durationLabel is string && data.durationLabel.size() >= 2 && data.durationLabel.size() <= 30
+        && data.qualityLabel in ['480p Lite', '720p HD', '1080p Full HD']
+        && data.fileSizeLabel is string && data.fileSizeLabel.size() >= 2 && data.fileSizeLabel.size() <= 30
+        && data.synopsis is string && data.synopsis.size() >= 10 && data.synopsis.size() <= 800
+        && data.posterUrl is string && data.posterUrl.size() >= 4 && data.posterUrl.size() <= 500
+        && data.posterUrl.matches('^(https://.*|/src/assets/images/.*)$')
+        && data.videoUrl is string && data.videoUrl.size() >= 8 && data.videoUrl.size() <= 1000
+        && data.videoUrl.matches('^https://.*')
+        && data.published is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMovieSubscriber(data, subscriberId) {
+      return data.keys().hasAll([
+          'subscriberId', 'subscriberUid', 'email', 'active', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'subscriberId', 'subscriberUid', 'email', 'subscriberName', 'active', 'createdAt', 'updatedAt'
+        ])
+        && data.subscriberId is string && isValidId(data.subscriberId) && data.subscriberId == subscriberId
+        && data.subscriberUid is string && isValidId(data.subscriberUid)
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 200
+        && data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
+        && (!('subscriberName' in data) || (data.subscriberName is string && data.subscriberName.size() <= 100))
+        && data.active is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
     // -------------------------------------------------------------------------
     // Collection Rules
     // -------------------------------------------------------------------------
@@ -700,6 +745,60 @@ service cloud.firestore {
         );
 
       allow delete: if isAdmin() && isValidId(notificationId);
+    }
+
+    match /movies/{movieId} {
+      allow get: if isValidId(movieId) && (existing().published == true || isAdmin());
+      allow list: if resource.data.published == true || isPrimaryAdmin();
+
+      allow create: if isAdmin()
+        && isValidId(movieId)
+        && isValidMovieItem(incoming(), movieId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isAdmin()
+        && isValidId(movieId)
+        && isValidMovieItem(incoming(), movieId)
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'category', 'releaseYear', 'durationLabel', 'qualityLabel',
+          'fileSizeLabel', 'synopsis', 'posterUrl', 'videoUrl', 'published', 'updatedAt'
+        ]);
+
+      allow delete: if isAdmin() && isValidId(movieId);
+    }
+
+    match /movieSubscribers/{subscriberId} {
+      allow get: if isValidId(subscriberId) && isSignedIn() && (
+        isOwner(subscriberId) || isAdmin()
+      );
+      allow list: if isPrimaryAdmin();
+
+      allow create: if isVerifiedUser()
+        && isValidId(subscriberId)
+        && isOwner(subscriberId)
+        && isValidMovieSubscriber(incoming(), subscriberId)
+        && incoming().subscriberUid == request.auth.uid
+        && incoming().active == true
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(subscriberId)
+        && isValidMovieSubscriber(incoming(), subscriberId)
+        && (isOwner(subscriberId) || isAdmin())
+        && incoming().subscriberUid == existing().subscriberUid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'email', 'subscriberName', 'active', 'updatedAt'
+        ]);
+
+      allow delete: if isValidId(subscriberId) && (
+        (isVerifiedUser() && isOwner(subscriberId)) || isAdmin()
+      );
     }
   }
 }
