@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import {
   Share2,
   Terminal,
   User,
+  X,
 } from 'lucide-react';
 import { BLOG_CATEGORIES, BlogArticle, BlogCategory } from '../data/blogData';
 import { PageRoute } from '../data/siteData';
@@ -37,9 +38,137 @@ interface BlogPageProps {
 
 type FeedScope = 'all' | 'originals' | 'daily-wire';
 
+const LANGUAGE_ALIASES: Record<string, string[]> = {
+  ts: ['typescript'],
+  typescript: ['ts', 'tsx'],
+  js: ['javascript'],
+  javascript: ['js', 'jsx', 'ecmascript'],
+  sql: ['postgresql', 'postgres', 'sqlite', 'database'],
+  hcl: ['terraform', 'iac'],
+  lua: ['redis'],
+  py: ['python'],
+  python: ['py'],
+  go: ['golang'],
+  golang: ['go'],
+  dart: ['flutter'],
+};
+
+const LANGUAGE_DISPLAY_LABELS: Record<string, string> = {
+  sql: 'SQL',
+  typescript: 'TypeScript',
+  javascript: 'JavaScript',
+  hcl: 'Terraform (HCL)',
+  lua: 'Lua',
+  python: 'Python',
+  go: 'Go',
+  rust: 'Rust',
+};
+
 function isLiveNewsArticle(article: BlogArticle): article is LiveNewsArticle {
   return Boolean((article as LiveNewsArticle).isLiveNews);
 }
+
+function tokenizeQuery(rawQuery: string): string[] {
+  return rawQuery
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function buildArticleSearchText(article: BlogArticle): string {
+  const parts: string[] = [
+    article.title,
+    article.excerpt,
+    article.category,
+    article.authorName,
+    ...article.stackTags,
+    ...article.keyTakeaways,
+  ];
+
+  if (article.calloutQuote) {
+    parts.push(article.calloutQuote);
+  }
+
+  if (article.codeExample) {
+    const lang = article.codeExample.language.toLowerCase();
+    parts.push(lang, article.codeExample.filename);
+    if (LANGUAGE_ALIASES[lang]) {
+      parts.push(...LANGUAGE_ALIASES[lang]);
+    }
+    if (LANGUAGE_DISPLAY_LABELS[lang]) {
+      parts.push(LANGUAGE_DISPLAY_LABELS[lang]);
+    }
+  }
+
+  for (const tag of article.stackTags) {
+    const lowerTag = tag.toLowerCase();
+    if (LANGUAGE_ALIASES[lowerTag]) {
+      parts.push(...LANGUAGE_ALIASES[lowerTag]);
+    }
+  }
+
+  for (const section of article.sections) {
+    parts.push(section.heading, ...section.paragraphs);
+  }
+
+  if (isLiveNewsArticle(article)) {
+    parts.push(article.sourceName);
+  }
+
+  return parts.join(' ').toLowerCase();
+}
+
+function getArticleMatchScore(article: BlogArticle, tokens: string[]): number {
+  if (tokens.length === 0) return 1;
+  const fullText = buildArticleSearchText(article);
+  for (const token of tokens) {
+    if (!fullText.includes(token)) {
+      return 0;
+    }
+  }
+
+  const titleLower = article.title.toLowerCase();
+  const categoryLower = article.category.toLowerCase();
+  const tagsLower = article.stackTags.join(' ').toLowerCase();
+  const langLower = (article.codeExample?.language || '').toLowerCase();
+
+  let score = 1;
+  for (const token of tokens) {
+    if (titleLower.includes(token)) score += 4;
+    if (tagsLower.includes(token)) score += 3;
+    if (categoryLower.includes(token) || langLower.includes(token)) score += 3;
+  }
+  return score;
+}
+
+const HighlightText: React.FC<{ text: string; tokens: string[] }> = ({ text, tokens }) => {
+  if (tokens.length === 0 || !text) return <>{text}</>;
+  const escaped = [...tokens]
+    .sort((a, b) => b.length - a.length)
+    .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .filter(Boolean);
+  if (escaped.length === 0) return <>{text}</>;
+
+  const regex = new RegExp(`(${escaped.join('|')})`, 'gi');
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, idx) =>
+        tokens.some((t) => part.toLowerCase() === t) ? (
+          <mark
+            key={`${part}-${idx}`}
+            className="rounded-sm bg-[#EE1119]/12 dark:bg-[#EE1119]/25 px-0.5 text-[#EE1119] dark:text-[#FF8A8E]"
+          >
+            {part}
+          </mark>
+        ) : (
+          <React.Fragment key={`${part}-${idx}`}>{part}</React.Fragment>
+        )
+      )}
+    </>
+  );
+};
 
 const ArticleCoverVisual: React.FC<{
   src: string;
@@ -554,6 +683,30 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   const [resolvedDirectArticle, setResolvedDirectArticle] = useState<LiveNewsArticle | null>(
     null
   );
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if (selectedSlug) return;
+      const target = event.target as HTMLElement | null;
+      const isTypingField =
+        target?.tagName === 'INPUT' ||
+        target?.tagName === 'TEXTAREA' ||
+        target?.tagName === 'SELECT' ||
+        target?.isContentEditable;
+
+      if (event.key === '/' && !isTypingField && !event.metaKey && !event.ctrlKey) {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [selectedSlug]);
 
   const combinedArticles = useMemo<BlogArticle[]>(() => {
     if (feedScope === 'originals') return articles;
@@ -601,33 +754,70 @@ export const BlogPage: React.FC<BlogPageProps> = ({
       .slice(0, 3);
   }, [allPool, activeArticle]);
 
+  const searchTokens = useMemo(() => tokenizeQuery(searchQuery), [searchQuery]);
+
+  // Top stacks & code languages across the active pool for 1-click filtering
+  const quickStackFilters = useMemo(() => {
+    const counts = new Map<string, { label: string; count: number }>();
+    const addToken = (raw: string) => {
+      const cleaned = raw.trim();
+      if (!cleaned || cleaned.length > 24) return;
+      const key = cleaned.toLowerCase();
+      const existing = counts.get(key);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        counts.set(key, { label: cleaned, count: 1 });
+      }
+    };
+
+    for (const art of combinedArticles) {
+      for (const tag of art.stackTags) {
+        addToken(tag);
+      }
+      if (art.codeExample?.language) {
+        const langKey = art.codeExample.language.toLowerCase();
+        const label =
+          langKey === 'hcl'
+            ? 'Terraform'
+            : LANGUAGE_DISPLAY_LABELS[langKey] || art.codeExample.language;
+        addToken(label);
+      }
+    }
+
+    return Array.from(counts.values())
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+      .slice(0, 10)
+      .map((entry) => entry.label);
+  }, [combinedArticles]);
+
   const filteredArticles = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return combinedArticles.filter((article) => {
+    const matched: Array<{ article: BlogArticle; score: number }> = [];
+    for (const article of combinedArticles) {
       const matchesCat =
         selectedCategory === 'All' || article.category === selectedCategory;
-      if (!matchesCat) return false;
-      if (!q) return true;
-      return (
-        article.title.toLowerCase().includes(q) ||
-        article.excerpt.toLowerCase().includes(q) ||
-        article.category.toLowerCase().includes(q) ||
-        article.stackTags.some((tag) => tag.toLowerCase().includes(q))
-      );
-    });
-  }, [combinedArticles, selectedCategory, searchQuery]);
+      if (!matchesCat) continue;
+      const score = getArticleMatchScore(article, searchTokens);
+      if (score > 0) {
+        matched.push({ article, score });
+      }
+    }
+
+    if (searchTokens.length > 0) {
+      matched.sort((a, b) => b.score - a.score);
+    }
+
+    return matched.map((entry) => entry.article);
+  }, [combinedArticles, selectedCategory, searchTokens]);
 
   const filteredHeadlines = useMemo(() => {
     if (feedScope === 'originals') return [];
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return headlines;
-    return headlines.filter(
-      (h) =>
-        h.title.toLowerCase().includes(q) ||
-        h.domain.toLowerCase().includes(q) ||
-        h.author.toLowerCase().includes(q)
-    );
-  }, [headlines, feedScope, searchQuery]);
+    if (searchTokens.length === 0) return headlines;
+    return headlines.filter((h) => {
+      const haystack = `${h.title} ${h.domain} ${h.author}`.toLowerCase();
+      return searchTokens.every((token) => haystack.includes(token));
+    });
+  }, [headlines, feedScope, searchTokens]);
 
   const featuredLead = useMemo(() => {
     if (
@@ -644,6 +834,16 @@ export const BlogPage: React.FC<BlogPageProps> = ({
     if (!featuredLead) return filteredArticles;
     return filteredArticles.filter((a) => a.slug !== featuredLead.slug);
   }, [filteredArticles, featuredLead]);
+
+  const handleToggleQuickFilter = (label: string) => {
+    const normalized = label.toLowerCase();
+    const currentNormalized = searchQuery.trim().toLowerCase();
+    if (currentNormalized === normalized) {
+      setSearchQuery('');
+    } else {
+      setSearchQuery(label);
+    }
+  };
 
   const formattedSyncTime = useMemo(() => {
     if (!lastUpdatedIso) return 'Daily auto-sync active';
@@ -733,7 +933,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
             </div>
           </div>
 
-          {/* Topic Filter Tabs + Search Input */}
+          {/* Topic Filter Tabs + Real-Time Search Bar */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="overflow-x-auto pb-1 lg:pb-0">
               <div
@@ -750,7 +950,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                       role="tab"
                       aria-selected={isActive}
                       onClick={() => setSelectedCategory(category)}
-                      className={`relative rounded-lg px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-colors ${
+                      className={`relative rounded-lg px-3.5 py-2 text-xs font-semibold whitespace-nowrap shrink-0 transition-colors ${
                         isActive
                           ? 'text-white'
                           : 'text-[#4A4F63] dark:text-[#C2C9E0] hover:text-[#1A1464] dark:hover:text-white'
@@ -771,21 +971,131 @@ export const BlogPage: React.FC<BlogPageProps> = ({
               </div>
             </div>
 
-            <div className="relative w-full lg:w-80">
+            <div className="relative w-full lg:w-96">
               <Search
                 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7188] dark:text-[#8E97B8]"
                 aria-hidden="true"
               />
               <input
+                ref={searchInputRef}
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                aria-label="Search engineering articles and daily tech news"
-                placeholder="Search articles, stacks, or headlines..."
-                className="w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/70 dark:bg-[#101530] py-2.5 pl-10 pr-4 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188] dark:placeholder:text-[#8E97B8]/70 focus:border-[#1A1464] dark:focus:border-[#7C8CFF] focus:bg-white dark:focus:bg-[#182044] transition-colors"
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    if (searchQuery) {
+                      setSearchQuery('');
+                    } else {
+                      searchInputRef.current?.blur();
+                    }
+                  }
+                }}
+                aria-label="Search articles by technical topic, language, or stack"
+                placeholder="Filter by topic, language (Go, SQL, TS), or stack..."
+                className="w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/70 dark:bg-[#101530] py-2.5 pl-10 pr-16 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188] dark:placeholder:text-[#8E97B8]/70 focus:border-[#1A1464] dark:focus:border-[#7C8CFF] focus:bg-white dark:focus:bg-[#182044] transition-colors [&::-webkit-search-cancel-button]:hidden"
               />
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    searchInputRef.current?.focus();
+                  }}
+                  aria-label="Clear search query"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-lg text-[#6B7188] dark:text-[#8E97B8] hover:bg-[#E5E7F0]/70 dark:hover:bg-[#242C54] hover:text-[#1A1464] dark:hover:text-white transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              ) : (
+                <kbd
+                  aria-hidden="true"
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center rounded-md border border-[#E5E7F0] dark:border-[#2B3466] bg-white dark:bg-[#141A38] px-1.5 py-0.5 font-mono text-[11px] font-semibold text-[#6B7188] dark:text-[#8E97B8]"
+                >
+                  /
+                </kbd>
+              )}
             </div>
           </div>
+
+          {/* Interactive Language & Stack Quick Filters */}
+          {quickStackFilters.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B7188] dark:text-[#8E97B8] mr-1">
+                Stacks &amp; Languages:
+              </span>
+              {quickStackFilters.map((label) => {
+                const isSelected = searchQuery.trim().toLowerCase() === label.toLowerCase();
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => handleToggleQuickFilter(label)}
+                    className={`rounded-lg border px-2.5 py-1 font-mono text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${
+                      isSelected
+                        ? 'border-[#1A1464] dark:border-[#7C8CFF] bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] text-[#4A4F63] dark:text-[#C2C9E0] hover:border-[#1A1464]/40 dark:hover:border-[#4F59B8] hover:text-[#1A1464] dark:hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Live Search Match Summary */}
+          {(searchQuery.trim() !== '' || selectedCategory !== 'All' || feedScope !== 'all') && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] px-4 py-2.5 text-xs"
+            >
+              <p className="text-[#4A4F63] dark:text-[#C2C9E0] tabular-nums">
+                Showing{' '}
+                <strong className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">
+                  {filteredArticles.length}{' '}
+                  {filteredArticles.length === 1 ? 'article' : 'articles'}
+                </strong>
+                {filteredHeadlines.length > 0 && (
+                  <>
+                    {' '}
+                    and{' '}
+                    <strong className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">
+                      {filteredHeadlines.length}{' '}
+                      {filteredHeadlines.length === 1 ? 'headline' : 'headlines'}
+                    </strong>
+                  </>
+                )}
+                {searchQuery.trim() && (
+                  <>
+                    {' '}
+                    matching{' '}
+                    <span className="font-mono font-semibold text-[#EE1119]">
+                      &ldquo;{searchQuery.trim()}&rdquo;
+                    </span>
+                  </>
+                )}
+                {selectedCategory !== 'All' && (
+                  <>
+                    {' '}
+                    in <span className="font-semibold text-[#1A1464] dark:text-[#F4F6FC]">{selectedCategory}</span>
+                  </>
+                )}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('All');
+                  setFeedScope('all');
+                }}
+                className="font-semibold text-[#EE1119] hover:underline whitespace-nowrap shrink-0"
+              >
+                Reset filters
+              </button>
+            </div>
+          )}
 
           {newsError && (
             <p className="text-xs font-medium text-[#6B7188] dark:text-[#8E97B8]" role="status">
@@ -852,9 +1162,24 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                       {featuredLead.excerpt}
                     </p>
 
-                    <p className="mt-4 font-mono text-xs font-medium text-[#1A1464] dark:text-[#9FA8FF]">
-                      {featuredLead.stackTags.join(' · ')}
-                    </p>
+                    <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs font-medium text-[#1A1464] dark:text-[#9FA8FF]">
+                      {featuredLead.stackTags.map((tag, tagIdx) => (
+                        <React.Fragment key={tag}>
+                          {tagIdx > 0 && (
+                            <span className="text-[#6B7188] dark:text-[#8E97B8]" aria-hidden="true">
+                              ·
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleQuickFilter(tag)}
+                            className="hover:text-[#EE1119] transition-colors underline-offset-4 hover:underline"
+                          >
+                            {tag}
+                          </button>
+                        </React.Fragment>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[#E5E7F0] dark:border-[#242C54] pt-5">
@@ -956,19 +1281,56 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                               onSelectArticle(article.slug);
                             }}
                           >
-                            {article.title}
+                            <HighlightText text={article.title} tokens={searchTokens} />
                           </a>
                         </h2>
 
                         <p className="mt-2.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0] line-clamp-3">
-                          {article.excerpt}
+                          <HighlightText text={article.excerpt} tokens={searchTokens} />
                         </p>
                       </div>
 
                       <div className="mt-5 border-t border-[#E5E7F0] dark:border-[#242C54] pt-4">
-                        <p className="font-mono text-[11px] font-medium text-[#6B7188] dark:text-[#8E97B8] truncate">
-                          {article.stackTags.join(' · ')}
-                        </p>
+                        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 font-mono text-[11px] font-medium text-[#6B7188] dark:text-[#8E97B8]">
+                          {article.stackTags.map((tag, tagIdx) => (
+                            <React.Fragment key={tag}>
+                              {tagIdx > 0 && <span aria-hidden="true">·</span>}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleQuickFilter(tag)}
+                                className="hover:text-[#EE1119] dark:hover:text-[#FF8A8E] transition-colors"
+                              >
+                                <HighlightText text={tag} tokens={searchTokens} />
+                              </button>
+                            </React.Fragment>
+                          ))}
+                          {article.codeExample?.language &&
+                            !article.stackTags.some(
+                              (t) =>
+                                t.toLowerCase() ===
+                                article.codeExample!.language.toLowerCase()
+                            ) && (
+                              <>
+                                <span aria-hidden="true">·</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleToggleQuickFilter(
+                                      LANGUAGE_DISPLAY_LABELS[
+                                        article.codeExample!.language.toLowerCase()
+                                      ] || article.codeExample!.language
+                                    )
+                                  }
+                                  className="uppercase text-[#1A1464] dark:text-[#9FA8FF] hover:text-[#EE1119] transition-colors"
+                                >
+                                  <HighlightText
+                                    text={article.codeExample.language}
+                                    tokens={searchTokens}
+                                  />
+                                </button>
+                              </>
+                            )}
+                        </div>
                         <div className="mt-3 flex items-center justify-between gap-3">
                           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8] tabular-nums">
                             <Clock className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
@@ -1039,7 +1401,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          {item.title}
+                          <HighlightText text={item.title} tokens={searchTokens} />
                         </a>
                       </h3>
                       <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-[#6B7188] dark:text-[#8E97B8] tabular-nums">

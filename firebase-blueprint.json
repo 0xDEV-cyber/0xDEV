@@ -18,6 +18,19 @@
           "maxLength": 100,
           "description": "Visitor full name."
         },
+        "photoUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 150000,
+          "pattern": "^(|https://.*|data:image/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+)$",
+          "description": "Optional HTTPS image URL or client-compressed base64 image data URI for the user's profile picture."
+        },
+        "bio": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 300,
+          "description": "Short professional bio or engineering role summary."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -60,6 +73,19 @@
           "minLength": 0,
           "maxLength": 40,
           "description": "Phone number with international dial code."
+        },
+        "preferredChannel": {
+          "type": "string",
+          "enum": ["email", "whatsapp", "phone", "google_meet"],
+          "description": "Preferred communication channel for project coordination."
+        },
+        "projectUpdatesOptIn": {
+          "type": "boolean",
+          "description": "Whether the user opts in to milestone and deliverable status alerts."
+        },
+        "marketingOptIn": {
+          "type": "boolean",
+          "description": "Whether the user opts in to 0xDEV engineering dispatches and studio notes."
         },
         "createdAt": {
           "type": "string",

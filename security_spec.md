@@ -31,3 +31,5 @@
 15. **JavaScript URI Deliverable Injection**: Writing a deliverable with `url: "javascript:alert(1)"` -> **PERMISSION_DENIED** (`url.matches('^https://.*')` blocks non-HTTPS schemes).
 16. **Client Paid Invoice Forgery**: Client attempting to update `/inquiries/inq1/invoices/inv1` to `status: 'paid'` -> **PERMISSION_DENIED**.
 17. **Unauthorized Portfolio Write**: Non-admin attempting to publish to `/portfolioProjects/p1` -> **PERMISSION_DENIED**.
+18. **Unsafe Profile Picture Payload**: User attempting to write `photoUrl: "data:image/svg+xml;base64,..."` or `photoUrl: "javascript:alert(1)"` or >150KB string to `/users/{uid}` -> **PERMISSION_DENIED** (`isValidUserPublic` regex and size bounds enforce safe raster data URIs or `https://` URLs only).
+19. **Invalid Contact Channel or Oversized Bio**: Writing an unallowlisted `preferredChannel` (e.g. `"telegram"`) to `/users/{uid}/private/info` or >300-char `bio` to `/users/{uid}` -> **PERMISSION_DENIED** (`isValidUserPrivateInfo` enum and `isValidUserPublic` size bounds reject malformed values).

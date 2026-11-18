@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import { NAV_LINKS, PageRoute } from '../data/siteData';
 import { Logo } from './Logo';
 import { PWAInstallButton } from './PWAControls';
+import { UserAvatar } from './UserAvatar';
 
 interface NavbarProps {
   currentPage: PageRoute;
@@ -14,7 +15,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenAuth }) => {
-  const { user, signOutUser } = useAuth();
+  const { user, profilePhotoUrl, signOutUser } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -138,17 +139,41 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
           </motion.a>
 
           {user ? (
-            <motion.button
-              type="button"
-              onClick={handleSignOut}
-              whileTap={{ scale: 0.97 }}
-              title={`Signed in as ${user.displayName || user.email || 'Member'}`}
-              aria-label="Sign out"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:border-[#1A1464]/40 dark:hover:border-white/30 hover:bg-[#F6F7FB] dark:hover:bg-[#1C234B] whitespace-nowrap shrink-0"
-            >
-              <LogOut className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
-              <span>Sign Out</span>
-            </motion.button>
+            <div className="hidden sm:flex items-center gap-2">
+              <motion.button
+                type="button"
+                onClick={() => onNavigate('dashboard')}
+                whileTap={{ scale: 0.97 }}
+                title={`Account & Profile Picture (${user.displayName || user.email || 'Member'})`}
+                aria-label="Open account dashboard and profile settings"
+                className={`inline-flex items-center gap-2 rounded-xl border p-1 pr-2.5 text-xs font-semibold transition-colors whitespace-nowrap shrink-0 ${
+                  currentPage === 'dashboard'
+                    ? 'border-[#1A1464] dark:border-[#7C8CFF] bg-[#F6F7FB] dark:bg-[#1C234B] text-[#1A1464] dark:text-white'
+                    : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#1A1464]/40 dark:hover:border-white/30 hover:bg-[#F6F7FB] dark:hover:bg-[#1C234B]'
+                }`}
+              >
+                <UserAvatar
+                  src={profilePhotoUrl}
+                  name={user.displayName}
+                  email={user.email}
+                  size="sm"
+                />
+                <span className="max-w-[96px] truncate">
+                  {user.displayName?.split(/\s+/)[0] || 'Account'}
+                </span>
+              </motion.button>
+              <motion.button
+                type="button"
+                onClick={handleSignOut}
+                whileTap={{ scale: 0.97 }}
+                title={`Signed in as ${user.displayName || user.email || 'Member'}`}
+                aria-label="Sign out"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:border-[#1A1464]/40 dark:hover:border-white/30 hover:bg-[#F6F7FB] dark:hover:bg-[#1C234B] whitespace-nowrap shrink-0"
+              >
+                <LogOut className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                <span>Sign Out</span>
+              </motion.button>
+            </div>
           ) : (
             onOpenAuth && (
               <motion.button
@@ -262,14 +287,39 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
                   <PWAInstallButton />
                 </div>
                 {user ? (
-                  <button
-                    type="button"
-                    onClick={handleSignOut}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] px-5 py-3 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
-                  >
-                    <LogOut className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
-                    <span>Sign Out ({user.email})</span>
-                  </button>
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        onNavigate('dashboard');
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] px-4 py-2.5 text-left"
+                    >
+                      <UserAvatar
+                        src={profilePhotoUrl}
+                        name={user.displayName}
+                        email={user.email}
+                        size="sm"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-[#1A1464] dark:text-[#F4F6FC]">
+                          {user.displayName || '0xDEV Member'}
+                        </p>
+                        <p className="truncate text-xs text-[#6B7188] dark:text-[#8E97B8]">
+                          Manage profile &amp; photo
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] px-5 py-3 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
+                    >
+                      <LogOut className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
+                      <span>Sign Out ({user.email})</span>
+                    </button>
+                  </div>
                 ) : (
                   onOpenAuth && (
                     <button

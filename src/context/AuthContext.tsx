@@ -10,10 +10,22 @@ import {
   updateProfile,
   User,
 } from 'firebase/auth';
-import { auth, googleProvider, syncVerifiedUserProfile, UserProfileExtra } from '../firebase';
+import {
+  auth,
+  googleProvider,
+  isValidProfilePhotoUrl,
+  PreferredContactChannel,
+  subscribeUserPrivateProfile,
+  subscribeUserPublicProfile,
+  syncVerifiedUserProfile,
+  UserProfileDetails,
+  UserProfileExtra,
+} from '../firebase';
 
 interface AuthContextValue {
   user: User | null;
+  profilePhotoUrl: string | null;
+  profileDetails: UserProfileDetails;
   loading: boolean;
   authError: string | null;
   emailProviderDisabled: boolean;
@@ -32,8 +44,27 @@ interface AuthContextValue {
   resendVerificationEmail: () => Promise<void>;
   refreshUserStatus: () => Promise<boolean>;
   updateUserDisplayName: (newName: string) => Promise<void>;
+  updateUserProfilePhoto: (photoUrl: string) => Promise<void>;
+  updateUserProfileDetails: (params: {
+    displayName: string;
+    bio: string;
+    country: string;
+    phone: string;
+    preferredChannel: PreferredContactChannel;
+    projectUpdatesOptIn: boolean;
+    marketingOptIn: boolean;
+  }) => Promise<void>;
   signOutUser: () => Promise<void>;
 }
+
+const DEFAULT_PROFILE_DETAILS: UserProfileDetails = {
+  bio: '',
+  country: '',
+  phone: '',
+  preferredChannel: 'email',
+  projectUpdatesOptIn: true,
+  marketingOptIn: false,
+};
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -98,6 +129,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authError, setAuthError] = useState<string | null>(null);
   const [emailProviderDisabled, setEmailProviderDisabled] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [firestorePhotoUrl, setFirestorePhotoUrl] = useState<string | undefined>(undefined);
+  const [profileDetails, setProfileDetails] = useState<UserProfileDetails>(DEFAULT_PROFILE_DETAILS);
 
   const clearAuthError = useCallback(() => {
     setAuthError(null);
@@ -132,6 +165,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       setLoading(false);
+      if (!currentUser) {
+        setFirestorePhotoUrl(undefined);
+        setProfileDetails(DEFAULT_PROFILE_DETAILS);
+      }
 
       if (currentUser && currentUser.emailVerified) {
         try {
@@ -144,6 +181,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => unsubscribe();
   }, [consumeAndSyncPendingProfile]);
+
+  useEffect(() => {
+    if (!user || !user.emailVerified) {
+      setFirestorePhotoUrl(undefined);
+      setProfileDetails(DEFAULT_PROFILE_DETAILS);
+      return;
+    }
+
+    const unsubPublic = subscribeUserPublicProfile(user.uid, (profile) => {
+      setFirestorePhotoUrl(profile?.photoUrl);
+      setProfileDetails((prev) => ({
+        ...prev,
+        bio: profile?.bio ?? '',
+      }));
+    });
+
+    const unsubPrivate = subscribeUserPrivateProfile(user.uid, (priv) => {
+      setProfileDetails((prev) => ({
+        ...prev,
+        country: priv?.country ?? '',
+        phone: priv?.phone ?? '',
+        preferredChannel: priv?.preferredChannel ?? 'email',
+        projectUpdatesOptIn:
+          priv?.projectUpdatesOptIn !== undefined ? priv.projectUpdatesOptIn : true,
+        marketingOptIn: priv?.marketingOptIn !== undefined ? priv.marketingOptIn : false,
+      }));
+    });
+
+    return () => {
+      unsubPublic();
+      unsubPrivate();
+    };
+  }, [user]);
 
   const signInWithGoogle = useCallback(async () => {
     clearAuthError();
@@ -308,16 +378,103 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const updateUserProfilePhoto = useCallback(async (photoUrl: string) => {
+    if (!auth.currentUser) {
+      throw new Error('No authenticated user found.');
+    }
+    if (!auth.currentUser.emailVerified) {
+      throw new Error('Please verify your email address before saving a profile picture.');
+    }
+
+    const trimmed = photoUrl.trim();
+    if (!isValidProfilePhotoUrl(trimmed)) {
+      throw new Error(
+        'Please upload a PNG, JPEG, WebP, or GIF image, or enter a valid https:// image URL.'
+      );
+    }
+
+    // Sync to Firebase Auth when empty (clear) or short HTTPS URL
+    if (trimmed === '' || (trimmed.startsWith('https://') && trimmed.length <= 2000)) {
+      await updateProfile(auth.currentUser, { photoURL: trimmed });
+      await auth.currentUser.reload();
+      setUser(auth.currentUser);
+    }
+
+    setFirestorePhotoUrl(trimmed);
+    setRefreshTick((n) => n + 1);
+    await syncVerifiedUserProfile(auth.currentUser, { photoUrl: trimmed });
+  }, []);
+
+  const updateUserProfileDetails = useCallback(
+    async (params: {
+      displayName: string;
+      bio: string;
+      country: string;
+      phone: string;
+      preferredChannel: PreferredContactChannel;
+      projectUpdatesOptIn: boolean;
+      marketingOptIn: boolean;
+    }) => {
+      if (!auth.currentUser) {
+        throw new Error('No authenticated user found.');
+      }
+      if (!auth.currentUser.emailVerified) {
+        throw new Error('Please verify your email address before saving profile updates.');
+      }
+
+      const trimmedName = params.displayName.trim().slice(0, 100);
+      if (trimmedName.length < 2) {
+        throw new Error('Display name must be at least 2 characters.');
+      }
+
+      const trimmedBio = params.bio.trim().slice(0, 300);
+      const trimmedCountry = params.country.trim().slice(0, 100);
+      const trimmedPhone = params.phone.trim().slice(0, 40);
+
+      if (trimmedName !== (auth.currentUser.displayName || '').trim()) {
+        await updateProfile(auth.currentUser, { displayName: trimmedName });
+        await auth.currentUser.reload();
+        setUser(auth.currentUser);
+      }
+
+      const nextDetails: UserProfileDetails = {
+        bio: trimmedBio,
+        country: trimmedCountry,
+        phone: trimmedPhone,
+        preferredChannel: params.preferredChannel,
+        projectUpdatesOptIn: Boolean(params.projectUpdatesOptIn),
+        marketingOptIn: Boolean(params.marketingOptIn),
+      };
+      setProfileDetails(nextDetails);
+      setRefreshTick((n) => n + 1);
+
+      await syncVerifiedUserProfile(auth.currentUser, {
+        displayName: trimmedName,
+        ...nextDetails,
+      });
+    },
+    []
+  );
+
   const signOutUser = useCallback(async () => {
     clearAuthError();
     setVerificationSent(false);
+    setFirestorePhotoUrl(undefined);
+    setProfileDetails(DEFAULT_PROFILE_DETAILS);
     await signOut(auth);
   }, [clearAuthError]);
+
+  const profilePhotoUrl =
+    firestorePhotoUrl === ''
+      ? null
+      : firestorePhotoUrl || (user?.photoURL ? user.photoURL : null);
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        profilePhotoUrl,
+        profileDetails,
         loading,
         authError,
         emailProviderDisabled,
@@ -330,6 +487,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resendVerificationEmail,
         refreshUserStatus,
         updateUserDisplayName,
+        updateUserProfilePhoto,
+        updateUserProfileDetails,
         signOutUser,
       }}
     >
