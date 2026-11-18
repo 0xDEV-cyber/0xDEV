@@ -26,7 +26,7 @@ import {
   LiveNewsArticle,
   useDailyTechNews,
 } from '../hooks/useDailyTechNews';
-import { EASE_OUT_EXPO, Reveal } from './MotionPrimitives';
+import { EASE_OUT_EXPO, InteractiveCard, Reveal, SPRING_SNAPPY } from './MotionPrimitives';
 import { PageHeader } from './PageHeader';
 import { SharedCtaBanner } from './SharedCtaBanner';
 
@@ -225,7 +225,7 @@ const ArticleDetailView: React.FC<{
   const liveMeta = isLiveNewsArticle(article) ? article : null;
 
   useEffect(() => {
-    document.title = `${article.title} — 0xDEV Blog`;
+    document.title = `${article.title} | 0xDEV Blog`;
   }, [article.title]);
 
   useEffect(() => {
@@ -412,7 +412,7 @@ const ArticleDetailView: React.FC<{
                   aspectClass="aspect-[16/9] rounded-2xl"
                 />
                 <figcaption className="mt-2.5 font-mono text-xs text-[#6B7188] dark:text-[#8E97B8]">
-                  Fig. 01 — {liveMeta ? `Daily Wire dispatch visual (${liveMeta.sourceName})` : `Systems schematic for ${article.category.toLowerCase()} architecture`} ({article.stackTags.slice(0, 3).join(' · ')})
+                  Fig. 01: {liveMeta ? `Daily Wire link visual (${liveMeta.sourceName})` : `Systems schematic for ${article.category.toLowerCase()} architecture`} ({article.stackTags.slice(0, 3).join(' · ')})
                 </figcaption>
               </figure>
 
@@ -617,8 +617,9 @@ const ArticleDetailView: React.FC<{
 
             <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3 items-stretch">
               {relatedArticles.map((rel) => (
-                <article
+                <InteractiveCard
                   key={rel.id}
+                  hoverY={-4}
                   className="group flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-5 transition-colors hover:border-[#1A1464]/35 dark:hover:border-[#4F59B8]"
                 >
                   <div>
@@ -650,7 +651,7 @@ const ArticleDetailView: React.FC<{
                     <span>Read Article</span>
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
-                </article>
+                </InteractiveCard>
               ))}
             </div>
           </div>
@@ -872,9 +873,9 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   return (
     <>
       <PageHeader
-        eyebrow="Engineering Blog & Daily Tech Wire"
-        title="Field-tested insights & daily software engineering dispatches."
-        description="Original 0xDEV architectural deep dives paired with an automated daily engineering news wire curated from top developer publications and front-page systems threads."
+        eyebrow="Engineering Blog & Tech Wire"
+        title="Notes from production & daily engineering links."
+        description="Real write-ups from our own builds alongside a daily wire of useful software links from developer publications and systems threads."
         currentLabel="Blog"
         onNavigate={onNavigate}
       />
@@ -1239,11 +1240,11 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                     <motion.article
                       key={article.id}
                       layout
-                      initial={{ opacity: 0, y: 14 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      whileHover={{ y: -4 }}
-                      transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
+                      initial={{ opacity: 0, y: 14, scale: 0.985 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.985 }}
+                      whileHover={{ y: -5 }}
+                      transition={SPRING_SNAPPY}
                       className="group flex h-full flex-col justify-between rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-5 shadow-sm transition-colors duration-200 hover:border-[#1A1464]/35 dark:hover:border-[#4F59B8] hover:shadow-md"
                     >
                       <div>
@@ -1381,8 +1382,9 @@ export const BlogPage: React.FC<BlogPageProps> = ({
 
               <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-2">
                 {filteredHeadlines.map((item, idx) => (
-                  <article
+                  <InteractiveCard
                     key={item.id}
+                    hoverY={-3}
                     className="group flex items-start justify-between gap-4 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] p-5 transition-colors hover:border-[#1A1464]/35 dark:hover:border-[#4F59B8] hover:bg-white dark:hover:bg-[#141A38]"
                   >
                     <div className="min-w-0">
@@ -1427,7 +1429,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                     >
                       <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     </a>
-                  </article>
+                  </InteractiveCard>
                 ))}
               </div>
             </section>

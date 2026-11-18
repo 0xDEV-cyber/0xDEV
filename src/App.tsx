@@ -9,6 +9,7 @@ import { DashboardPage } from './components/DashboardPage';
 import { Footer } from './components/Footer';
 import { HomePage } from './components/HomePage';
 import { Logo } from './components/Logo';
+import { MoviesPage } from './components/MoviesPage';
 import { Navbar } from './components/Navbar';
 import { ProcessPage } from './components/ProcessPage';
 import { EstimateSelectionPayload } from './components/ProjectEstimator';
@@ -29,21 +30,23 @@ const ROUTE_TO_PATH: Record<PageRoute, string> = {
   process: '/process',
   work: '/work',
   blog: '/blog',
+  movies: '/movies',
   about: '/about',
   contact: '/contact',
   dashboard: '/dashboard',
 };
 
 const ROUTE_TITLES: Record<PageRoute, string> = {
-  home: '0xDEV — One Team. Every Layer of Your Technology.',
-  services: 'Services & Tech Stack — 0xDEV',
-  'why-0xdev': 'Why 0xDEV & Engagement Models — 0xDEV',
-  process: 'Our 5-Stage Engineering Process — 0xDEV',
-  work: 'Case Studies & Featured Work — 0xDEV',
-  blog: 'Engineering Blog & Technical Insights — 0xDEV',
-  about: 'About Us (Kabale, Uganda) — 0xDEV',
-  contact: 'Contact & Project Brief — 0xDEV',
-  dashboard: 'User Dashboard — 0xDEV',
+  home: '0xDEV | One Team. Every Layer of Your Technology.',
+  services: 'Services & Tech Stack | 0xDEV',
+  'why-0xdev': 'Why 0xDEV & Engagement Models | 0xDEV',
+  process: 'Our 5-Stage Engineering Process | 0xDEV',
+  work: 'Case Studies & Featured Work | 0xDEV',
+  blog: 'Engineering Blog & Technical Insights | 0xDEV',
+  movies: 'Movies & Free Downloads (Coming Soon) | 0xDEV',
+  about: 'About Us (Kabale, Uganda) | 0xDEV',
+  contact: 'Contact & Project Brief | 0xDEV',
+  dashboard: 'User Dashboard | 0xDEV',
 };
 
 function resolveRouteFromPathname(pathname: string): PageRoute {
@@ -244,17 +247,17 @@ function AppShell() {
   useEffect(() => {
     let nextTitle = ROUTE_TITLES[currentPage];
     if (isAuthActionRoute) {
-      nextTitle = 'Account Verification & Security — 0xDEV';
+      nextTitle = 'Account Verification & Security | 0xDEV';
     } else if (!user && (showAuthPortal || currentPage === 'dashboard')) {
       nextTitle =
         authMode === 'register'
-          ? 'Create Account — 0xDEV Client Portal'
-          : 'Sign In — 0xDEV Client Portal';
+          ? 'Create Account | 0xDEV Client Portal'
+          : 'Sign In | 0xDEV Client Portal';
     } else if (currentPage === 'blog' && selectedArticleSlug) {
       const matched = BLOG_ARTICLES.find((a) => a.slug === selectedArticleSlug);
       nextTitle = matched
-        ? `${matched.title} — 0xDEV Blog`
-        : 'Engineering Article — 0xDEV Blog';
+        ? `${matched.title} | 0xDEV Blog`
+        : 'Engineering Article | 0xDEV Blog';
     }
     document.title = nextTitle;
 
@@ -405,7 +408,7 @@ function AppShell() {
             <p>
               <strong>Verify your email ({user.email})</strong> to save project inquiries and
               sync your profile.
-              {verificationSent && !verifyFeedback && ' Verification link sent—check your inbox.'}
+              {verificationSent && !verifyFeedback && ' Verification link sent. Please check your inbox.'}
               {verifyFeedback && ` ${verifyFeedback}`}
             </p>
             <div className="flex items-center gap-3">
@@ -439,7 +442,7 @@ function AppShell() {
                     setVerifyFeedback(
                       verified
                         ? 'Email verified!'
-                        : 'Still awaiting verification—please click the link in your inbox.'
+                        : 'Still waiting for verification. Please click the link in your inbox.'
                     );
                   } catch {
                     setVerifyFeedback('Unable to check verification status right now.');
@@ -460,10 +463,10 @@ function AppShell() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage === 'blog' && selectedArticleSlug ? `blog-${selectedArticleSlug}` : currentPage}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 14, scale: 0.995 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.995 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
           >
             {currentPage === 'home' && (
               <HomePage
@@ -491,6 +494,7 @@ function AppShell() {
                 onNavigate={navigateTo}
               />
             )}
+            {currentPage === 'movies' && <MoviesPage onNavigate={navigateTo} />}
             {currentPage === 'about' && <AboutPage onNavigate={navigateTo} />}
             {currentPage === 'contact' && (
               <ContactPage

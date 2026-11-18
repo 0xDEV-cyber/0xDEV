@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, Eye } from 'lucide-react';
 import { CaseStudy, PageRoute } from '../data/siteData';
 import { usePortfolioProjects } from '../hooks/usePortfolioProjects';
-import { EASE_OUT_EXPO } from './MotionPrimitives';
+import { SPRING_SNAPPY } from './MotionPrimitives';
 import { PageHeader } from './PageHeader';
 import { ProjectPreviewModal, ProjectPreviewScreen } from './ProjectPreviewVisual';
 import { SharedCtaBanner } from './SharedCtaBanner';
@@ -30,9 +30,9 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
   return (
     <>
       <PageHeader
-        eyebrow={`See Some of Our Work · ${projects.length} Production Case Studies`}
-        title="Systems engineered for uptime, speed, and clarity."
-        description={`Explore interactive UI screen previews and production architectures across ${projects.length} shipped projects in fintech, healthcare, agritech, logistics, SaaS, and cloud security.`}
+        eyebrow={`Selected Builds · ${projects.length} Shipped Projects`}
+        title="Recent builds across fintech, health, logistics & SaaS."
+        description={`Browse interactive screen previews and system notes across ${projects.length} production projects shipped by 0xDEV.`}
         currentLabel="Work"
         onNavigate={onNavigate}
       />
@@ -63,7 +63,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                         <motion.span
                           layoutId="work-sector-pill"
                           aria-hidden="true"
-                          transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                          transition={SPRING_SNAPPY}
                           className="absolute inset-0 rounded-lg bg-[#1A1464] dark:bg-[#2E368F] shadow-sm"
                         />
                       )}
@@ -87,12 +87,12 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                 <motion.article
                   key={study.id}
                   layout
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  whileHover={{ y: -3 }}
-                  transition={{ duration: 0.22, ease: EASE_OUT_EXPO }}
-                  className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8 shadow-sm transition-colors duration-200 hover:border-[#1A1464]/35 dark:hover:border-white/25"
+                  initial={{ opacity: 0, y: 18, scale: 0.99 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -12, scale: 0.99 }}
+                  whileHover={{ y: -4 }}
+                  transition={SPRING_SNAPPY}
+                  className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8 shadow-sm transition-shadow duration-200 hover:border-[#1A1464]/35 dark:hover:border-white/25 hover:shadow-md"
                 >
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
                     {/* Left: Interactive Live Screen Preview + Narrative */}
@@ -123,7 +123,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                         <div className="md:col-span-6 space-y-4">
                           <div>
                             <p className="text-xs font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
-                              The Challenge
+                              What Was Broken
                             </p>
                             <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                               {study.problem}
@@ -131,7 +131,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                           </div>
                           <div>
                             <p className="text-xs font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
-                              The 0xDEV Solution
+                              What We Built
                             </p>
                             <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                               {study.solution}
@@ -142,7 +142,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
 
                       <div className="rounded-xl bg-[#F6F7FB] dark:bg-[#101530] p-4 border border-[#E5E7F0] dark:border-[#242C54]">
                         <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
-                          Architecture Highlight
+                          Technical Note
                         </p>
                         <p className="mt-1 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">{study.architectureNotes}</p>
                       </div>
@@ -152,7 +152,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                     <div className="lg:col-span-4 flex h-full flex-col justify-between rounded-xl bg-[#1A1464] dark:bg-[#0E1330] dark:border dark:border-[#242C54] p-6 text-white">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
-                          Measured Outcomes
+                          Results After Launch
                         </p>
                         <div className="mt-5 space-y-5">
                           {study.metrics.map((metric) => (
@@ -172,7 +172,7 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                       <div className="mt-6 pt-4 border-t border-white/15 space-y-4">
                         <div>
                           <p className="text-[11px] font-semibold uppercase tracking-wider text-white/60">
-                            Stack Implemented
+                            Stack Used
                           </p>
                           <p className="mt-1 text-xs font-medium text-white/90">
                             {study.stackSummary}
@@ -180,14 +180,15 @@ export const WorkPage: React.FC<WorkPageProps> = ({ onNavigate }) => {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
-                          <button
+                          <motion.button
                             type="button"
+                            whileTap={{ scale: 0.96 }}
                             onClick={() => setInspectedStudy(study)}
                             className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 border border-white/20 px-3.5 py-2 text-xs font-bold text-white transition-colors hover:bg-white hover:text-[#1A1464]"
                           >
                             <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                             <span>Live Preview</span>
-                          </button>
+                          </motion.button>
 
                           <button
                             type="button"

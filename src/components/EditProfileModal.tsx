@@ -210,7 +210,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Arigye Wisdom"
+                    placeholder="Your display name"
                     maxLength={100}
                     className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/60 dark:bg-[#101530] px-4 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:border-[#1A1464] dark:focus:border-[#7C8CFF] focus:bg-white dark:focus:bg-[#182044] transition-colors"
                   />
@@ -234,7 +234,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     maxLength={300}
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    placeholder="Engineering lead building resilient fintech and SaaS infrastructure..."
+                    placeholder="Share your role or what you are building right now"
                     className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/60 dark:bg-[#101530] px-4 py-2.5 text-sm leading-relaxed text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:border-[#1A1464] dark:focus:border-[#7C8CFF] focus:bg-white dark:focus:bg-[#182044] transition-colors resize-none"
                   />
                 </div>
@@ -281,7 +281,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       maxLength={40}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+256 772 000 000"
+                      placeholder="Include country code"
                       className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/60 dark:bg-[#101530] px-4 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:border-[#1A1464] dark:focus:border-[#7C8CFF] focus:bg-white dark:focus:bg-[#182044] transition-colors"
                     />
                   </div>
@@ -344,7 +344,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                         Project milestone &amp; deliverable alerts
                       </span>
                       <span className="block text-xs text-[#6B7188] dark:text-[#8E97B8]">
-                        Receive status updates, invoice notices, and engineering squad replies for active builds.
+                        Status updates, invoice notices, and replies from your engineering lead.
                       </span>
                     </span>
                   </label>
@@ -367,10 +367,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     />
                     <span>
                       <span className="block text-sm font-bold text-[#1A1464] dark:text-[#F4F6FC]">
-                        0xDEV engineering dispatches
+                        0xDEV engineering notes
                       </span>
                       <span className="block text-xs text-[#6B7188] dark:text-[#8E97B8]">
-                        Occasional architecture briefs, security advisories, and studio availability notes.
+                        Occasional write-ups, security advisories, and team availability alerts.
                       </span>
                     </span>
                   </label>

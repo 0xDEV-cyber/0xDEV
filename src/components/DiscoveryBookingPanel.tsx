@@ -10,10 +10,12 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
+import { AnimatePresence, motion } from 'motion/react';
 import { Calendar, CheckCircle2, Clock, Globe, Lock, Video } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { COMPANY_CONTACT } from '../data/siteData';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { EASE_OUT_EXPO, SPRING_SNAPPY } from './MotionPrimitives';
 
 interface DiscoveryBookingRecord {
   bookingId: string;
@@ -235,7 +237,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
             Book a 30-Minute Discovery Call
           </h2>
           <p className="mt-1 text-xs sm:text-sm text-[#6B7188] dark:text-[#8E97B8]">
-            Slots are shown in your local timezone (<strong className="text-[#1A1464] dark:text-white">{visitorTz}</strong>) synced to{' '}
+            Times appear in your local timezone (<strong className="text-[#1A1464] dark:text-white">{visitorTz}</strong>) synced to{' '}
             {COMPANY_CONTACT.location} (EAT / UTC+3).
           </p>
         </div>
@@ -245,30 +247,50 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
         </span>
       </div>
 
-      {confirmedBookingId ? (
-        <div className="py-4" role="status">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1A1464] dark:bg-[#232B6E] text-white">
-            <CheckCircle2 className="h-6 w-6 text-[#EE1119]" aria-hidden="true" />
-          </div>
-          <h3 className="mt-4 font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
-            Discovery Call Slot Requested
-          </h3>
-          <p className="mt-2 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
-            Booking reference <strong className="text-[#EE1119]">{confirmedBookingId}</strong> for{' '}
-            <strong className="text-[#1A1464] dark:text-white">{slotDate}</strong> at{' '}
-            <strong className="text-[#1A1464] dark:text-white">{slotTimeEat}</strong> has been logged for{' '}
-            {COMPANY_CONTACT.leadName}.
-          </p>
-          <button
-            type="button"
-            onClick={() => setConfirmedBookingId(null)}
-            className="mt-5 rounded-xl border border-[#1A1464] dark:border-[#3A437A] px-4 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:bg-[#1A1464] dark:hover:bg-[#2E368F] hover:text-white"
+      <AnimatePresence mode="wait">
+        {confirmedBookingId ? (
+          <motion.div
+            key="booking-confirmed"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: EASE_OUT_EXPO }}
+            className="py-4"
+            role="status"
           >
-            Schedule Another Call
-          </button>
-        </div>
-      ) : (
-        <form onSubmit={handleBookCall} noValidate className="space-y-5">
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1A1464] dark:bg-[#232B6E] text-white">
+              <CheckCircle2 className="h-6 w-6 text-[#EE1119]" aria-hidden="true" />
+            </div>
+            <h3 className="mt-4 font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
+              Call Slot Requested
+            </h3>
+            <p className="mt-2 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
+              Reference <strong className="text-[#EE1119]">{confirmedBookingId}</strong> for{' '}
+              <strong className="text-[#1A1464] dark:text-white">{slotDate}</strong> at{' '}
+              <strong className="text-[#1A1464] dark:text-white">{slotTimeEat}</strong> is with{' '}
+              {COMPANY_CONTACT.leadName}.
+            </p>
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.97 }}
+              transition={SPRING_SNAPPY}
+              onClick={() => setConfirmedBookingId(null)}
+              className="mt-5 rounded-xl border border-[#1A1464] dark:border-[#3A437A] px-4 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:bg-[#1A1464] dark:hover:bg-[#2E368F] hover:text-white"
+            >
+              Book Another Time
+            </motion.button>
+          </motion.div>
+        ) : (
+          <motion.form
+            key="booking-form"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: EASE_OUT_EXPO }}
+            onSubmit={handleBookCall}
+            noValidate
+            className="space-y-5"
+          >
           {error && (
             <div
               role="alert"
@@ -383,7 +405,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Arigye Wisdom"
+                placeholder="Your name"
                 className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:bg-white dark:focus:bg-[#182044] focus:border-[#1A1464] dark:focus:border-[#7C8CFF]"
               />
             </div>
@@ -399,7 +421,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
+                placeholder="Your email address"
                 className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:bg-white dark:focus:bg-[#182044] focus:border-[#1A1464] dark:focus:border-[#7C8CFF]"
               />
             </div>
@@ -417,32 +439,37 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
               rows={2}
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              placeholder="E.g. Architecture review for our web platform, freelance mobile developer timeline, or cloud audit."
+              placeholder="Briefly describe what you want to cover on the call"
               className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:bg-white dark:focus:bg-[#182044] focus:border-[#1A1464] dark:focus:border-[#7C8CFF]"
             />
           </div>
 
           {!user ? (
-            <button
+            <motion.button
               type="button"
+              whileTap={{ scale: 0.985 }}
+              transition={SPRING_SNAPPY}
               onClick={onRequestAuth}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-6 py-3.5 text-sm font-bold text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8]"
             >
               <Lock className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
-              <span>Sign In / Register Free to Lock This Time Slot</span>
-            </button>
+              <span>Sign In / Register Free to Book This Slot</span>
+            </motion.button>
           ) : (
-            <button
+            <motion.button
               type="submit"
+              whileTap={{ scale: 0.985 }}
+              transition={SPRING_SNAPPY}
               disabled={submitting}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#EE1119] px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(238,17,25,0.22)] hover:bg-[#D00D14] disabled:opacity-60"
             >
               <Calendar className="h-4 w-4" aria-hidden="true" />
               <span>{submitting ? 'Confirming Slot...' : 'Confirm 30-Min Discovery Call'}</span>
-            </button>
+            </motion.button>
           )}
-        </form>
-      )}
+          </motion.form>
+        )}
+      </AnimatePresence>
 
       {/* Existing Bookings List */}
       {bookings.length > 0 && (
@@ -462,7 +489,7 @@ export const DiscoveryBookingPanel: React.FC<DiscoveryBookingPanelProps> = ({ on
                     <span className="font-normal text-[#6B7188] dark:text-[#8E97B8]">({bk.channel.replace('_', ' ')})</span>
                   </p>
                   <p className="mt-0.5 text-[#4A4F63] dark:text-[#C2C9E0]">
-                    {isPrimaryAdmin ? `${bk.name} (${bk.email}) — ` : ''}
+                    {isPrimaryAdmin ? `${bk.name} (${bk.email}) · ` : ''}
                     {bk.topic}
                   </p>
                 </div>

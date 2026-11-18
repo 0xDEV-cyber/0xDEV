@@ -194,7 +194,7 @@ export const AdminPortfolioManager: React.FC = () => {
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. Kigezi FinHub Treasury Engine"
+                    placeholder="Project title"
                     className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2 text-sm text-[#1A1464] dark:text-white"
                   />
                 </div>
@@ -233,7 +233,7 @@ export const AdminPortfolioManager: React.FC = () => {
                 </div>
                 <div>
                   <label htmlFor="cms-url" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
-                    Mock Browser URL
+                    Preview Browser URL
                   </label>
                   <input
                     id="cms-url"

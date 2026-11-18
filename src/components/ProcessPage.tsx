@@ -2,7 +2,14 @@ import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, CheckCircle2, Globe, MessageSquare, ShieldCheck } from 'lucide-react';
 import { COMPANY_CONTACT, PageRoute, PROCESS_STEPS } from '../data/siteData';
-import { EASE_OUT_EXPO, StaggerGrid, StaggerItem } from './MotionPrimitives';
+import {
+  EASE_OUT_EXPO,
+  InteractiveCard,
+  Reveal,
+  SPRING_SNAPPY,
+  StaggerGrid,
+  StaggerItem,
+} from './MotionPrimitives';
 import { PageHeader } from './PageHeader';
 import { SharedCtaBanner } from './SharedCtaBanner';
 
@@ -19,8 +26,8 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
     <>
       <PageHeader
         eyebrow="How We Work"
-        title="A disciplined five-stage engineering process."
-        description="Every milestone is visible, tested, and documented—whether you hire us for a focused freelance sprint or an end-to-end production system."
+        title="Five clear steps from first call to live uptime."
+        description="Every milestone is visible, tested, and documented, whether you bring us in for a two-week freelance sprint or a full product build."
         currentLabel="Process"
         onNavigate={onNavigate}
       />
@@ -34,7 +41,7 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                 className="h-full w-full origin-left rounded-full bg-[#EE1119]"
                 initial={false}
                 animate={{ scaleX: progressScale }}
-                transition={{ duration: 0.32, ease: EASE_OUT_EXPO }}
+                transition={{ duration: 0.36, ease: EASE_OUT_EXPO }}
               />
             </div>
           </div>
@@ -52,15 +59,25 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                   type="button"
                   role="tab"
                   aria-selected={isSelected}
+                  whileHover={{ y: isSelected ? -2 : -3 }}
                   whileTap={{ scale: 0.98 }}
+                  transition={SPRING_SNAPPY}
                   onClick={() => setActiveIndex(index)}
-                  className={`group flex flex-col justify-between rounded-2xl border p-5 text-left transition-all duration-200 ${
+                  className={`relative group flex flex-col justify-between rounded-2xl border p-5 text-left transition-colors duration-200 ${
                     isSelected
-                      ? 'border-[#1A1464] dark:border-[#3A459E] bg-[#1A1464] dark:bg-[#232B6E] text-white shadow-lg -translate-y-0.5'
+                      ? 'border-[#1A1464] dark:border-[#3A459E] text-white shadow-lg'
                       : 'border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#1A1464]/40 dark:hover:border-white/25 hover:bg-white dark:hover:bg-[#182044]'
                   }`}
                 >
-                  <div className="flex items-center justify-between w-full">
+                  {isSelected && (
+                    <motion.span
+                      layoutId="process-active-tab"
+                      aria-hidden="true"
+                      transition={SPRING_SNAPPY}
+                      className="absolute inset-0 rounded-2xl bg-[#1A1464] dark:bg-[#232B6E]"
+                    />
+                  )}
+                  <div className="relative z-10 flex items-center justify-between w-full">
                     <span
                       className={`font-display text-xs font-extrabold tabular-nums ${
                         isSelected ? 'text-[#EE1119]' : 'text-[#6B7188] dark:text-[#8E97B8]'
@@ -77,7 +94,7 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                     </span>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between gap-2">
+                  <div className="relative z-10 mt-4 flex items-center justify-between gap-2">
                     <h2 className="font-display text-lg font-bold">{item.title}</h2>
                     <ArrowRight
                       className={`h-4 w-4 shrink-0 transition-transform ${
@@ -96,10 +113,10 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep.id}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.24, ease: EASE_OUT_EXPO }}
                 className="grid grid-cols-1 gap-8 lg:grid-cols-12"
               >
                 <div className="lg:col-span-7">
@@ -118,13 +135,13 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                   <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
-                        Client Touchpoint
+                        How You Stay Updated
                       </p>
                       <p className="mt-1.5 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">{currentStep.clientTouchpoint}</p>
                     </div>
                     <div className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-4">
                       <p className="text-xs font-bold uppercase tracking-wider text-[#EE1119]">
-                        Quality Gate
+                        Sign-Off Check
                       </p>
                       <p className="mt-1.5 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">{currentStep.qualityGate}</p>
                     </div>
@@ -134,7 +151,7 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                 <div className="lg:col-span-5 rounded-xl bg-white dark:bg-[#141A38] p-6 border border-[#E5E7F0] dark:border-[#242C54] flex flex-col justify-between">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#6B7188] dark:text-[#8E97B8]">
-                      Tangible Phase Artifacts
+                      What You Receive
                     </p>
                     <ul className="mt-4 space-y-3">
                       {currentStep.artifacts.map((artifact) => (
@@ -172,44 +189,43 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
       {/* Remote & Freelance Collaboration Standards */}
       <section className="bg-[#F6F7FB] dark:bg-[#101530] py-16 sm:py-20 border-t border-[#E5E7F0] dark:border-[#242C54]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
+          <Reveal className="max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
-              Collaboration Standards
+              Working Together
             </p>
             <h2 className="mt-2 font-display text-3xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
-              Built for smooth local &amp; remote freelance collaboration.
+              Built for smooth local &amp; remote communication.
             </h2>
             <p className="mt-3 text-base text-[#4A4F63] dark:text-[#C2C9E0]">
-              From {COMPANY_CONTACT.location}, we partner seamlessly with organizations down the
-              road or across continents.
+              From {COMPANY_CONTACT.location}, we work comfortably with teams nearby and across
+              international timezones.
             </p>
-          </div>
+          </Reveal>
 
-          <StaggerGrid className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <StaggerGrid staggerDelay={0.07} className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
             {[
               {
                 icon: Globe,
-                title: 'Timezone & Async Discipline',
-                body: `${COMPANY_CONTACT.timezone}. Every sprint includes clear written changelogs, recorded walkthroughs, and predictable call windows.`,
+                title: 'Timezone & Written Updates',
+                body: `${COMPANY_CONTACT.timezone}. Every sprint wraps up with plain written changelogs, quick video demos, and reliable call windows.`,
               },
               {
                 icon: MessageSquare,
-                title: 'Direct Access Without Gatekeepers',
-                body: `No account-manager relay games. Speak directly with ${COMPANY_CONTACT.leadName} and the engineers shipping your product via WhatsApp, Slack, or phone.`,
+                title: 'Talk Straight to the Engineers',
+                body: `No middlemen or ticket queues. Message ${COMPANY_CONTACT.leadName} and the team shipping your build on WhatsApp, Slack, or phone.`,
               },
               {
                 icon: ShieldCheck,
-                title: 'Full Repository & Cloud Transparency',
-                body: 'You hold admin rights to GitHub/GitLab repositories, Figma workspaces, and AWS/Azure/GCP accounts from day one.',
+                title: 'Full Repo & Cloud Access',
+                body: 'You hold admin control over your GitHub/GitLab repos, Figma files, and AWS, Azure, or Google Cloud accounts from day one.',
               },
             ].map((item) => {
               const Icon = item.icon;
               return (
                 <StaggerItem key={item.title} className="h-full">
-                  <motion.div
-                    whileHover={{ y: -4 }}
-                    transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
-                    className="h-full rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-7"
+                  <InteractiveCard
+                    hoverY={-5}
+                    className="h-full rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-7 transition-shadow hover:shadow-md"
                   >
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#F4F6FC]">
                       <Icon className="h-5 w-5" aria-hidden="true" />
@@ -218,7 +234,7 @@ export const ProcessPage: React.FC<ProcessPageProps> = ({ onNavigate }) => {
                       {item.title}
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">{item.body}</p>
-                  </motion.div>
+                  </InteractiveCard>
                 </StaggerItem>
               );
             })}

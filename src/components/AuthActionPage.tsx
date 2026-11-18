@@ -154,7 +154,7 @@ export const AuthActionPage: React.FC<AuthActionPageProps> = ({ onDone }) => {
       );
     } catch {
       setFormError(
-        'Could not update your password—this reset link may have expired. Please request a new one.'
+        'Could not update your password because this reset link may have expired. Please request a new one.'
       );
     } finally {
       setSubmitting(false);

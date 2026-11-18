@@ -61,7 +61,7 @@ export function buildBrandedEmailHtml({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${config.headline} — 0xDEV</title>
+    <title>${config.headline} | 0xDEV</title>
   </head>
   <body style="margin:0;padding:0;background-color:#F6F7FB;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#4A4F63;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#F6F7FB;padding:32px 16px;">

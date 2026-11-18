@@ -637,7 +637,7 @@ export const NotificationCenter: React.FC = () => {
                     >
                       {adminInquiries.map((inq) => (
                         <option key={inq.inquiryId} value={inq.inquiryId}>
-                          {inq.name} — {inq.service} ({inq.status})
+                          {inq.name} · {inq.service} ({inq.status})
                         </option>
                       ))}
                     </select>

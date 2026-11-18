@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, Calculator, Check, Layers, Sparkles } from 'lucide-react';
-import { EASE_OUT_EXPO } from './MotionPrimitives';
+import { EASE_OUT_EXPO, Reveal, SPRING_SNAPPY } from './MotionPrimitives';
 
 export interface EstimateSelectionPayload {
   service: string;
@@ -161,41 +161,44 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
       className="bg-white dark:bg-[#090D1F] py-16 sm:py-20 border-t border-[#E5E7F0] dark:border-[#242C54]"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl">
+        <Reveal className="max-w-2xl">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119] flex items-center gap-1.5">
             <Calculator className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Interactive Cost &amp; Timeline Estimator</span>
+            <span>Quick Scope &amp; Cost Estimator</span>
           </p>
           <h2
             id="estimator-heading"
             className="mt-3 font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC] text-balance"
           >
-            Scope your build in 30 seconds.
+            Get a quick ballpark before we talk.
           </h2>
           <p className="mt-3 text-base text-[#4A4F63] dark:text-[#C2C9E0]">
-            Select the layers and capabilities you need for an instant ballpark budget and timeline,
-            then send it straight to our Kabale engineering desk.
+            Pick the pieces you think you&apos;ll need. We&apos;ll calculate a realistic budget range
+            and timeline you can drop straight into a project brief.
           </p>
-        </div>
+        </Reveal>
 
         <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
           {/* Left Controls */}
-          <div className="lg:col-span-7 space-y-8 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/60 dark:bg-[#101530] p-6 sm:p-8">
+          <Reveal delay={0.05} className="lg:col-span-7 space-y-8 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/60 dark:bg-[#101530] p-6 sm:p-8">
             {/* Step 1: Platforms */}
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
-                01 · Core Platforms &amp; Disciplines (Select 1 or more)
+                01 · Core Platforms (Pick 1 or more)
               </p>
               <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {PLATFORM_OPTIONS.map((opt) => {
                   const active = selectedPlatforms.includes(opt.id);
                   return (
-                    <button
+                    <motion.button
                       key={opt.id}
                       type="button"
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.985 }}
+                      transition={SPRING_SNAPPY}
                       onClick={() => togglePlatform(opt.id)}
                       aria-pressed={active}
-                      className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-xs sm:text-sm font-semibold transition-all ${
+                      className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-xs sm:text-sm font-semibold transition-colors ${
                         active
                           ? 'border-[#1A1464] dark:border-[#3A459E] bg-[#1A1464] dark:bg-[#232B6E] text-white shadow-sm'
                           : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#1A1464]/40 dark:hover:border-white/25'
@@ -203,13 +206,13 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
                     >
                       <span>{opt.label}</span>
                       <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md ${
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition-colors ${
                           active ? 'bg-[#EE1119] text-white' : 'bg-[#F6F7FB] dark:bg-[#101530] text-[#6B7188] dark:text-[#8E97B8]'
                         }`}
                       >
                         <Check className="h-3 w-3" aria-hidden="true" />
                       </span>
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
@@ -218,30 +221,33 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
             {/* Step 2: Modules */}
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
-                02 · Capabilities &amp; Integrations (Optional)
+                02 · Extra Features &amp; Integrations (Optional)
               </p>
               <div className="mt-3 flex flex-wrap gap-2.5">
                 {MODULE_OPTIONS.map((mod) => {
                   const active = selectedModules.includes(mod.id);
                   return (
-                    <button
+                    <motion.button
                       key={mod.id}
                       type="button"
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={SPRING_SNAPPY}
                       onClick={() => toggleModule(mod.id)}
                       aria-pressed={active}
-                      className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition-all ${
+                      className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-semibold transition-colors ${
                         active
                           ? 'border-[#EE1119] bg-[#EE1119]/10 dark:bg-[#EE1119]/20 text-[#1A1464] dark:text-white'
                           : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#4A4F63] dark:text-[#B8C0DA] hover:border-[#1A1464]/40 dark:hover:border-white/25'
                       }`}
                     >
                       <span
-                        className={`h-2 w-2 rounded-full ${
+                        className={`h-2 w-2 rounded-full transition-colors ${
                           active ? 'bg-[#EE1119]' : 'bg-[#CBD5E1] dark:bg-[#3A437A]'
                         }`}
                       />
                       <span>{mod.label}</span>
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
@@ -250,90 +256,109 @@ export const ProjectEstimator: React.FC<ProjectEstimatorProps> = ({ onApplyEstim
             {/* Step 3: Pace */}
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
-                03 · Delivery Pace &amp; Support
+                03 · Speed &amp; Ongoing Support
               </p>
               <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {PACE_OPTIONS.map((pace) => {
                   const active = paceId === pace.id;
                   return (
-                    <button
+                    <motion.button
                       key={pace.id}
                       type="button"
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.985 }}
+                      transition={SPRING_SNAPPY}
                       onClick={() => setPaceId(pace.id)}
                       aria-pressed={active}
-                      className={`rounded-xl border p-3.5 text-left transition-all ${
+                      className={`relative rounded-xl border p-3.5 text-left transition-colors ${
                         active
-                          ? 'border-[#1A1464] dark:border-[#5D6BFF] bg-white dark:bg-[#182044] ring-2 ring-[#1A1464]/15 dark:ring-[#5D6BFF]/30'
+                          ? 'border-[#1A1464] dark:border-[#5D6BFF] bg-white dark:bg-[#182044]'
                           : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] hover:border-[#1A1464]/35 dark:hover:border-white/25'
                       }`}
                     >
+                      {active && (
+                        <motion.span
+                          layoutId="estimator-pace-ring"
+                          aria-hidden="true"
+                          transition={SPRING_SNAPPY}
+                          className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#1A1464]/20 dark:ring-[#5D6BFF]/40"
+                        />
+                      )}
                       <p className="font-display text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC]">{pace.label}</p>
                       <p className="mt-1 text-[11px] leading-snug text-[#6B7188] dark:text-[#8E97B8]">{pace.detail}</p>
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
             </div>
-          </div>
+          </Reveal>
 
           {/* Right Live Summary Card */}
-          <motion.div
-            key={`${estimate.minUsd}-${estimate.minWeeks}`}
-            initial={{ opacity: 0.92, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
-            className="lg:col-span-5 relative overflow-hidden rounded-2xl bg-[#1A1464] dark:bg-[#141A3B] dark:border dark:border-[#2B3466] p-7 sm:p-8 text-white shadow-[0_24px_50px_rgba(26,20,100,0.2)] dark:shadow-[0_24px_50px_rgba(0,0,0,0.5)]"
-          >
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute top-0 right-8 h-1.5 w-24 -skew-x-24 bg-[#EE1119]"
-            />
+          <Reveal delay={0.12} className="lg:col-span-5">
+            <div className="relative overflow-hidden rounded-2xl bg-[#1A1464] dark:bg-[#141A3B] dark:border dark:border-[#2B3466] p-7 sm:p-8 text-white shadow-[0_24px_50px_rgba(26,20,100,0.2)] dark:shadow-[0_24px_50px_rgba(0,0,0,0.5)]">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute top-0 right-8 h-1.5 w-24 -skew-x-24 bg-[#EE1119]"
+              />
 
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119] flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>Estimated Scope &amp; Investment</span>
-            </p>
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119] flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Quick Estimate</span>
+              </p>
 
-            <div className="mt-5 border-b border-white/15 pb-5">
-              <p className="text-xs text-white/70">Estimated Budget Range (USD)</p>
-              <p className="mt-1 font-display text-3xl sm:text-4xl font-extrabold text-white tabular-nums">
-                ${estimate.minUsd.toLocaleString()} – ${estimate.maxUsd.toLocaleString()}
+              <div className="mt-5 border-b border-white/15 pb-5">
+                <p className="text-xs text-white/70">Rough Budget Range (USD)</p>
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={`${estimate.minUsd}-${estimate.maxUsd}`}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
+                    className="mt-1 font-display text-3xl sm:text-4xl font-extrabold text-white tabular-nums"
+                  >
+                    ${estimate.minUsd.toLocaleString()} – ${estimate.maxUsd.toLocaleString()}
+                  </motion.p>
+                </AnimatePresence>
+              </div>
+
+              <dl className="mt-5 space-y-4 text-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <dt className="text-white/75">Estimated Timeline</dt>
+                  <dd className="font-display font-bold text-white tabular-nums">
+                    {estimate.minWeeks} – {estimate.maxWeeks} Weeks
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <dt className="text-white/75">Suggested Setup</dt>
+                  <dd className="font-semibold text-right text-[#EE1119]">{estimate.pace.model}</dd>
+                </div>
+                <div className="border-t border-white/15 pt-4">
+                  <dt className="text-xs uppercase tracking-wider text-white/60 flex items-center gap-1.5">
+                    <Layers className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                    <span>Who Works On It</span>
+                  </dt>
+                  <dd className="mt-1 font-semibold text-white/95">{estimate.podSize}</dd>
+                </div>
+              </dl>
+
+              <motion.button
+                type="button"
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={SPRING_SNAPPY}
+                onClick={handleLockEstimate}
+                className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#EE1119] px-6 py-3.5 text-sm font-bold text-white shadow-[0_12px_26px_rgba(238,17,25,0.28)] transition-colors hover:bg-[#D00D14]"
+              >
+                <span>Use This Estimate in My Brief</span>
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </motion.button>
+
+              <p className="mt-3 text-center text-[11px] text-white/65">
+                Milestone billing · You keep all source code &amp; IP
               </p>
             </div>
-
-            <dl className="mt-5 space-y-4 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-white/75">Estimated Timeline</dt>
-                <dd className="font-display font-bold text-white tabular-nums">
-                  {estimate.minWeeks} – {estimate.maxWeeks} Weeks
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-white/75">Recommended Model</dt>
-                <dd className="font-semibold text-right text-[#EE1119]">{estimate.pace.model}</dd>
-              </div>
-              <div className="border-t border-white/15 pt-4">
-                <dt className="text-xs uppercase tracking-wider text-white/60 flex items-center gap-1.5">
-                  <Layers className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
-                  <span>Suggested Squad Composition</span>
-                </dt>
-                <dd className="mt-1 font-semibold text-white/95">{estimate.podSize}</dd>
-              </div>
-            </dl>
-
-            <button
-              type="button"
-              onClick={handleLockEstimate}
-              className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#EE1119] px-6 py-3.5 text-sm font-bold text-white shadow-[0_12px_26px_rgba(238,17,25,0.28)] transition-colors hover:bg-[#D00D14]"
-            >
-              <span>Apply Estimate &amp; Send Brief</span>
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </button>
-
-            <p className="mt-3 text-center text-[11px] text-white/65">
-              Flexible milestone payments · 100% source code &amp; IP ownership
-            </p>
-          </motion.div>
+          </Reveal>
         </div>
       </div>
     </section>

@@ -20,7 +20,7 @@ import { COUNTRIES, stripLeadingDialCode } from '../data/countries';
 import { CaseStudy, COMPANY_CONTACT } from '../data/siteData';
 import { usePortfolioProjects } from '../hooks/usePortfolioProjects';
 import { Logo } from './Logo';
-import { EASE_OUT_EXPO } from './MotionPrimitives';
+import { EASE_OUT_EXPO, MaskLine, SPRING_SNAPPY, StaggerGrid, StaggerItem } from './MotionPrimitives';
 import {
   ProjectPreviewModal,
   ProjectPreviewScreen,
@@ -242,28 +242,31 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
             Client &amp; Visitor Access Portal
           </p>
           <h1 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight text-white text-balance">
-            One Team. Every Layer of Your Technology.
+            <MaskLine delay={0.05}>One Team. Every Layer</MaskLine>
+            <MaskLine delay={0.14}>of Your Technology.</MaskLine>
           </h1>
           <p className="mt-4 max-w-md text-sm sm:text-base leading-relaxed text-white/80">
-            Sign in or register an account to explore 0xDEV’s full-lifecycle engineering services,
-            case studies, technical process, and direct project consultation desk.
+            Sign in or register for free to view 0xDEV&apos;s software, cloud, and security
+            services, past client builds, and direct project desk.
           </p>
 
-          <ul className="mt-8 space-y-3.5 text-sm text-white/90">
+          <StaggerGrid className="mt-8 space-y-3.5 text-sm text-white/90" staggerDelay={0.07}>
             {[
-              'Full access to our 9 core software, cloud & security services',
-              'Detailed case study metrics & architecture breakdowns',
-              'Direct freelance & full-stack project brief submission',
+              'Browse our 9 core software, cloud & security services',
+              'Read detailed case study metrics and architecture notes',
+              'Send a freelance or full-product project brief directly',
             ].map((item) => (
-              <li key={item} className="flex items-start gap-2.5">
-                <CheckCircle2
-                  className="mt-0.5 h-4 w-4 text-[#EE1119] shrink-0"
-                  aria-hidden="true"
-                />
-                <span>{item}</span>
-              </li>
+              <StaggerItem key={item}>
+                <div className="flex items-start gap-2.5">
+                  <CheckCircle2
+                    className="mt-0.5 h-4 w-4 text-[#EE1119] shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span>{item}</span>
+                </div>
+              </StaggerItem>
             ))}
-          </ul>
+          </StaggerGrid>
           {/* Interactive "See Some of Our Work" Live Preview Strip */}
           <div
             className="mt-8 rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-sm"
@@ -394,26 +397,42 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
               role="tab"
               aria-selected={mode === 'login'}
               onClick={() => switchMode('login')}
-              className={`rounded-lg py-2.5 text-sm font-bold transition-all ${
+              className={`relative rounded-lg py-2.5 text-sm font-bold transition-colors ${
                 mode === 'login'
-                  ? 'bg-[#1A1464] dark:bg-[#2E368F] text-white shadow-sm'
+                  ? 'text-white'
                   : 'text-[#4A4F63] dark:text-[#B8C0DA] hover:text-[#1A1464] dark:hover:text-white'
               }`}
             >
-              Sign In
+              {mode === 'login' && (
+                <motion.span
+                  layoutId="auth-mode-tab"
+                  aria-hidden="true"
+                  transition={SPRING_SNAPPY}
+                  className="absolute inset-0 rounded-lg bg-[#1A1464] dark:bg-[#2E368F] shadow-sm"
+                />
+              )}
+              <span className="relative z-10">Sign In</span>
             </button>
             <button
               type="button"
               role="tab"
               aria-selected={mode === 'register'}
               onClick={() => switchMode('register')}
-              className={`rounded-lg py-2.5 text-sm font-bold transition-all ${
+              className={`relative rounded-lg py-2.5 text-sm font-bold transition-colors ${
                 mode === 'register'
-                  ? 'bg-[#1A1464] dark:bg-[#2E368F] text-white shadow-sm'
+                  ? 'text-white'
                   : 'text-[#4A4F63] dark:text-[#B8C0DA] hover:text-[#1A1464] dark:hover:text-white'
               }`}
             >
-              Create Account
+              {mode === 'register' && (
+                <motion.span
+                  layoutId="auth-mode-tab"
+                  aria-hidden="true"
+                  transition={SPRING_SNAPPY}
+                  className="absolute inset-0 rounded-lg bg-[#1A1464] dark:bg-[#2E368F] shadow-sm"
+                />
+              )}
+              <span className="relative z-10">Create Account</span>
             </button>
           </div>
 
@@ -493,14 +512,24 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
             <span className="h-px flex-1 bg-[#E5E7F0] dark:bg-[#242C54]" />
           </div>
 
+          <AnimatePresence mode="wait">
           {resetView ? (
-            <form onSubmit={handleResetSubmit} noValidate className="space-y-4">
+            <motion.form
+              key="auth-reset-form"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
+              onSubmit={handleResetSubmit}
+              noValidate
+              className="space-y-4"
+            >
               <div>
                 <h3 className="font-display text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC]">
                   Reset Your Password
                 </h3>
                 <p className="mt-1 text-xs text-[#6B7188] dark:text-[#8E97B8]">
-                  Enter your account email and we will send you a secure 0xDEV password reset link.
+                  Enter your account email and we will send you a password reset link.
                 </p>
               </div>
 
@@ -531,7 +560,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                     if (resetError) setResetError(null);
                     if (authError) clearAuthError();
                   }}
-                  placeholder="arigyewisdom7@gmail.com"
+                  placeholder="Your email address"
                   aria-invalid={Boolean(resetError)}
                   className={`mt-1.5 w-full rounded-xl border px-4 py-3 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                     resetError
@@ -567,9 +596,18 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                   Back to Sign In
                 </button>
               </p>
-            </form>
+            </motion.form>
           ) : mode === 'login' ? (
-            <form onSubmit={handleLoginSubmit} noValidate className="space-y-4">
+            <motion.form
+              key="auth-login-form"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
+              onSubmit={handleLoginSubmit}
+              noValidate
+              className="space-y-4"
+            >
               <div>
                 <label
                   htmlFor="login-email"
@@ -587,7 +625,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                     if (authError) clearAuthError();
                     if (loginErrors.email) setLoginErrors({ ...loginErrors, email: undefined });
                   }}
-                  placeholder="arigyewisdom7@gmail.com"
+                  placeholder="Your email address"
                   aria-invalid={Boolean(loginErrors.email)}
                   className={`mt-1.5 w-full rounded-xl border px-4 py-3 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                     loginErrors.email
@@ -677,9 +715,18 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                   Create an account
                 </button>
               </p>
-            </form>
+            </motion.form>
           ) : (
-            <form onSubmit={handleRegisterSubmit} noValidate className="space-y-4">
+            <motion.form
+              key="auth-register-form"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: EASE_OUT_EXPO }}
+              onSubmit={handleRegisterSubmit}
+              noValidate
+              className="space-y-4"
+            >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label
@@ -697,7 +744,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                       setRegName(e.target.value);
                       if (regErrors.name) setRegErrors({ ...regErrors, name: undefined });
                     }}
-                    placeholder="Arigye Wisdom"
+                    placeholder="Your full name"
                     aria-invalid={Boolean(regErrors.name)}
                     className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                       regErrors.name ? 'border-[#EE1119]' : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#5D6BFF]'
@@ -724,7 +771,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                       setRegEmail(e.target.value);
                       if (regErrors.email) setRegErrors({ ...regErrors, email: undefined });
                     }}
-                    placeholder="arigyewisdom7@gmail.com"
+                    placeholder="Your email address"
                     aria-invalid={Boolean(regErrors.email)}
                     className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                       regErrors.email
@@ -785,7 +832,7 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                       setRegPhone(e.target.value);
                       if (regErrors.phone) setRegErrors({ ...regErrors, phone: undefined });
                     }}
-                    placeholder="+256 766 922 566"
+                    placeholder="Phone number with country code"
                     aria-invalid={Boolean(regErrors.phone)}
                     className={`mt-1.5 w-full rounded-xl border px-4 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 bg-[#F6F7FB]/50 dark:bg-[#101530] focus:bg-white dark:focus:bg-[#182044] ${
                       regErrors.phone
@@ -891,8 +938,9 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
                   Sign in here
                 </button>
               </p>
-            </form>
+            </motion.form>
           )}
+          </AnimatePresence>
 
           <div className="mt-6 flex items-center justify-center gap-2 border-t border-[#E5E7F0] dark:border-[#242C54] pt-4 text-[11px] text-[#6B7188] dark:text-[#8E97B8]">
             <ShieldCheck className="h-3.5 w-3.5 text-[#1A1464] dark:text-[#EE1119]" aria-hidden="true" />

@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   Bell,
   Calendar,
   Camera,
-  CheckCircle2,
+  Check,
   Link2,
   LogOut,
   Mail,
@@ -24,6 +25,7 @@ import {
 import { AdminBlogManager } from './AdminBlogManager';
 import { AdminPortfolioManager } from './AdminPortfolioManager';
 import { EditProfileModal } from './EditProfileModal';
+import { EASE_OUT_EXPO, Reveal, SPRING_SNAPPY } from './MotionPrimitives';
 import { NotificationCenter } from './NotificationCenter';
 import { PageHeader } from './PageHeader';
 import {
@@ -44,6 +46,62 @@ const CHANNEL_LABELS: Record<PreferredContactChannel, string> = {
 interface DashboardPageProps {
   onNavigate: (page: PageRoute) => void;
 }
+
+const ProfileSuccessBanner: React.FC<{ message: string; className?: string }> = ({
+  message,
+  className = '',
+}) => (
+  <motion.div
+    role="status"
+    aria-live="polite"
+    initial={{ opacity: 0, y: 8, scale: 0.97 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+    transition={{ duration: 0.28, ease: EASE_OUT_EXPO }}
+    className={`relative overflow-hidden flex items-center gap-3 rounded-xl border border-[#10B981]/35 dark:border-[#10B981]/40 bg-[#ECFDF5]/85 dark:bg-[#0D2A24]/75 px-4 py-3 text-xs sm:text-sm font-semibold text-[#065F46] dark:text-[#A7F3D0] shadow-[0_8px_20px_rgba(16,185,129,0.08)] ${className}`}
+  >
+    {/* Subtle celebratory sheen */}
+    <motion.span
+      aria-hidden="true"
+      initial={{ x: '-110%', opacity: 0.5 }}
+      animate={{ x: '220%', opacity: 0 }}
+      transition={{ duration: 0.9, ease: EASE_OUT_EXPO }}
+      className="pointer-events-none absolute inset-y-0 left-0 w-1/2 -skew-x-20 bg-gradient-to-r from-transparent via-white/55 dark:via-white/15 to-transparent"
+    />
+
+    <div className="relative flex h-6 w-6 shrink-0 items-center justify-center">
+      {/* Subtle pulse ring */}
+      <motion.span
+        aria-hidden="true"
+        initial={{ scale: 0.75, opacity: 0.7 }}
+        animate={{ scale: 1.65, opacity: 0 }}
+        transition={{ duration: 0.75, ease: EASE_OUT_EXPO }}
+        className="absolute inset-0 rounded-full bg-[#10B981]/40"
+      />
+      <motion.span
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={SPRING_SNAPPY}
+        className="relative flex h-6 w-6 items-center justify-center rounded-full bg-[#10B981] text-white"
+      >
+        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" aria-hidden="true">
+          <motion.path
+            d="M3.5 8.5L6.5 11.5L12.5 4.8"
+            stroke="currentColor"
+            strokeWidth="2.1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.34, delay: 0.08, ease: EASE_OUT_EXPO }}
+          />
+        </svg>
+      </motion.span>
+    </div>
+
+    <span className="relative z-10">{message}</span>
+  </motion.div>
+);
 
 function formatCreationDate(creationTime?: string): string {
   if (!creationTime) return 'Unavailable';
@@ -156,6 +214,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     setDisplayName(user?.displayName || '');
   }, [user?.displayName]);
 
+  useEffect(() => {
+    if (!savedNotice) return;
+    const timer = window.setTimeout(() => setSavedNotice(false), 3800);
+    return () => window.clearTimeout(timer);
+  }, [savedNotice]);
+
+  useEffect(() => {
+    if (!photoNotice) return;
+    const timer = window.setTimeout(() => setPhotoNotice(null), 3800);
+    return () => window.clearTimeout(timer);
+  }, [photoNotice]);
+
+  useEffect(() => {
+    if (!fullProfileNotice) return;
+    const timer = window.setTimeout(() => setFullProfileNotice(null), 4200);
+    return () => window.clearTimeout(timer);
+  }, [fullProfileNotice]);
+
   if (!user) return null;
 
   const createdDate = formatCreationDate(user.metadata?.creationTime);
@@ -254,7 +330,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         <PageHeader
           eyebrow="Account Dashboard"
           title="Manage your 0xDEV profile."
-          description="View your registered account details, track live project milestones, collaborate with your engineering squad, and manage your 0xDEV notifications."
+          description="Update your account details, follow project milestones, message our engineers, and control your notifications."
           currentLabel="Dashboard"
           onNavigate={onNavigate}
         />
@@ -264,10 +340,23 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 print:max-w-none print:px-0">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 items-start print:hidden">
             {/* Left Card: Account Overview */}
-            <div className="lg:col-span-6 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-6 sm:p-8">
+            <Reveal delay={0.04} className="lg:col-span-6 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-6 sm:p-8">
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E5E7F0] dark:border-[#242C54] pb-6">
                 <div className="flex items-center gap-4 min-w-0">
                   <div className="relative shrink-0">
+                    <AnimatePresence>
+                      {(photoNotice || fullProfileNotice || savedNotice) && (
+                        <motion.span
+                          key="overview-avatar-pulse"
+                          aria-hidden="true"
+                          initial={{ scale: 0.92, opacity: 0.85 }}
+                          animate={{ scale: 1.24, opacity: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.85, ease: EASE_OUT_EXPO }}
+                          className="pointer-events-none absolute -inset-1 rounded-2xl border-2 border-[#10B981]"
+                        />
+                      )}
+                    </AnimatePresence>
                     <UserAvatar
                       src={profilePhotoUrl}
                       name={user.displayName}
@@ -311,15 +400,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </button>
               </div>
 
-              {fullProfileNotice && (
-                <div
-                  role="status"
-                  className="mt-5 flex items-center gap-2 rounded-xl border border-[#1A1464]/20 dark:border-[#2B3466] bg-white dark:bg-[#141A38] px-4 py-2.5 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
-                >
-                  <CheckCircle2 className="h-4 w-4 text-[#EE1119] shrink-0" aria-hidden="true" />
-                  <span>{fullProfileNotice}</span>
-                </div>
-              )}
+              <AnimatePresence>
+                {fullProfileNotice && (
+                  <ProfileSuccessBanner message={fullProfileNotice} className="mt-5" />
+                )}
+              </AnimatePresence>
 
               {/* Bio Summary */}
               <div className="mt-5 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white/80 dark:bg-[#141A38] p-4">
@@ -428,10 +513,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   <span>Sign Out</span>
                 </button>
               </div>
-            </div>
+            </Reveal>
 
             {/* Right Card: Update Profile Name Form */}
-            <div className="lg:col-span-6 relative rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.06)] dark:shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+            <Reveal delay={0.1} className="lg:col-span-6 relative rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.06)] dark:shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
               <div
                 aria-hidden="true"
                 className="absolute top-0 right-8 h-1.5 w-24 -skew-x-24 bg-[#EE1119]"
@@ -454,12 +539,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   Profile Picture
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-4">
-                  <UserAvatar
-                    src={profilePhotoUrl}
-                    name={user.displayName}
-                    email={user.email}
-                    size="lg"
-                  />
+                  <div className="relative shrink-0">
+                    <AnimatePresence>
+                      {photoNotice && (
+                        <motion.span
+                          key="settings-avatar-pulse"
+                          aria-hidden="true"
+                          initial={{ scale: 0.9, opacity: 0.9 }}
+                          animate={{ scale: 1.26, opacity: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.85, ease: EASE_OUT_EXPO }}
+                          className="pointer-events-none absolute -inset-1 rounded-2xl border-2 border-[#10B981]"
+                        />
+                      )}
+                    </AnimatePresence>
+                    <UserAvatar
+                      src={profilePhotoUrl}
+                      name={user.displayName}
+                      email={user.email}
+                      size="lg"
+                    />
+                  </div>
                   <div className="flex flex-wrap items-center gap-2.5">
                     <input
                       ref={fileInputRef}
@@ -509,42 +609,48 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   PNG, JPEG, WebP, or GIF. Automatically cropped and optimized for fast portal loading.
                 </p>
 
-                {showUrlInput && (
-                  <form onSubmit={handleApplyPhotoUrl} noValidate className="mt-3 flex flex-col sm:flex-row gap-2.5">
-                    <input
-                      type="url"
-                      value={photoUrlInput}
-                      onChange={(e) => {
-                        setPhotoUrlInput(e.target.value);
-                        if (photoError) setPhotoError(null);
-                      }}
-                      placeholder="https://example.com/avatar.jpg"
-                      aria-label="External HTTPS image URL"
-                      className="flex-1 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:border-[#1A1464] dark:focus:border-[#7C8CFF] focus:bg-white dark:focus:bg-[#182044] transition-colors"
-                    />
-                    <button
-                      type="submit"
-                      disabled={savingPhoto}
-                      className="inline-flex items-center justify-center rounded-xl bg-[#EE1119] px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#D00D14] disabled:opacity-60 whitespace-nowrap shrink-0"
+                <AnimatePresence>
+                  {showUrlInput && (
+                    <motion.form
+                      initial={{ opacity: 0, y: -6, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: 'auto' }}
+                      exit={{ opacity: 0, y: -6, height: 0 }}
+                      transition={{ duration: 0.22, ease: EASE_OUT_EXPO }}
+                      onSubmit={handleApplyPhotoUrl}
+                      noValidate
+                      className="mt-3 overflow-hidden flex flex-col sm:flex-row gap-2.5"
                     >
-                      Apply URL
-                    </button>
-                  </form>
-                )}
+                      <input
+                        type="url"
+                        value={photoUrlInput}
+                        onChange={(e) => {
+                          setPhotoUrlInput(e.target.value);
+                          if (photoError) setPhotoError(null);
+                        }}
+                        placeholder="Paste an https:// image link"
+                        aria-label="External HTTPS image URL"
+                        className="flex-1 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:border-[#1A1464] dark:focus:border-[#7C8CFF] focus:bg-white dark:focus:bg-[#182044] transition-colors"
+                      />
+                      <button
+                        type="submit"
+                        disabled={savingPhoto}
+                        className="inline-flex items-center justify-center rounded-xl bg-[#EE1119] px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#D00D14] disabled:opacity-60 whitespace-nowrap shrink-0"
+                      >
+                        Apply URL
+                      </button>
+                    </motion.form>
+                  )}
+                </AnimatePresence>
 
                 {photoError && (
                   <p className="mt-2.5 text-xs font-semibold text-[#EE1119]">{photoError}</p>
                 )}
 
-                {photoNotice && (
-                  <div
-                    role="status"
-                    className="mt-3 flex items-center gap-2 rounded-xl border border-[#1A1464]/20 dark:border-[#2B3466] bg-[#F6F7FB] dark:bg-[#101530] px-3.5 py-2.5 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
-                  >
-                    <CheckCircle2 className="h-4 w-4 text-[#EE1119] shrink-0" aria-hidden="true" />
-                    <span>{photoNotice}</span>
-                  </div>
-                )}
+                <AnimatePresence>
+                  {photoNotice && (
+                    <ProfileSuccessBanner message={photoNotice} className="mt-3" />
+                  )}
+                </AnimatePresence>
               </div>
 
               <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-5">
@@ -564,7 +670,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       if (error) setError(null);
                       if (savedNotice) setSavedNotice(false);
                     }}
-                    placeholder="Arigye Wisdom"
+                    placeholder="Your display name"
                     aria-invalid={Boolean(error)}
                     className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm text-[#1A1464] dark:text-white bg-[#F6F7FB]/50 dark:bg-[#101530] placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 focus:bg-white dark:focus:bg-[#182044] transition-colors ${
                       error ? 'border-[#EE1119]' : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#7C8CFF]'
@@ -575,25 +681,52 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   )}
                 </div>
 
-                {savedNotice && (
-                  <div
-                    role="status"
-                    className="flex items-center gap-2 rounded-xl border border-[#1A1464]/20 dark:border-[#2B3466] bg-[#F6F7FB] dark:bg-[#101530] px-4 py-3 text-xs sm:text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
-                  >
-                    <CheckCircle2 className="h-4 w-4 text-[#EE1119] shrink-0" aria-hidden="true" />
-                    <span>Profile name updated successfully.</span>
-                  </div>
-                )}
+                <AnimatePresence>
+                  {savedNotice && (
+                    <ProfileSuccessBanner message="Profile name updated successfully." />
+                  )}
+                </AnimatePresence>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <button
+                  <motion.button
                     type="submit"
                     disabled={saving}
-                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#EE1119] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(238,17,25,0.22)] transition-all duration-150 hover:bg-[#D00D14] disabled:opacity-60"
+                    whileTap={{ scale: 0.98 }}
+                    transition={SPRING_SNAPPY}
+                    className={`inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold text-white transition-colors duration-200 disabled:opacity-60 ${
+                      savedNotice
+                        ? 'bg-[#10B981] shadow-[0_10px_24px_rgba(16,185,129,0.25)] hover:bg-[#059669]'
+                        : 'bg-[#EE1119] shadow-[0_10px_24px_rgba(238,17,25,0.22)] hover:bg-[#D00D14]'
+                    }`}
                   >
-                    <Save className="h-4 w-4" aria-hidden="true" />
-                    <span>{saving ? 'Saving...' : 'Save Profile Name'}</span>
-                  </button>
+                    <AnimatePresence mode="wait" initial={false}>
+                      {savedNotice ? (
+                        <motion.span
+                          key="btn-saved"
+                          initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -6, scale: 0.9 }}
+                          transition={SPRING_SNAPPY}
+                          className="inline-flex items-center gap-2"
+                        >
+                          <Check className="h-4 w-4" aria-hidden="true" />
+                          <span>Saved</span>
+                        </motion.span>
+                      ) : (
+                        <motion.span
+                          key="btn-save"
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                          transition={{ duration: 0.16, ease: EASE_OUT_EXPO }}
+                          className="inline-flex items-center gap-2"
+                        >
+                          <Save className="h-4 w-4" aria-hidden="true" />
+                          <span>{saving ? 'Saving...' : 'Save Profile Name'}</span>
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                   <button
                     type="button"
                     onClick={() => {
@@ -607,7 +740,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   </button>
                 </div>
               </form>
-            </div>
+            </Reveal>
           </div>
 
           <EditProfileModal

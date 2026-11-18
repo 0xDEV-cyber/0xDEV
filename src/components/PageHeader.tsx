@@ -2,7 +2,7 @@ import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PageRoute } from '../data/siteData';
-import { EASE_OUT_EXPO } from './MotionPrimitives';
+import { EASE_OUT_EXPO, MaskLine } from './MotionPrimitives';
 
 interface PageHeaderProps {
   eyebrow: string;
@@ -24,17 +24,24 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       {/* Subtle Diagonal Signature Slash */}
       <motion.div
         aria-hidden="true"
-        initial={{ opacity: 0, x: 40 }}
+        initial={{ opacity: 0, x: 56 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.55, ease: EASE_OUT_EXPO }}
+        transition={{ duration: 0.65, ease: EASE_OUT_EXPO }}
         className="pointer-events-none absolute top-0 right-0 h-full w-64 translate-x-24 -skew-x-12 bg-white/70 dark:bg-[#182044]/60 hidden lg:block"
       />
       <motion.div
         aria-hidden="true"
         initial={{ opacity: 0, scaleY: 0 }}
         animate={{ opacity: 1, scaleY: 1 }}
-        transition={{ duration: 0.45, delay: 0.1, ease: EASE_OUT_EXPO }}
+        transition={{ duration: 0.55, delay: 0.08, ease: EASE_OUT_EXPO }}
         className="pointer-events-none origin-top absolute top-0 right-56 h-full w-1.5 -skew-x-12 bg-[#EE1119]/80 hidden lg:block"
+      />
+      <motion.div
+        aria-hidden="true"
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 0.75, delay: 0.16, ease: EASE_OUT_EXPO }}
+        className="pointer-events-none origin-left absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#EE1119]/45 via-transparent to-transparent"
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -42,7 +49,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           aria-label="Breadcrumb"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: EASE_OUT_EXPO }}
+          transition={{ duration: 0.35, ease: EASE_OUT_EXPO }}
           className="flex items-center gap-2 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]"
         >
           <a
@@ -61,25 +68,20 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
         <div className="mt-5 max-w-3xl">
           <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: 0.05, ease: EASE_OUT_EXPO }}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.38, delay: 0.04, ease: EASE_OUT_EXPO }}
             className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]"
           >
             {eyebrow}
           </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.1, ease: EASE_OUT_EXPO }}
-            className="mt-2.5 font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC] text-balance leading-[1.1]"
-          >
-            {title}
-          </motion.h1>
+          <h1 className="mt-2.5 font-display text-3xl sm:text-5xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC] text-balance leading-[1.1]">
+            <MaskLine delay={0.08}>{title}</MaskLine>
+          </h1>
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.16, ease: EASE_OUT_EXPO }}
+            transition={{ duration: 0.48, delay: 0.16, ease: EASE_OUT_EXPO }}
             className="mt-4 text-base sm:text-lg leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]"
           >
             {description}

@@ -5,6 +5,7 @@ export type PageRoute =
   | 'process'
   | 'work'
   | 'blog'
+  | 'movies'
   | 'about'
   | 'contact'
   | 'dashboard';
@@ -146,8 +147,8 @@ export const COMPANY_CONTACT = {
   email: 'arigyewisdom7@gmail.com',
   studioEmail: 'hello@0xdev.io',
   location: 'Kabale, Western Uganda',
-  availability: 'Physical Studio in Kabale · Open for Global Remote & Freelance Engagements',
-  timezone: 'East Africa Time (EAT / UTC+3) · Overlaps UK, EU, Middle East & US East Coast',
+  availability: 'Kabale Studio · Available for Remote & Freelance Projects',
+  timezone: 'East Africa Time (EAT / UTC+3) · Good overlap with UK, EU, Middle East & US East Coast',
 };
 
 export const NAV_LINKS: NavItem[] = [
@@ -156,6 +157,7 @@ export const NAV_LINKS: NavItem[] = [
   { id: 'process', path: '/process', label: 'Process' },
   { id: 'work', path: '/work', label: 'Work' },
   { id: 'blog', path: '/blog', label: 'Blog' },
+  { id: 'movies', path: '/movies', label: 'Movies' },
   { id: 'about', path: '/about', label: 'About' },
   { id: 'contact', path: '/contact', label: 'Contact' },
   { id: 'dashboard', path: '/dashboard', label: 'Dashboard' },
@@ -175,37 +177,37 @@ export const HERO_STACK_LAYERS: StackLayer[] = [
     id: 'design',
     step: '01',
     name: 'Design',
-    tagline: 'Research-backed UX, design systems & clickable prototypes',
+    tagline: 'User flows, Figma component kits & clickable prototypes',
     details:
-      'We map user journeys, information architecture, and accessible UI component systems before writing production code.',
-    deliverables: ['User Flows & Wireframes', 'Figma Component System', 'Interactive Prototype'],
+      'We sketch out screens, data states, and edge cases before anyone writes code, so developers know exactly what to ship.',
+    deliverables: ['User Flows & Wireframes', 'Figma Component Kit', 'Clickable Prototype'],
   },
   {
     id: 'build',
     step: '02',
     name: 'Build',
-    tagline: 'Full-stack web, mobile apps & resilient API architecture',
+    tagline: 'Web apps, mobile clients & backend APIs',
     details:
-      'Clean, modular TypeScript, Python, Go, and Flutter codebases engineered with automated test coverage and strict type safety.',
-    deliverables: ['Web & Mobile Clients', 'Microservices & APIs', 'Database & Integrations'],
+      'Clean TypeScript, Python, Go, and Flutter codebases with automated tests and clear API contracts between frontend and backend.',
+    deliverables: ['Web & Mobile Apps', 'Backend APIs', 'Database & Payment Rails'],
   },
   {
     id: 'infrastructure',
     step: '03',
     name: 'Infrastructure',
-    tagline: 'Cloud provisioning, CI/CD pipelines & zero-trust security',
+    tagline: 'Cloud setup, CI/CD deploys & access security',
     details:
-      'Repeatable Terraform modules, containerized workloads, and automated security scanning across AWS, Azure, or Google Cloud.',
-    deliverables: ['Infrastructure as Code', 'CI/CD Release Pipelines', 'WAF & IAM Hardening'],
+      'Reproducible Terraform templates, container builds, and locked-down IAM permissions on AWS, Azure, or Google Cloud.',
+    deliverables: ['Terraform Setup', 'CI/CD Pipelines', 'IAM & Firewall Hardening'],
   },
   {
     id: 'maintain',
     step: '04',
     name: 'Maintain',
-    tagline: '24/7 observability, SLA incident response & continuous upgrades',
+    tagline: 'Uptime monitoring, fast bug fixes & monthly improvements',
     details:
-      'Real-time alerting, dependency patching, cloud cost optimization, and iterative feature releases without vendor handoffs.',
-    deliverables: ['24/7 On-Call Engineering', 'Telemetry & Cost Audits', 'Monthly Feature Releases'],
+      'Live alerts, dependency updates, cloud bill checks, and steady feature releases with the same engineers who built your app.',
+    deliverables: ['24/7 Alerting', 'Cost & Speed Audits', 'Ongoing Feature Sprints'],
   },
 ];
 
@@ -215,11 +217,11 @@ export const SERVICES: ServiceItem[] = [
     number: '01',
     title: 'Product & UX/UI Design',
     summary:
-      'Turn complex workflows into clear, conversion-focused interfaces built on scalable Figma design systems.',
+      'Clear, practical interfaces and Figma component libraries that your team can hand straight to engineering.',
     deepDive:
-      'Every engineering mistake is cheapest to fix on the canvas. We run stakeholder workshops, map edge cases, and build reusable component tokens that engineers implement directly without guesswork.',
-    idealFor: 'New digital products, confusing legacy dashboards, or teams needing a unified component library.',
-    deliverables: 'Discovery workshops · Wireframes · Design systems · Usability testing',
+      'Fixing a broken flow on a Figma screen takes five minutes; fixing it after launch takes five days. We map out real user paths first and build reusable UI tokens.',
+    idealFor: 'New digital products, cluttered admin dashboards, or teams needing a clean component library.',
+    deliverables: 'Workshops · Wireframes · Design systems · Clickable prototypes',
     iconName: 'Compass',
   },
   {
@@ -227,10 +229,10 @@ export const SERVICES: ServiceItem[] = [
     number: '02',
     title: 'Web & Mobile App Development',
     summary:
-      'Fast, accessible web platforms and cross-platform iOS/Android applications engineered for real-world network conditions.',
+      'Fast web apps and cross-platform iOS/Android builds that keep working even on patchy mobile data.',
     deepDive:
-      'From responsive SaaS portals in React and Next.js to offline-capable Flutter mobile applications, we optimize bundle sizes, caching, and low-bandwidth resilience.',
-    idealFor: 'Customer-facing portals, field-agent mobile tools, booking platforms, and B2B SaaS products.',
+      'From React and Next.js web portals to offline-ready Flutter apps, we keep bundles light, cache local state properly, and test on real mid-range phones.',
+    idealFor: 'Customer portals, field-agent apps, booking sites, and B2B software products.',
     deliverables: 'React & Next.js · Flutter & React Native · Progressive Web Apps',
     iconName: 'Smartphone',
   },
@@ -239,11 +241,11 @@ export const SERVICES: ServiceItem[] = [
     number: '03',
     title: 'Custom Software & APIs',
     summary:
-      'Bespoke internal platforms, payment integrations, and high-throughput REST/GraphQL APIs tailored to your operations.',
+      'Internal operations tools, mobile money integrations, and clean REST or GraphQL APIs built around how you actually work.',
     deepDive:
-      'We integrate mobile money gateways, banking rails, ERP tools, and custom business logic using clean domain boundaries, idempotent webhooks, and thorough OpenAPI documentation.',
-    idealFor: 'Organizations replacing brittle spreadsheets or connecting multiple third-party systems.',
-    deliverables: 'Node.js, Python & Go · Event-driven backends · Mobile money & card APIs',
+      'We hook up MTN MoMo, Airtel Money, card gateways, ERPs, and legacy databases using idempotent webhooks and straightforward OpenAPI specs.',
+    idealFor: 'Teams outgrowing spreadsheets or trying to connect several disconnected tools.',
+    deliverables: 'Node.js, Python & Go · Background workers · Mobile money & card APIs',
     iconName: 'Code2',
   },
   {
@@ -251,11 +253,11 @@ export const SERVICES: ServiceItem[] = [
     number: '04',
     title: 'Cloud & Infrastructure',
     summary:
-      'Fault-tolerant multi-region architectures across AWS, Azure, and Google Cloud—designed to scale without runaway bills.',
+      'Reliable cloud setups across AWS, Azure, and Google Cloud that stay fast without surprise monthly bills.',
     deepDive:
-      'We provision reproducible cloud environments with Terraform, configure private VPC networking, automated encrypted backups, and strict budget alerts so infrastructure stays predictable.',
-    idealFor: 'Growing platforms moving off single VPS servers or cutting bloated monthly cloud spend.',
-    deliverables: 'AWS, Azure & GCP · Terraform IaC · High-availability networking',
+      'We write reproducible Terraform configurations, isolate private networks, set up encrypted daily backups, and add hard billing alerts so nothing spikes unnoticed.',
+    idealFor: 'Growing apps moving off a single VPS or teams trying to cut bloated cloud invoices.',
+    deliverables: 'AWS, Azure & GCP · Terraform IaC · Automated backups & networking',
     iconName: 'Cloud',
   },
   {
@@ -263,11 +265,11 @@ export const SERVICES: ServiceItem[] = [
     number: '05',
     title: 'DevOps & CI/CD Automation',
     summary:
-      'Zero-downtime deployments, automated testing gates, and container orchestration that turn weeks of release prep into minutes.',
+      'Zero-downtime releases, automated test checks, and container pipelines so shipping code stops feeling risky.',
     deepDive:
-      'Manual SSH deployments cause outages. We automate linting, unit/integration testing, container builds, and staged rollouts with instant rollback protection.',
-    idealFor: 'Engineering teams shipping slowly or experiencing Friday-evening deployment failures.',
-    deliverables: 'Docker & Kubernetes · GitHub Actions · Blue/green deployments',
+      'Manual SSH deployments break at the worst time. We set up automated builds, test runs, staged rollouts, and one-click rollbacks for every merge.',
+    idealFor: 'Teams stuck with slow manual releases or worried about Friday-afternoon deploys.',
+    deliverables: 'Docker & Kubernetes · GitHub Actions · Staged rollouts & rollbacks',
     iconName: 'GitBranch',
   },
   {
@@ -275,11 +277,11 @@ export const SERVICES: ServiceItem[] = [
     number: '06',
     title: 'Cybersecurity & Compliance',
     summary:
-      'Proactive threat modeling, penetration remediation, encryption standards, and audit readiness built into every sprint.',
+      'Practical security hardening, access controls, encryption, and audit logs baked into every sprint.',
     deepDive:
-      'We harden authentication flows, enforce least-privilege IAM roles, automate dependency CVE checks, and structure audit logs to align with ISO 27001 and regional data protection frameworks.',
-    idealFor: 'Fintech, healthcare, and enterprise platforms handling sensitive customer or financial records.',
-    deliverables: 'OWASP & ISO 27001 readiness · IAM hardening · Vulnerability audits',
+      'We tighten login and token flows, trim over-permissioned IAM roles, run dependency checks in CI, and keep clean logs for partner or ISO 27001 reviews.',
+    idealFor: 'Fintech, healthcare, and business apps handling money or private customer data.',
+    deliverables: 'OWASP & ISO 27001 prep · IAM tightening · Vulnerability fixes',
     iconName: 'ShieldCheck',
   },
   {
@@ -287,11 +289,11 @@ export const SERVICES: ServiceItem[] = [
     number: '07',
     title: 'Data, AI & Automation',
     summary:
-      'Clean data pipelines, executive analytics warehouses, and practical workflow automation that eliminate manual bottlenecks.',
+      'Clean reporting pipelines, operational dashboards, and targeted workflow automation that cut manual spreadsheet work.',
     deepDive:
-      'Before chasing hype, we get your operational data clean and reliable—building automated ETL pipelines, real-time KPI reporting, and targeted AI document processing where ROI is clear.',
-    idealFor: 'Operations teams spending hours reconciling reports manually across disconnected tools.',
-    deliverables: 'ETL pipelines · BI dashboards · Document & workflow automation',
+      'Before adding fancy automation, we clean up the underlying data: reliable ETL jobs, live KPI screens, and practical OCR or document extraction where it saves real hours.',
+    idealFor: 'Ops teams spending half their week copy-pasting numbers between tools.',
+    deliverables: 'ETL jobs · Reporting dashboards · Document & workflow automation',
     iconName: 'Cpu',
   },
   {
@@ -299,11 +301,11 @@ export const SERVICES: ServiceItem[] = [
     number: '08',
     title: 'Maintenance, Monitoring & 24/7 Support',
     summary:
-      'Round-the-clock uptime monitoring, rapid incident resolution, security patching, and SLA-backed operational continuity.',
+      'Continuous uptime checks, quick incident fixes, dependency patches, and clear SLA response times.',
     deepDive:
-      'Software is never "done" on launch day. We attach structured logging, uptime probes, and clear escalation runbooks so issues are caught and fixed before your customers notice.',
-    idealFor: 'Businesses without a full-time SRE team that need guaranteed stability and fast fixes.',
-    deliverables: '24/7 alerting · Performance tuning · SLA response guarantees',
+      'Shipping version 1 is only half the work. We wire up error tracking, uptime probes, and clear on-call runbooks so problems get fixed before customers complain.',
+    idealFor: 'Companies without an in-house SRE team that still need dependable uptime.',
+    deliverables: '24/7 uptime alerts · Speed tuning · Direct engineer support',
     iconName: 'Activity',
   },
   {
@@ -311,11 +313,11 @@ export const SERVICES: ServiceItem[] = [
     number: '09',
     title: 'IT Consulting & Digital Strategy',
     summary:
-      'Architecture reviews, legacy modernization roadmaps, and technical due diligence so leadership makes confident investments.',
+      'Honest architecture reviews, legacy rebuild plans, and vendor second opinions before you commit budget.',
     deepDive:
-      'Whether you are scoping a freelance build, evaluating vendor proposals, or rescuing a stalled codebase, we deliver candid written technical assessments grounded in real implementation costs.',
-    idealFor: 'Founders, NGOs, and enterprise leaders planning major software investments or audits.',
-    deliverables: 'System audits · Build-vs-buy advisory · Fractional CTO support',
+      'If you are scoping a freelance build, reviewing another agency quote, or trying to rescue a stuck codebase, we give you a plainspoken technical plan with real numbers.',
+    idealFor: 'Founders, NGOs, and managers planning a big build or dealing with stalled code.',
+    deliverables: 'Codebase audits · Build-vs-buy advice · Technical roadmaps',
     iconName: 'Layers',
   },
 ];
@@ -327,10 +329,10 @@ export const PROCESS_STEPS: ProcessStep[] = [
     title: 'Discover',
     duration: 'Week 1–2',
     description:
-      'We audit existing systems, interview stakeholders, define measurable business KPIs, and lock down technical scope, budget, and security constraints.',
-    clientTouchpoint: 'Kickoff workshop + written Technical Scope & Risk Register',
-    qualityGate: 'Signed architecture diagram, prioritized backlog, and clear milestone dates.',
-    artifacts: ['Technical Audit', 'System Architecture Blueprint', 'Milestone Roadmap'],
+      'We review what you already have, talk to the people who will use the software, and lock down scope, budget, and timeline.',
+    clientTouchpoint: 'Kickoff call + written Scope & Risk Notes',
+    qualityGate: 'Signed architecture sketch, ordered task list, and target dates.',
+    artifacts: ['System Review', 'Architecture Plan', 'Milestone Schedule'],
   },
   {
     id: 'design',
@@ -338,10 +340,10 @@ export const PROCESS_STEPS: ProcessStep[] = [
     title: 'Design',
     duration: 'Week 2–4',
     description:
-      'Our product designers and principal architects co-design user flows, interactive UI prototypes, and relational database schemas in parallel.',
-    clientTouchpoint: 'Interactive Figma walkthrough with live stakeholder feedback',
-    qualityGate: 'UX sign-off, API contract validation, and accessibility contrast review.',
-    artifacts: ['Interactive Figma Prototype', 'Component Library', 'API & Data Contracts'],
+      'Designers and engineers work side by side on screens, clickable prototypes, and database tables at the same time.',
+    clientTouchpoint: 'Live Figma walkthrough with direct feedback',
+    qualityGate: 'Screen approval, API schema check, and color-contrast check.',
+    artifacts: ['Clickable Figma Prototype', 'UI Component Kit', 'API & Schema Specs'],
   },
   {
     id: 'build',
@@ -349,10 +351,10 @@ export const PROCESS_STEPS: ProcessStep[] = [
     title: 'Build',
     duration: 'Week 4–10',
     description:
-      'Engineers ship weekly working builds across frontend, backend, and Terraform infrastructure with automated CI/CD checks on every pull request.',
-    clientTouchpoint: 'Friday staging demos where you test real working software weekly',
-    qualityGate: 'Automated test suite passing, code review sign-off, and vulnerability scans.',
-    artifacts: ['Weekly Staging Releases', 'Automated Test Suites', 'Infrastructure as Code'],
+      'We ship working updates to a staging link every week across frontend, backend, and Terraform cloud config.',
+    clientTouchpoint: 'Friday staging previews where you click through real features',
+    qualityGate: 'Passing automated tests, peer code review, and dependency scans.',
+    artifacts: ['Weekly Staging Links', 'Automated Tests', 'Terraform Cloud Config'],
   },
   {
     id: 'launch',
@@ -360,10 +362,10 @@ export const PROCESS_STEPS: ProcessStep[] = [
     title: 'Launch',
     duration: 'Week 10–12',
     description:
-      'We execute load testing, security hardening checks, zero-downtime data migration, and structured team training before production cutover.',
-    clientTouchpoint: 'Go-live readiness checklist + live operator training session',
-    qualityGate: 'Zero critical findings, verified backup restore drill, and active alerts.',
-    artifacts: ['Load & Security Sign-Off', 'Zero-Downtime Cutover', 'Runbooks & Handover'],
+      'We run load tests, verify backups, migrate data cleanly, and walk your staff through daily operations before going live.',
+    clientTouchpoint: 'Launch checklist + live staff walkthrough',
+    qualityGate: 'No open critical bugs, tested backup restore, and live error alerts.',
+    artifacts: ['Security & Load Check', 'Live Data Migration', 'Operator Handover Docs'],
   },
   {
     id: 'maintain',
@@ -371,10 +373,10 @@ export const PROCESS_STEPS: ProcessStep[] = [
     title: 'Maintain & Scale',
     duration: 'Ongoing',
     description:
-      'Post-launch, the same team monitors uptime 24/7, optimizes cloud spend, ships iterative features, and scales capacity ahead of demand.',
-    clientTouchpoint: 'Monthly uptime, performance, and cloud-spend review briefing',
-    qualityGate: '99.9%+ availability tracking, dependency patching, and SLA adherence.',
-    artifacts: ['24/7 Telemetry & Alerts', 'Monthly Cost & SLA Reviews', 'Continuous Upgrades'],
+      'After launch, the same engineers watch uptime around the clock, trim wasted cloud spend, and ship new updates.',
+    clientTouchpoint: 'Monthly uptime, speed, and cloud-bill check-in',
+    qualityGate: '99.9%+ availability target, regular patches, and fast incident response.',
+    artifacts: ['24/7 Error Alerts', 'Monthly Cloud-Bill Audits', 'Ongoing Releases'],
   },
 ];
 
@@ -386,7 +388,7 @@ export const TECH_STACK: TechItem[] = [
   { name: 'Node.js', category: 'Backend & APIs', role: 'API Services' },
   { name: 'Python', category: 'Backend & APIs', role: 'Data & Services' },
   { name: 'Go', category: 'Backend & APIs', role: 'High-Throughput' },
-  { name: 'PostgreSQL', category: 'Data & Security', role: 'Primary RDBMS' },
+  { name: 'PostgreSQL', category: 'Data & Security', role: 'Primary Database' },
   { name: 'Redis', category: 'Backend & APIs', role: 'Caching & Queues' },
   { name: 'Docker', category: 'Cloud & DevOps', role: 'Containers' },
   { name: 'Kubernetes', category: 'Cloud & DevOps', role: 'Orchestration' },
@@ -394,7 +396,7 @@ export const TECH_STACK: TechItem[] = [
   { name: 'Azure', category: 'Cloud & DevOps', role: 'Enterprise Cloud' },
   { name: 'Google Cloud', category: 'Cloud & DevOps', role: 'Cloud & Data' },
   { name: 'Terraform', category: 'Cloud & DevOps', role: 'Infra as Code' },
-  { name: 'Datadog & Prometheus', category: 'Data & Security', role: 'Observability' },
+  { name: 'Datadog & Prometheus', category: 'Data & Security', role: 'Monitoring' },
 ];
 
 export const CASE_STUDIES: CaseStudy[] = [
@@ -409,11 +411,11 @@ export const CASE_STUDIES: CaseStudy[] = [
     previewUrl: 'app.nilepay.co/settlements',
     previewKind: 'fintech',
     problem:
-      'Three disconnected contractors maintained the merchant portal, settlement API, and cloud servers—causing 4-hour reconciliation delays and weekly outage finger-pointing.',
+      'Three separate contractors managed the merchant portal, settlement API, and servers. Whenever payouts lagged by four hours, nobody owned the fix.',
     solution:
-      '0xDEV consolidated the entire stack: redesigned the merchant dashboard, rebuilt settlement pipelines in Go and PostgreSQL, and migrated to multi-AZ AWS Kubernetes via Terraform.',
+      '0xDEV unified the stack: cleaned up the merchant portal, rewrote settlement workers in Go and PostgreSQL, and moved hosting to multi-AZ AWS via Terraform.',
     architectureNotes:
-      'Introduced idempotent ledger entries, dead-letter webhook queues, and automated failover monitoring.',
+      'Added idempotent ledger rows, dead-letter webhook queues, and automated failover alerts.',
     metrics: [
       { value: '99.98%', label: 'Measured Uptime (12 Mo)' },
       { value: '-64%', label: 'Settlement Latency' },
@@ -432,14 +434,14 @@ export const CASE_STUDIES: CaseStudy[] = [
     previewUrl: 'clinic.carebridgehealth.org',
     previewKind: 'telehealth',
     problem:
-      'A growing clinic network needed encrypted patient onboarding, mobile video consultations, and automated lab syncing under a strict 12-week launch window.',
+      'A growing clinic group needed encrypted patient intake, video consults, and automated lab syncing ready inside a strict 12-week window.',
     solution:
-      'One 0xDEV product squad handled UX research, Flutter mobile apps, encrypted Node.js microservices, and automated CI/CD compliance checks from kickoff to production.',
+      'One 0xDEV team handled UX flows, Flutter mobile apps, encrypted Node.js services, and automated CI/CD checks from week one through launch.',
     architectureNotes:
-      'Built offline-tolerant clinic sync in Flutter so regional branches stay operational during spotty connectivity.',
+      'Added offline-safe clinic sync in Flutter so regional branches keep registering patients when Wi-Fi drops.',
     metrics: [
-      { value: '3.2x', label: 'Faster Patient Onboarding' },
-      { value: '11 wks', label: 'Kickoff to Production' },
+      { value: '3.2x', label: 'Faster Patient Intake' },
+      { value: '11 wks', label: 'Kickoff to Launch' },
       { value: 'Zero', label: 'Critical Audit Findings' },
     ],
     stackSummary: 'Flutter · Next.js · Node.js · Azure · GitHub Actions',
@@ -449,21 +451,21 @@ export const CASE_STUDIES: CaseStudy[] = [
     sector: 'Logistics',
     region: 'Pan-African Corridor',
     timeline: '10 Weeks · Cloud Modernization',
-    title: 'AtlasFreight Live Fleet & Cloud Modernization',
+    title: 'AtlasFreight Live Fleet & Cloud Rebuild',
     clientType: 'Cross-Border Freight Operator',
-    deliverableType: 'Telemetry Dashboard & Cloud Infra',
+    deliverableType: 'Dispatch Dashboard & Cloud Infra',
     previewUrl: 'dispatch.atlasfreight.africa',
     previewKind: 'logistics',
     problem:
-      'Legacy monolithic servers crashed during peak dispatch hours while unoptimized cloud databases drove monthly hosting spend upward without visibility.',
+      'Old monolithic servers kept stalling during peak dispatch hours while oversized cloud databases quietly inflated the monthly hosting bill.',
     solution:
-      '0xDEV containerized legacy services, introduced Redis event queues and real-time dispatch dashboards, and placed the platform under 24/7 managed SRE support.',
+      '0xDEV moved legacy services into containers, added Redis job queues with a live dispatch screen, and took over 24/7 monitoring.',
     architectureNotes:
-      'Rightsized database read replicas and automated container autoscaling tied to real dispatch queue depth.',
+      'Right-sized database replicas and tied container autoscaling directly to live dispatch queue depth.',
     metrics: [
       { value: '-38%', label: 'Monthly Cloud Spend' },
-      { value: '14 min', label: 'Automated Release Cycle' },
-      { value: '24/7', label: 'SLA Incident Coverage' },
+      { value: '14 min', label: 'Release Cycle' },
+      { value: '24/7', label: 'On-Call Coverage' },
     ],
     stackSummary: 'TypeScript · Python · Redis · Docker · GCP',
   },
@@ -478,15 +480,15 @@ export const CASE_STUDIES: CaseStudy[] = [
     previewUrl: 'coop.kigeziagri.ug/harvest',
     previewKind: 'agritech',
     problem:
-      'Cooperative collection centers across Kabale tracked produce weights on paper ledgers, delaying farmer mobile money payouts by up to 9 days.',
+      'Collection centers around Kabale wrote harvest weights in paper books, delaying farmer mobile money payouts by up to nine days.',
     solution:
-      'Built an offline-first Flutter collection app for field clerks synced to a real-time buyer exchange and automated MTN/Airtel Mobile Money bulk disbursement engine.',
+      'Built an offline-first Flutter collection app for field clerks synced to a buyer portal and automated MTN/Airtel Mobile Money bulk payouts.',
     architectureNotes:
-      'Conflict-free local SQLite queueing with cryptographic batch payout verification.',
+      'Local SQLite queueing with signed batch verification so duplicate payouts cannot happen on reconnect.',
     metrics: [
       { value: '18 min', label: 'Average Farmer Payout' },
-      { value: '6,400+', label: 'Registered Smallholders' },
-      { value: '100%', label: 'Digital Weight Traceability' },
+      { value: '6,400+', label: 'Registered Farmers' },
+      { value: '100%', label: 'Digital Weight Records' },
     ],
     stackSummary: 'Flutter · TypeScript · Node.js · PostgreSQL · MoMo API',
   },
@@ -497,19 +499,19 @@ export const CASE_STUDIES: CaseStudy[] = [
     timeline: '12 Weeks · Headless Storefront & Ops',
     title: 'BantuMart Multi-Vendor Marketplace',
     clientType: 'Retail & Wholesale Marketplace',
-    deliverableType: 'Headless Web Storefront & Vendor Portal',
+    deliverableType: 'Web Storefront & Vendor Portal',
     previewUrl: 'shop.bantumart.com/vendors',
     previewKind: 'ecommerce',
     problem:
-      'A slow template storefront failed under flash-sale traffic and lacked automated commission splits across 300+ regional suppliers.',
+      'A heavy template store broke under flash-sale traffic and had no automated way to split commissions across 300+ suppliers.',
     solution:
-      'Engineered a Next.js storefront with edge caching, real-time warehouse stock locking, and automated split-settlement payouts via card and mobile money.',
+      'Built a fast Next.js storefront with edge caching, real-time stock holds, and automatic payout splits over card and mobile money.',
     architectureNotes:
-      'Redis atomic inventory reservations prevent overselling during concurrent checkout spikes.',
+      'Atomic Redis inventory locks prevent two buyers from checking out the last unit at once.',
     metrics: [
-      { value: '0.8s', label: 'Median Storefront Load' },
+      { value: '0.8s', label: 'Median Page Load' },
       { value: '+142%', label: 'Checkout Conversion Lift' },
-      { value: '320+', label: 'Active Regional Vendors' },
+      { value: '320+', label: 'Active Vendors' },
     ],
     stackSummary: 'Next.js · TypeScript · Redis · PostgreSQL · AWS CloudFront',
   },
@@ -520,18 +522,18 @@ export const CASE_STUDIES: CaseStudy[] = [
     timeline: '9 Weeks · Full-Stack SaaS',
     title: 'ScholarPulse Campus ERP & Tuition Ledger',
     clientType: 'Multi-Campus School Group',
-    deliverableType: 'Admin Portal, Parent Web & SMS Engine',
+    deliverableType: 'Admin Portal, Parent Web & SMS Alerts',
     previewUrl: 'portal.scholarpulse.edu/fees',
     previewKind: 'edtech',
     problem:
-      'Bursars reconciled bank slips and mobile money school fees manually every term while parents waited days for official fee receipts.',
+      'School bursars spent weeks matching bank slips and mobile money fees by hand every term while parents waited days for receipts.',
     solution:
-      'Delivered an integrated school ERP with instant bank/MoMo fee matching, automated PDF receipts, report card generation, and attendance SMS alerts.',
+      'Shipped a school ERP with automatic bank and MoMo fee matching, instant PDF receipts, report card exports, and SMS attendance notices.',
     architectureNotes:
-      'Role-scoped multi-campus tenancy with immutable audit trails on every financial adjustment.',
+      'Strict per-campus data isolation with immutable audit rows for every fee edit.',
     metrics: [
-      { value: '14,500', label: 'Students Managed Daily' },
-      { value: '-85%', label: 'Term Reconciliation Time' },
+      { value: '14,500', label: 'Students Tracked Daily' },
+      { value: '-85%', label: 'Reconciliation Time' },
       { value: '99.9%', label: 'Receipt Delivery Rate' },
     ],
     stackSummary: 'React · TypeScript · Python · PostgreSQL · Docker',
@@ -542,20 +544,20 @@ export const CASE_STUDIES: CaseStudy[] = [
     region: 'Rural East Africa',
     timeline: '11 Weeks · IoT Telemetry & Billing',
     title: 'SolarGrid Microgrid Telemetry & PayGo Cloud',
-    clientType: 'Off-Grid Clean Energy Operator',
-    deliverableType: 'IoT Operations Console & Billing API',
+    clientType: 'Off-Grid Energy Operator',
+    deliverableType: 'Operations Console & Billing API',
     previewUrl: 'ops.solargrid.energy/nodes',
     previewKind: 'cleantech',
     problem:
-      'Field technicians had zero remote visibility into rural battery inverters, forcing costly truck dispatches before diagnosing simple voltage drops.',
+      'Field technicians had no remote view of rural battery inverters, forcing expensive truck dispatches just to inspect minor voltage drops.',
     solution:
-      'Built an MQTT telemetry ingestion pipeline, live inverter health dashboard, and automated Pay-As-You-Go token provisioning tied to customer payments.',
+      'Built an MQTT sensor ingestion pipeline, live inverter status screen, and automatic Pay-As-You-Go token delivery tied to customer payments.',
     architectureNotes:
-      'Time-series telemetry aggregation with anomaly threshold alerts routed directly to regional engineers.',
+      'Time-series aggregation with threshold alerts sent straight to the nearest regional technician.',
     metrics: [
-      { value: '-47%', label: 'Unnecessary Field Visits' },
-      { value: '1,850', label: 'Monitored Solar Nodes' },
-      { value: '<3s', label: 'PayGo Token Activation' },
+      { value: '-47%', label: 'Avoided Field Trips' },
+      { value: '1,850', label: 'Live Solar Nodes' },
+      { value: '<3s', label: 'Token Activation' },
     ],
     stackSummary: 'Go · React · TimescaleDB · MQTT · Google Cloud',
   },
@@ -564,19 +566,19 @@ export const CASE_STUDIES: CaseStudy[] = [
     sector: 'SaaS',
     region: 'Global Remote & Africa',
     timeline: '10 Weeks · FinOps Web Platform',
-    title: 'NileLedger SME Accounting & Tax Automation',
-    clientType: 'B2B Financial SaaS Startup',
-    deliverableType: 'Multi-Tenant SaaS Web Application',
+    title: 'NileLedger SME Accounting & Tax Tool',
+    clientType: 'B2B Financial SaaS',
+    deliverableType: 'Multi-Tenant Web App',
     previewUrl: 'app.nileledger.io/cashflow',
     previewKind: 'saas',
     problem:
-      'Growing SMEs struggled to sync multi-branch expenses, tax compliance receipts, and real-time cashflow forecasts across spreadsheets.',
+      'Small businesses struggled to track multi-branch expenses, tax receipts, and 90-day cashflow without messy spreadsheet chains.',
     solution:
-      'Designed and built a fast multi-tenant accounting suite featuring automated receipt OCR, bank feed matching, and interactive 90-day cashflow projections.',
+      'Designed and built a fast multi-tenant accounting app with receipt OCR, bank feed matching, and rolling cashflow forecasts.',
     architectureNotes:
-      'Row-level PostgreSQL tenant isolation paired with background queue workers for bulk tax exports.',
+      'Row-level PostgreSQL tenant isolation with background queues for heavy tax exports.',
     metrics: [
-      { value: '940+', label: 'Active SME Workspaces' },
+      { value: '940+', label: 'Active Workspaces' },
       { value: '12 hrs', label: 'Saved Weekly per Team' },
       { value: '99.95%', label: 'API Availability' },
     ],
@@ -593,37 +595,37 @@ export const CASE_STUDIES: CaseStudy[] = [
     previewUrl: 'supply.swiftmed.co/coldchain',
     previewKind: 'pharma',
     problem:
-      'Regional pharmacies lacked real-time batch expiry visibility and cold-chain temperature alerts for temperature-sensitive vaccines and insulin.',
+      'Pharmacies lacked live batch expiry visibility and cold-room temperature alerts for sensitive vaccines and insulin.',
     solution:
-      'Delivered a B2B pharmacy restocking portal coupled with continuous cold-room sensor monitoring, batch recall tracing, and automated expiry warnings.',
+      'Delivered a B2B restocking portal paired with continuous cold-chain sensor checks, batch tracing, and automatic expiry warnings.',
     architectureNotes:
-      'Event-driven threshold engine dispatches instant SMS and dashboard alerts if cold storage drifts.',
+      'Threshold rules fire instant SMS and dashboard alerts whenever cold storage drifts out of range.',
     metrics: [
       { value: '-72%', label: 'Expired Stock Waste' },
       { value: '410+', label: 'Connected Pharmacies' },
-      { value: '24/7', label: 'Cold-Chain Telemetry' },
+      { value: '24/7', label: 'Cold-Chain Checks' },
     ],
     stackSummary: 'Next.js · Flutter · Python · PostgreSQL · Terraform',
   },
   {
     id: 'rifttour-booking',
     sector: 'Hospitality',
-    region: 'Western Uganda & Global Tourists',
+    region: 'Western Uganda & International Guests',
     timeline: '7 Weeks · Custom Design & Booking',
-    title: 'RiftTour Eco-Lodge & Gorilla Trekking Engine',
-    clientType: 'Destination Hospitality Group',
-    deliverableType: 'Custom Booking Website & Admin Desk',
+    title: 'RiftTour Eco-Lodge & Trekking Booking Site',
+    clientType: 'Regional Hospitality Group',
+    deliverableType: 'Booking Website & Admin Desk',
     previewUrl: 'book.rifttour.ug/itineraries',
     previewKind: 'hospitality',
     problem:
-      'International travelers booking eco-lodges near Bwindi and Kabale abandoned slow PDF quote emails that took days to confirm availability.',
+      'Travelers booking lodges near Bwindi and Kabale dropped off after waiting days for manual PDF quote emails.',
     solution:
-      'Crafted an editorial booking experience with live room/permit availability, multi-currency USD/EUR/UGX card deposits, and instant itinerary PDFs.',
+      'Built a clean booking site with live room and permit availability, USD/EUR/UGX card deposits, and instant itinerary PDFs.',
     architectureNotes:
-      'Zero double-bookings across direct web checkout and partner tour operator channels.',
+      'Synced room inventory across direct web bookings and partner tour desks to stop double bookings.',
     metrics: [
       { value: '+118%', label: 'Direct Web Bookings' },
-      { value: '4 min', label: 'Average Booking Flow' },
+      { value: '4 min', label: 'Average Checkout Time' },
       { value: '38', label: 'Countries Served' },
     ],
     stackSummary: 'React · TypeScript · Node.js · Stripe · Cloud Run',
@@ -633,21 +635,21 @@ export const CASE_STUDIES: CaseStudy[] = [
     sector: 'Cybersecurity',
     region: 'UK, EU & East Africa',
     timeline: '8 Weeks · Zero-Trust Security Suite',
-    title: 'VaultGuard Zero-Trust IAM & Audit Console',
-    clientType: 'Regulated FinTech & Enterprise Clients',
+    title: 'VaultGuard IAM & Audit Console',
+    clientType: 'Regulated FinTech & SaaS Teams',
     deliverableType: 'Security Posture & Audit Portal',
     previewUrl: 'console.vaultguard.sec/posture',
     previewKind: 'security',
     problem:
-      'Engineering teams spent weeks manually gathering IAM logs, SSL expiry reports, and CVE patches ahead of annual ISO 27001 and partner security audits.',
+      'Engineering leads lost weeks collecting IAM logs, TLS expiry records, and patch reports before partner security reviews.',
     solution:
-      'Engineered an automated security posture monitor tracking cloud IAM drift, secret rotation schedules, TLS health, and exportable compliance evidence.',
+      'Built an automated security console watching cloud IAM drift, key rotation dates, certificate health, and exportable audit logs.',
     architectureNotes:
-      'Read-only cross-account cloud audit roles with signed immutable compliance snapshots.',
+      'Read-only cross-account cloud roles generating signed immutable compliance reports.',
     metrics: [
       { value: '82%', label: 'Faster Audit Prep' },
       { value: '100%', label: 'Automated CVE Triage' },
-      { value: '<5 min', label: 'Drift Alert Detection' },
+      { value: '<5 min', label: 'Drift Alert Time' },
     ],
     stackSummary: 'Go · React · PostgreSQL · AWS IAM · Kubernetes',
   },
@@ -657,18 +659,18 @@ export const CASE_STUDIES: CaseStudy[] = [
     region: 'Western Uganda Municipalities',
     timeline: '10 Weeks · Citizen Utility Portal',
     title: 'CivicServe Municipal Water & Utility Billing',
-    clientType: 'Public Water & Infrastructure Utility',
+    clientType: 'Public Water Utility',
     deliverableType: 'Citizen Portal & Meter Reader App',
     previewUrl: 'pay.civicserve.go.ug/meters',
     previewKind: 'govtech',
     problem:
-      'Residents queued in person to verify water bills while field meter readers logged readings on clipboards with frequent transcription errors.',
+      'Residents queued in person to check water bills while field readers copied meter numbers onto paper clipboards.',
     solution:
-      'Built a GPS-stamped Android/Flutter meter reading app paired with a lightweight citizen web portal for instant bill lookup and mobile money payment.',
+      'Built a GPS-tagged Android/Flutter meter app paired with a lightweight citizen web portal for quick bill checks and mobile money payment.',
     architectureNotes:
-      'Optimized under-120KB citizen web bundle so pages load cleanly even on 3G rural connections.',
+      'Kept the citizen web bundle under 120 KB so pages open reliably on rural 3G connections.',
     metrics: [
-      { value: '3.8x', label: 'On-Time Bill Collection' },
+      { value: '3.8x', label: 'On-Time Bill Payments' },
       { value: '28,000+', label: 'Households Connected' },
       { value: '98.4%', label: 'Verified Meter Accuracy' },
     ],
@@ -681,7 +683,7 @@ export const STATS: StatItem[] = [
     id: 'projects',
     target: 50,
     suffix: '+',
-    label: 'Projects Delivered',
+    label: 'Projects Shipped',
     context: 'Across fintech, logistics, health & SaaS',
   },
   {
@@ -689,22 +691,22 @@ export const STATS: StatItem[] = [
     target: 99.9,
     suffix: '%',
     decimals: 1,
-    label: 'Production Uptime',
-    context: 'Backed by automated multi-region failover',
+    label: 'Measured Uptime',
+    context: 'Automated health checks and multi-zone failover',
   },
   {
     id: 'support',
     target: 24,
     suffix: '/7',
-    label: 'Active Support',
-    context: 'Direct access to engineers who built it',
+    label: 'Direct Support',
+    context: 'Straight to the engineers who wrote the code',
   },
   {
     id: 'unified',
     target: 5,
     suffix: '-in-1',
-    label: 'Unified Capabilities',
-    context: 'Design, dev, cloud, security & ops combined',
+    label: 'Unified Stack',
+    context: 'Design, code, cloud, security & ops together',
   },
 ];
 
@@ -712,29 +714,29 @@ export const TESTIMONIALS: Testimonial[] = [
   {
     id: 't1',
     quote:
-      'Before 0xDEV, every outage turned into a three-way call between our UI freelancer, backend shop, and cloud consultant. Having one team own our product end-to-end cut our release cycle from three weeks to two days.',
-    name: 'Tunde Adeyemi',
-    role: 'Chief Technology Officer',
-    company: 'PayGrid Financial Services',
-    outcome: 'Consolidated 4 vendors into 1 · -58% release cycle time',
+      'Before working with 0xDEV, every outage turned into a three-way call between our UI contractor, backend shop, and cloud consultant. Having one team own the whole stack cut our release cycle from three weeks down to two days.',
+    name: 'Chief Technology Officer',
+    role: 'Payments Infrastructure Partner',
+    company: 'East & West Africa Corridor',
+    outcome: '4 vendors consolidated into 1 · 58% faster releases',
   },
   {
     id: 't2',
     quote:
-      'Arigye Wisdom and the 0xDEV team stepped in eight weeks before our enterprise launch, audited our infrastructure, redesigned our onboarding flow, and stayed on as our managed SRE partner. We now sleep through peak traffic nights.',
-    name: 'Amara Okafor',
-    role: 'VP of Product & Operations',
-    company: 'ZuriHealth Connect',
-    outcome: 'Zero downtime during 4x traffic surge · 24/7 SLA coverage',
+      'Arigye Wisdom and the studio stepped in eight weeks before launch, fixed our cloud bottlenecks, simplified patient onboarding, and stayed on for 24/7 monitoring. Peak clinic hours stopped feeling stressful.',
+    name: 'VP of Product & Operations',
+    role: 'Multi-Branch Clinic Network',
+    company: 'Uganda, Kenya & UK',
+    outcome: 'Zero downtime during 4x traffic spike · Ongoing SLA',
   },
   {
     id: 't3',
     quote:
-      'What sets 0xDEV apart is real accountability. Their designers work side-by-side with their DevOps engineers from day one, so nothing gets lost in translation and our monthly cloud bill dropped by nearly forty percent.',
-    name: 'David Mensah',
-    role: 'Head of Engineering',
-    company: 'AtlasFreight Logistics',
-    outcome: '38% cloud cost reduction · Unified web & mobile platform',
+      'What made the biggest difference was accountability. Their designers sit right alongside the engineers setting up infrastructure, so nothing gets lost in handoff and our monthly AWS bill dropped by nearly 40%.',
+    name: 'Head of Engineering',
+    role: 'Cross-Border Freight Operator',
+    company: 'Pan-African Logistics',
+    outcome: '38% lower monthly cloud spend · Unified web & mobile ops',
   },
 ];
 
@@ -744,36 +746,36 @@ export const TEAM_MEMBERS: TeamMember[] = [
     name: 'Arigye Wisdom',
     role: 'Founder & Principal Full-Stack Architect',
     location: 'Kabale, Uganda',
-    specialty: 'Full-Stack Engineering, Cloud & Delivery',
+    specialty: 'Architecture, Full-Stack Code & Direct Client Lead',
     initials: 'AW',
-    bio: 'Leads software architecture, client advisory, and end-to-end project delivery from Kabale, Uganda—available for both dedicated enterprise builds and focused freelance engagements.',
+    bio: 'Leads technical discovery, system architecture, and hands-on engineering from Kabale. Your direct point of contact for both full product builds and focused freelance contracts.',
   },
   {
     id: 'm2',
-    name: 'Zainab Bello',
-    role: 'Head of Product Design',
-    location: 'Remote · East & West Africa',
-    specialty: 'UX Strategy & Design Systems',
-    initials: 'ZB',
-    bio: 'Leads human-centered product discovery and multi-platform Figma component architectures built for speed and clarity.',
+    name: 'Product & UI/UX Practice',
+    role: 'Interface Architecture & Design Systems',
+    location: 'Kabale Studio & Remote',
+    specialty: 'User Flows, Figma Tokens & Interactive Prototypes',
+    initials: 'UX',
+    bio: 'Maps workflows, validates usability on real screens, and hands clean component specs straight into engineering sprints without design-to-code guesswork.',
   },
   {
     id: 'm3',
-    name: 'Kofi Boateng',
-    role: 'Lead DevOps & Security Engineer',
-    location: 'Remote · Accra / London',
-    specialty: 'Kubernetes, Terraform & Compliance',
-    initials: 'KB',
-    bio: 'Specializes in zero-downtime CI/CD automation, cloud cost optimization, IAM hardening, and 24/7 SRE observability.',
+    name: 'Cloud, DevOps & Security',
+    role: 'Infrastructure, CI/CD & Hardening',
+    location: 'AWS · Azure · Google Cloud',
+    specialty: 'Terraform IaC, Containers, IAM & Cost Control',
+    initials: 'OPS',
+    bio: 'Handles automated deployments, least-privilege permissions, encrypted backups, and cloud budget tuning so production stays fast and predictable.',
   },
   {
     id: 'm4',
-    name: 'Nadia Hassan',
-    role: 'Client Delivery & QA Lead',
-    location: 'Nairobi · EAT (UTC+3)',
-    specialty: 'Automated Testing & Agile Ops',
-    initials: 'NH',
-    bio: 'Aligns cross-functional sprints with business milestones so every client works with one clear point of contact.',
+    name: 'QA & 24/7 Reliability',
+    role: 'Testing, Telemetry & Ongoing Support',
+    location: 'EAT (UTC+3) · Round-the-Clock Alerts',
+    specialty: 'Automated Test Suites, Monitoring & SLA Response',
+    initials: 'SLA',
+    bio: 'Owns automated test coverage, weekly staging verification, uptime probes, and rapid post-launch fixes so software keeps running smoothly long after launch day.',
   },
 ];
 
@@ -784,13 +786,13 @@ export const ENGAGEMENT_MODELS: EngagementModel[] = [
     subtitle: 'Fixed Scope & Milestones',
     cadence: '2–16 week deliveries',
     description:
-      'Clear deliverables, fixed timeline, and transparent milestone pricing—whether for a focused freelance feature build or a complete MVP launch.',
-    bestFor: 'Startups, SMEs, and freelance builds needing predictable scope and clean handover.',
+      'Clear deliverables, a fixed schedule, and milestone payments. Built for focused freelance tasks or complete V1 product launches.',
+    bestFor: 'Startups, SMEs, and freelance builds needing clear scope and clean handover.',
     features: [
-      'Upfront architecture & UX blueprint',
-      'Weekly staging demos & sprint reviews',
-      'Automated test suite & CI/CD setup',
-      '100% source code & IP ownership transfer',
+      'Written architecture & UX plan upfront',
+      'Weekly staging links you can test yourself',
+      'Automated tests & CI/CD setup included',
+      '100% source code & IP ownership',
     ],
     ctaLabel: 'Scope a Fixed Project',
     budgetHint: '$5k – $40k',
@@ -798,16 +800,16 @@ export const ENGAGEMENT_MODELS: EngagementModel[] = [
   {
     id: 'dedicated-team',
     name: 'Dedicated Team',
-    subtitle: 'Most Popular · Full-Stack Squad',
+    subtitle: 'Most Popular · Full-Stack Pod',
     cadence: 'Monthly flexible commitment',
     description:
-      'Your own integrated 0xDEV pod—product designer, full-stack engineers, and DevOps lead—working directly inside your roadmap.',
-    bestFor: 'Scaling products needing continuous shipping without multi-vendor friction.',
+      'Your own 0xDEV engineering pod covering design, full-stack development, and DevOps, shipping directly inside your roadmap.',
+    bestFor: 'Growing products that need steady weekly releases without vendor friction.',
     features: [
-      'Cross-functional designer, dev & DevOps pod',
-      'Direct collaboration with Arigye Wisdom & leads',
-      'Shared Slack/WhatsApp & weekly velocity tracking',
-      'Scale capacity up or down as priorities shift',
+      'Integrated design, dev & cloud pod',
+      'Direct Slack/WhatsApp access with Arigye Wisdom',
+      'Weekly sprint demos & clear velocity notes',
+      'Adjust capacity month to month as priorities change',
     ],
     highlighted: true,
     ctaLabel: 'Build Your Dedicated Pod',
@@ -816,16 +818,16 @@ export const ENGAGEMENT_MODELS: EngagementModel[] = [
   {
     id: 'managed-retainer',
     name: 'Managed Retainer',
-    subtitle: '24/7 Ops & Continuous Evolution',
+    subtitle: '24/7 Ops & Ongoing Updates',
     cadence: 'Quarterly or annual SLA',
     description:
-      'Guaranteed uptime, proactive cloud optimization, security patching, and a reserved monthly bank of engineering hours.',
-    bestFor: 'Mission-critical production platforms requiring round-the-clock reliability.',
+      'Round-the-clock monitoring, security patching, cloud bill reviews, and a reserved monthly bank of engineering hours.',
+    bestFor: 'Live production platforms that cannot afford unexpected downtime.',
     features: [
-      '24/7 incident monitoring & 15-min SLA response',
-      'Quarterly security & dependency audits',
-      'Monthly AWS/Azure/GCP cost optimization',
-      'Reserved hours for enhancements & bug fixes',
+      '24/7 uptime alerts & 15-min SLA response',
+      'Quarterly security & dependency checks',
+      'Monthly AWS/Azure/GCP spend review',
+      'Reserved hours for new features & bug fixes',
     ],
     ctaLabel: 'Secure Managed Support',
     budgetHint: '$1.5k – $15k/mo',
@@ -835,38 +837,38 @@ export const ENGAGEMENT_MODELS: EngagementModel[] = [
 export const FAQS: FaqItem[] = [
   {
     id: 'faq-1',
-    question: 'Where is 0xDEV located, and do you take remote or freelance jobs?',
+    question: 'Where is 0xDEV based, and do you take remote or freelance work?',
     answer:
-      'Our physical studio is based in Kabale, Western Uganda (EAT / UTC+3), and we actively work on both local engagements and international remote or freelance contracts. Our timezone overlaps cleanly with East Africa, Europe, the UK, and the Middle East, plus morning overlap with North America.',
+      'Our studio is in Kabale, Western Uganda (EAT / UTC+3), and we work both locally and with remote clients worldwide. Our hours overlap cleanly with East Africa, Europe, the UK, and the Middle East, plus morning hours with North America.',
   },
   {
     id: 'faq-2',
-    question: 'How does replacing five vendors with 0xDEV save time and cost?',
+    question: 'How does using one team instead of five vendors actually save time and money?',
     answer:
-      'When separate vendors handle design, frontend, backend, cloud, and support, you pay overlapping management margins and lose weeks to misaligned handoffs. With 0xDEV, one integrated team shares the same sprint board, architecture standards, and deployment pipeline—eliminating translation errors and finger-pointing.',
+      'When separate contractors handle design, frontend, backend, hosting, and support, you pay extra coordination overhead and lose weeks whenever a bug crosses teams. With 0xDEV, one team shares the same codebase, sprint board, and deployment pipeline.',
   },
   {
     id: 'faq-3',
-    question: 'Do we retain 100% ownership of our source code, designs, and cloud accounts?',
+    question: 'Do we keep 100% ownership of our source code, designs, and cloud accounts?',
     answer:
-      'Always. Everything we design and engineer—Figma files, Git repositories, Terraform infrastructure scripts, and documentation—is built directly inside accounts you own and control. You never face vendor lock-in.',
+      'Yes, always. Figma files, Git repositories, Terraform scripts, and cloud accounts sit under your organization from day one. You are never locked into us.',
   },
   {
     id: 'faq-4',
-    question: 'Can you take on smaller freelance builds or fix an existing codebase?',
+    question: 'Can you handle smaller freelance tasks or fix an existing app?',
     answer:
-      'Yes. In addition to full-lifecycle builds, we regularly take on focused freelance engagements—such as building a specific API integration, rescuing a stalled React/Flutter app, auditing cloud costs, or setting up CI/CD pipelines.',
+      'Definitely. Alongside full builds, we take focused freelance jobs like building a mobile money integration, fixing a slow React or Flutter app, auditing cloud bills, or setting up automated deploys.',
   },
   {
     id: 'faq-5',
-    question: 'How quickly can we kick off after submitting a project brief?',
+    question: 'How quickly can we get started after sending a brief?',
     answer:
-      'We respond to every inquiry within one business day. Discovery calls and scope estimation happen in days 1–3, and development or design sprints typically kick off within 5 business days of agreement.',
+      'We reply within one business day. Discovery calls and ballpark estimates happen in days 1 to 3, and sprints usually begin within 5 business days of sign-off.',
   },
   {
     id: 'faq-6',
-    question: 'How do you handle cybersecurity and post-launch support?',
+    question: 'How do you handle security and support after launch?',
     answer:
-      'Security is built into every phase: least-privilege IAM policies, encrypted data at rest and in transit, automated dependency scanning in CI/CD, and structured logging. Post-launch, our Managed Retainer plans provide 24/7 uptime monitoring and direct escalation to the engineers who built your system.',
+      'Security starts on sprint one with tight IAM permissions, encrypted transport and storage, automated CVE checks in CI, and audit logs. After launch, our Managed Retainer plans keep 24/7 eyes on uptime with direct escalation to the engineers who built the system.',
   },
 ];

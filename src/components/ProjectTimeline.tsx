@@ -334,9 +334,9 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
     };
   }, [displayedMilestones]);
 
-  const handleSeedStandardMilestones = async () => {
+  const handleAddStandardMilestones = async () => {
     if (!isPrimaryAdmin || !selectedInquiry) return;
-    setBusyId('seed');
+    setBusyId('add-baseline');
     setErrorMsg(null);
     setFeedback(null);
 
@@ -361,9 +361,9 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
         });
       });
       await batch.commit();
-      setFeedback('Initialized 5 editable milestones for this project.');
+      setFeedback('Added 5 standard milestones for this project.');
     } catch (error) {
-      setErrorMsg('Unable to seed milestones right now.');
+      setErrorMsg('Unable to add standard milestones right now.');
       handleFirestoreError(
         error,
         OperationType.WRITE,
@@ -528,7 +528,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                 >
                   {inquiries.map((inq) => (
                     <option key={inq.inquiryId} value={inq.inquiryId}>
-                      {isPrimaryAdmin ? `${inq.name} — ` : ''}
+                      {isPrimaryAdmin ? `${inq.name} · ` : ''}
                       {inq.service} ({INQUIRY_STATUS_LABELS[inq.status] || inq.status})
                     </option>
                   ))}
@@ -693,25 +693,25 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
             </div>
           )}
 
-          {/* Baseline Info Notice & Admin Seed Control */}
+          {/* Baseline Info Notice & Admin Standard Milestones Control */}
           {isUsingBaseline && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-4 py-3.5">
               <div className="flex items-start gap-2.5 text-xs text-[#4A4F63] dark:text-[#C2C9E0]">
                 <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#EE1119]" aria-hidden="true" />
                 <span>
-                  Showing standard 0xDEV 5-phase delivery baseline synchronized with your inquiry
+                  Showing the standard 0xDEV 5-phase delivery baseline synced with your inquiry
                   status. Custom sprint deliverables added by our team appear here in real time.
                 </span>
               </div>
               {isPrimaryAdmin && (
                 <button
                   type="button"
-                  disabled={busyId === 'seed'}
-                  onClick={() => void handleSeedStandardMilestones()}
+                  disabled={busyId === 'add-baseline'}
+                  onClick={() => void handleAddStandardMilestones()}
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#1A1464] dark:border-[#3A437A] bg-white dark:bg-[#141A38] px-3.5 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:bg-[#1A1464] dark:hover:bg-[#2E368F] hover:text-white disabled:opacity-60 whitespace-nowrap"
                 >
                   <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{busyId === 'seed' ? 'Seeding...' : 'Seed 5 Editable Milestones'}</span>
+                  <span>{busyId === 'add-baseline' ? 'Adding...' : 'Add 5 Standard Milestones'}</span>
                 </button>
               )}
             </div>
@@ -786,7 +786,7 @@ export const ProjectTimeline: React.FC<ProjectTimelineProps> = ({
                     type="text"
                     value={newDueDate}
                     onChange={(e) => setNewDueDate(e.target.value)}
-                    placeholder="May 30, 2025"
+                    placeholder="e.g. End of Sprint 2"
                     className="mt-1.5 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white"
                   />
                 </div>

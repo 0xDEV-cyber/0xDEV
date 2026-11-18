@@ -1,8 +1,12 @@
 import React from 'react';
-import { motion } from 'motion/react';
 import { Compass, MapPin, Phone, Shield, Target, Users } from 'lucide-react';
 import { COMPANY_CONTACT, PageRoute, TEAM_MEMBERS } from '../data/siteData';
-import { EASE_OUT_EXPO, Reveal, StaggerGrid, StaggerItem } from './MotionPrimitives';
+import {
+  InteractiveCard,
+  Reveal,
+  StaggerGrid,
+  StaggerItem,
+} from './MotionPrimitives';
 import { PageHeader } from './PageHeader';
 import { SharedCtaBanner } from './SharedCtaBanner';
 
@@ -13,23 +17,23 @@ interface AboutPageProps {
 const CORE_VALUES = [
   {
     icon: Target,
-    title: 'Radical Ownership',
-    description: 'One team owns design, code, cloud, and uptime—never passing blame across contracts.',
+    title: 'Clear Ownership',
+    description: 'One studio handles design, code, cloud setup, and fixes without passing blame.',
   },
   {
     icon: Compass,
-    title: 'Architectural Clarity',
-    description: 'We engineer clean, modular systems your internal staff can read, test, and grow.',
+    title: 'Readable Code',
+    description: 'We write clean, modular code that any future engineer on your team can pick up quickly.',
   },
   {
     icon: Shield,
-    title: 'Security by Default',
-    description: 'Threat modeling, least-privilege IAM, and encrypted pipelines start on sprint one.',
+    title: 'Security First',
+    description: 'Strict access rules, encrypted storage, and automated checks start on week one.',
   },
   {
     icon: Users,
-    title: 'Partnership Over Tickets',
-    description: 'Direct access to senior engineers and designers who understand your business model.',
+    title: 'Direct Access',
+    description: 'Talk directly to the engineer writing your software instead of going through ticket layers.',
   },
 ];
 
@@ -38,8 +42,8 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
     <>
       <PageHeader
         eyebrow="About 0xDEV"
-        title="Rooted in Kabale, Uganda. Engineering for teams everywhere."
-        description="Founded to end fragmented software delivery, 0xDEV brings design, full-stack engineering, cloud infrastructure, and 24/7 maintenance together under one accountable roof."
+        title="Based in Kabale, Uganda. Shipping software everywhere."
+        description="We started 0xDEV to replace fragmented contractor handoffs with one engineering studio that owns design, software, cloud hosting, and support together."
         currentLabel="About"
         onNavigate={onNavigate}
       />
@@ -48,17 +52,16 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
       <section className="bg-white dark:bg-[#090D1F] py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 items-start">
-            <Reveal direction="right" distance={18} className="lg:col-span-5">
+            <Reveal direction="right" distance={20} className="lg:col-span-5">
               <h2 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1A1464] dark:text-[#F4F6FC]">
-                Physical studio in Kabale. Ready for freelance &amp; global contracts.
+                Physical studio in Kabale. Open for freelance &amp; remote builds.
               </h2>
               <p className="mt-4 text-base leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                 Led by Founder &amp; Principal Architect{' '}
                 <strong className="text-[#1A1464] dark:text-white">{COMPANY_CONTACT.leadName}</strong>, our team
-                operates from{' '}
+                works out of{' '}
                 <strong className="text-[#1A1464] dark:text-white">{COMPANY_CONTACT.location}</strong> while
-                collaborating with founders, NGOs, and enterprises worldwide on both full-lifecycle
-                platforms and focused freelance engagements.
+                building software for local businesses, NGOs, and remote founders around the world.
               </p>
               <div className="mt-6 space-y-3 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-5 text-sm">
                 <div className="flex items-center gap-3 text-[#1A1464] dark:text-[#F4F6FC] font-semibold">
@@ -74,47 +77,44 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               </div>
             </Reveal>
 
-            <Reveal direction="left" distance={18} delay={0.08} className="lg:col-span-7 grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-6 sm:p-7">
+            <Reveal direction="left" distance={20} delay={0.08} className="lg:col-span-7 grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <InteractiveCard hoverY={-4} className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-6 sm:p-7">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
                   Our Mission
                 </p>
                 <p className="mt-3 font-display text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC] leading-snug">
-                  Give ambitious organizations one accountable engineering partner for every layer
-                  of their stack.
+                  Give teams one reliable partner for every layer of their software stack.
                 </p>
                 <p className="mt-2.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
-                  From initial UX discovery through 24/7 cloud operations, we align software craft
-                  with measurable business reliability.
+                  From early wireframes through 24/7 cloud uptime, we keep engineering practical,
+                  transparent, and steady.
                 </p>
-              </div>
+              </InteractiveCard>
 
-              <div className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-6 sm:p-7">
+              <InteractiveCard hoverY={-4} className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-6 sm:p-7">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#1A1464] dark:text-[#9AA5FF]">
-                  Our Vision
+                  Our Standard
                 </p>
                 <p className="mt-3 font-display text-lg font-bold text-[#1A1464] dark:text-[#F4F6FC] leading-snug">
-                  Prove that world-class software and cloud engineering from Western Uganda sets
-                  the benchmark for reliability.
+                  Dependable software built in Western Uganda for teams anywhere.
                 </p>
                 <p className="mt-2.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
-                  Clean architecture, transparent communication, and long-term ownership—without
-                  the bureaucracy of five separate agencies.
+                  Clean architecture, honest estimates, and full code ownership without the overhead
+                  of managing five vendors.
                 </p>
-              </div>
+              </InteractiveCard>
             </Reveal>
           </div>
 
           {/* Core Values */}
-          <StaggerGrid className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <StaggerGrid staggerDelay={0.06} className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {CORE_VALUES.map((value) => {
               const Icon = value.icon;
               return (
                 <StaggerItem key={value.title} className="h-full">
-                  <motion.div
-                    whileHover={{ y: -4 }}
-                    transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
-                    className="h-full rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6"
+                  <InteractiveCard
+                    hoverY={-5}
+                    className="h-full rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 transition-shadow hover:shadow-md"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#F4F6FC]">
                       <Icon className="h-5 w-5" aria-hidden="true" />
@@ -125,7 +125,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                     <p className="mt-1.5 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
                       {value.description}
                     </p>
-                  </motion.div>
+                  </InteractiveCard>
                 </StaggerItem>
               );
             })}
@@ -133,30 +133,29 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Leadership & Team */}
+      {/* Studio Leadership & Practices (No Demo Personas) */}
       <section className="bg-[#F6F7FB] dark:bg-[#101530] py-16 sm:py-20 border-t border-[#E5E7F0] dark:border-[#242C54]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal className="max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#EE1119]">
-              Leadership &amp; Practice Leads
+              Studio Lead &amp; Engineering Practices
             </p>
             <h2 className="mt-2 font-display text-3xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
-              Real people accountable for every commit.
+              How the Kabale studio is structured.
             </h2>
           </Reveal>
 
-          <StaggerGrid className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <StaggerGrid staggerDelay={0.07} className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {TEAM_MEMBERS.map((member, index) => (
               <StaggerItem key={member.id} className="h-full">
-                <motion.article
-                  whileHover={{ y: -4 }}
-                  transition={{ duration: 0.18, ease: EASE_OUT_EXPO }}
+                <InteractiveCard
+                  hoverY={-5}
                   className="h-full rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 hover:shadow-md transition-shadow duration-200"
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#1A1464] dark:bg-[#232B6E] font-display text-lg font-extrabold text-white"
-                      aria-label={`${member.name} monogram`}
+                      className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#1A1464] dark:bg-[#232B6E] font-display text-sm font-extrabold text-white"
+                      aria-label={`${member.name} badge`}
                     >
                       <span
                         aria-hidden="true"
@@ -178,7 +177,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                   <p className="mt-4 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC]">{member.role}</p>
                   <p className="mt-1 text-xs font-medium text-[#6B7188] dark:text-[#8E97B8]">{member.specialty}</p>
                   <p className="mt-3 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">{member.bio}</p>
-                </motion.article>
+                </InteractiveCard>
               </StaggerItem>
             ))}
           </StaggerGrid>

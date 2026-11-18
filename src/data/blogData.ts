@@ -48,9 +48,9 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   {
     id: 'art-idempotent-ledgers',
     slug: 'idempotent-mobile-money-ledgers',
-    title: 'Engineering Idempotent Mobile Money Ledgers Under High-Latency Network Retries',
+    title: 'How to Build Mobile Money Ledgers That Survive Retries and Slow Networks',
     excerpt:
-      'How we architect double-entry PostgreSQL ledgers, deterministic idempotency keys, and out-of-order webhook reconcilers so duplicate retries never double-credit or drift balances.',
+      'A practical look at double-entry PostgreSQL ledgers, idempotency keys, and out-of-order webhook handlers so duplicate retries never double-credit an account.',
     category: 'Fintech Systems',
     authorName: 'Arigye Wisdom',
     authorRole: 'Principal Systems Architect · 0xDEV',
@@ -60,35 +60,35 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     coverImage: '/src/assets/images/blog_fintech_ledger_1794909287930.jpg',
     stackTags: ['Go', 'PostgreSQL', 'Redis', 'Double-Entry Ledger'],
     keyTakeaways: [
-      'Never mutate a mutable account balance column directly; append immutable debit and credit journal entries inside a serializable transaction.',
-      'Bind every client request and mobile-money gateway callback to a composite idempotency key with payload hash verification.',
-      'Separate synchronous authorization state from asynchronous provider settlement webhooks using an explicit state machine.',
+      'Do not overwrite a single balance column directly; write append-only debit and credit rows inside a serializable transaction.',
+      'Tie every client transfer and mobile money callback to a unique idempotency key plus a request body hash.',
+      'Keep synchronous request handling separate from async provider settlement callbacks with a strict state machine.',
     ],
     calloutQuote:
-      'In payment infrastructure, network timeouts are not edge cases—they are the normal operating condition. Correctness must hold even when a client retries the exact transfer request four times across thirty seconds.',
+      'In mobile money systems, slow timeouts are normal Tuesday afternoon traffic. Your ledger still has to stay balanced if a phone retries the same transfer four times in thirty seconds.',
     sections: [
       {
         id: 'failure-mode',
-        heading: 'Why Naive Balance Updates Fail in Production',
+        heading: 'Why Simple Balance Updates Break Under Load',
         paragraphs: [
-          'Early-stage payment APIs often store a numeric balance column on a user row and execute an update statement after receiving a response from a telecom or mobile-money aggregator. When a gateway times out at 28 seconds while still committing the upstream transfer, the client retries and triggers a second debit or credit.',
-          'At 0xDEV, every financial workflow begins with an append-only journal model. Account balances are derived projections materialized from verified ledger lines where the sum of debits and credits across a transaction batch must strictly equal zero.',
+          'A common mistake in early payment APIs is storing a plain numeric balance column on a user row and running an UPDATE right after calling a telecom aggregator. When the gateway hangs for 28 seconds but still sends the money upstream, the app retries and credits or debits the user twice.',
+          'On our builds at 0xDEV, money never moves by overwriting a single number. Every transfer writes balanced debit and credit lines into an append-only journal table, where the batch sum always equals zero.',
         ],
       },
       {
         id: 'idempotency-gate',
-        heading: 'Deterministic Idempotency Keys & Payload Fingerprinting',
+        heading: 'Using Idempotency Keys and Payload Fingerprints',
         paragraphs: [
-          'Before touching any ledger rows, incoming transfer endpoints acquire a Redis lock keyed by merchantId + idempotencyKey and validate a SHA-256 fingerprint of the canonical request body. If the same key arrives with a mutated amount or destination account, the API immediately rejects it with HTTP 422 rather than silently replaying stale state.',
-          'If the original request is still in-flight, subsequent retries block briefly or return HTTP 409 with a status polling cursor. Once committed, the exact serialized response payload is persisted alongside the ledger transaction ID so future retries replay byte-for-byte identical receipts.',
+          'Before touching any database row, the transfer endpoint grabs a short Redis lock keyed by merchantId + idempotencyKey and checks a SHA-256 hash of the canonical JSON payload. If someone reuses the same key with a different amount or recipient, the API stops right away with HTTP 422 instead of replaying bad data.',
+          'If the first attempt is still running, duplicate requests get a clean HTTP 409 status cursor. Once committed, we store the serialized receipt next to the transaction ID so any future retry returns the exact same response byte for byte.',
         ],
       },
       {
         id: 'reconciliation-loop',
-        heading: 'Asynchronous Webhook Verification & Automated Settlement Sweeps',
+        heading: 'Handling Out-of-Order Webhooks and Nightly Sweeps',
         paragraphs: [
-          'Mobile-money callbacks frequently arrive out of order or twice within the same millisecond. Our webhook ingestion handlers verify HMAC-SHA256 provider signatures first, enqueue the raw event into a durable dead-letter-capable worker queue, and transition transfer records strictly along valid state edges (pending → settled or pending → reversed).',
-          'A scheduled nightly reconciliation job cross-checks settled provider CSV/API statements against internal journal entries, surfacing any single-cent variance in seconds rather than waiting for month-end finance audits.',
+          'Mobile money webhooks show up late, out of order, or twice inside the same millisecond. Our callback route checks the HMAC-SHA256 signature first, drops the raw payload onto a durable queue, and only moves transfers along valid edges like pending to settled or pending to reversed.',
+          'Each night, a scheduled job compares upstream provider statements against our internal journal rows. If even one shilling is off, we know that morning instead of finding out during month-end accounting.',
         ],
       },
     ],
@@ -121,9 +121,9 @@ COMMIT;`,
   {
     id: 'art-offline-first-sync',
     slug: 'offline-first-sqlite-sync-architecture',
-    title: 'Designing Offline-First Flutter & SQLite Sync for Unreliable Field Connectivity',
+    title: 'Offline-First Flutter & SQLite Sync for Patchy Field Connections',
     excerpt:
-      'Field agents and rural clinics cannot wait for 4G bars to save critical records. Here is our blueprint for encrypted local SQLite outboxes, deterministic conflict merges, and bandwidth-lean delta sync.',
+      'Field clerks and rural clinics cannot stare at a spinner waiting for 4G. Here is how we build encrypted SQLite outboxes and lean delta sync.',
     category: 'Mobile & Offline',
     authorName: 'Arigye Wisdom',
     authorRole: 'Principal Systems Architect · 0xDEV',
@@ -133,34 +133,34 @@ COMMIT;`,
     coverImage: '/src/assets/images/blog_offline_sync_1794909287812.jpg',
     stackTags: ['Flutter', 'SQLite (SQLCipher)', 'Node.js', 'Delta Sync'],
     keyTakeaways: [
-      'Treat the local encrypted SQLite database as the primary UI source of truth so interactions stay sub-16ms offline.',
-      'Persist every local mutation as an ordered outbox command with client-generated UUIDv7 identifiers instead of relying on auto-increment IDs.',
-      'Resolve concurrent edits deterministically at the field level using server-assigned monotonic sync cursors.',
+      'Read and write straight to local encrypted SQLite first so every screen stays instant offline.',
+      'Queue every change in a local outbox with client-generated UUIDv7 IDs instead of server auto-increment integers.',
+      'Sync changes in small batches using monotonic server watermarks to cut mobile data usage.',
     ],
     calloutQuote:
-      'Offline-first is not a toggle you bolt on at the end of a mobile sprint. It determines how you generate primary keys, structure API payloads, and authenticate expired tokens without wiping unsynced user work.',
+      'Offline support cannot be tacked on during the final week of QA. It shapes how you pick primary keys, structure sync payloads, and handle expired auth tokens without losing unsynced field records.',
     sections: [
       {
         id: 'local-source-of-truth',
-        heading: 'Making Local Storage the Primary Read/Write Boundary',
+        heading: 'Reading and Writing Local Storage First',
         paragraphs: [
-          'Across agricultural cooperatives in Western Uganda and regional logistics fleets, field staff routinely work in dead zones for six to eight hours per shift. Any architecture that awaits a REST round-trip before confirming a weigh-in or patient intake will freeze in the field.',
-          'Our mobile clients write immediately to an AES-256 encrypted SQLite store (SQLCipher) and render UI streams reactively from local queries. Every create, update, or status transition simultaneously appends an immutable mutation record into a local outbox table.',
+          'For farm cooperatives in Western Uganda and long-haul dispatch teams, staff spend hours in areas with zero signal. Any mobile app that waits on an API response before saving a weigh-in or patient intake form becomes unusable in the field.',
+          'Our Flutter builds write directly to an AES-256 encrypted SQLite database (SQLCipher) and feed UI screens straight from local queries. Every create or edit also drops a small mutation record into a local outbox table.',
         ],
       },
       {
         id: 'outbox-protocol',
-        heading: 'Chunked Outbox Flushing & Cursor-Based Delta Pulls',
+        heading: 'Small Batch Flushing and Cursor Sync',
         paragraphs: [
-          'When connectivity returns—even briefly over 2G/3G—a background isolate drains the outbox in small 25-record compressed batches. Each mutation carries a client-generated UUIDv7 and a base revision version.',
-          'Rather than re-downloading entire catalogs, the client sends its last verified server watermark (last_sync_seq) and pulls only mutated rows changed since that sequence number, reducing daily cellular data consumption by over 82%.',
+          'As soon as the phone catches even brief 2G or 3G signal, a background worker flushes the outbox in compressed batches of 25 records. Every item carries its own UUIDv7 and the base version it edited.',
+          'Instead of pulling full tables again, the app sends its last confirmed server sequence number (last_sync_seq) and downloads only rows that changed since then. That simple change usually cuts cellular data use by over 80%.',
         ],
       },
       {
         id: 'auth-resilience',
-        heading: 'Preventing Token Expiry Data Loss',
+        heading: 'Never Wiping Local Data on Expired Tokens',
         paragraphs: [
-          'One subtle failure mode in offline apps occurs when a JWT refresh token expires while unsynced mutations remain queued locally. Our apps never clear the local database on a 401 response; instead, they lock sync transport, prompt silent re-authentication, and resume draining the intact outbox once a fresh session is issued.',
+          'One nasty bug happens when a user refresh token expires while unsynced records are still sitting in the outbox. Our apps never wipe SQLite on a 401 response. They pause the sync worker, ask the clerk to log back in quietly, and then push the waiting queue cleanly.',
         ],
       },
     ],
@@ -196,9 +196,9 @@ export async function applyDeltaBatch(
   {
     id: 'art-terraform-finops',
     slug: 'terraform-finops-multi-az-cost-reduction',
-    title: 'Cutting Multi-AZ Cloud Spend by 38% Without Compromising High Availability',
+    title: 'How We Cut Multi-AZ AWS Cloud Bills by 38% Without Dropping Uptime',
     excerpt:
-      'Unchecked NAT gateway cross-AZ data transfer, idle staging clusters, and oversized RDS instances silently inflate cloud invoices. Here is the exact Terraform and FinOps playbook we run for clients.',
+      'Cross-AZ NAT traffic, weekend staging clusters, and oversized databases quietly pad cloud invoices. Here are the Terraform fixes we run first.',
     category: 'Cloud & DevOps',
     authorName: 'Arigye Wisdom',
     authorRole: 'Principal Systems Architect · 0xDEV',
@@ -208,26 +208,26 @@ export async function applyDeltaBatch(
     coverImage: '/src/assets/images/blog_cloud_infra_1794909289647.jpg',
     stackTags: ['Terraform', 'AWS ECS', 'FinOps', 'CloudWatch'],
     keyTakeaways: [
-      'Audit cross-AZ traffic and S3/ECR NAT Gateway egress first—they frequently account for 25% of unexpected VPC charges.',
-      'Automate off-hours scale-to-zero schedules for staging and QA environments directly inside Terraform modules.',
-      'Right-size compute using p95 CPU/memory telemetry over 30-day rolling windows rather than provisioning for hypothetical peak guesses.',
+      'Check NAT Gateway and cross-AZ transfer fees first; they often make up a quarter of an inflated VPC bill.',
+      'Scale staging and QA services down to zero overnight and on weekends inside Terraform.',
+      'Size instances from real 30-day p95 CPU and memory charts instead of launch-day guesses.',
     ],
     calloutQuote:
-      'High availability requires redundancy across fault domains, not paying 24/7 enterprise compute rates for an idle staging environment every weekend.',
+      'High availability means surviving a zone failure in production, not paying full enterprise rates for an idle QA cluster at 2 a.m. on Sunday.',
     sections: [
       {
         id: 'hidden-network-tax',
-        heading: 'Eliminating Silent Cross-AZ & NAT Gateway Leakage',
+        heading: 'Stopping Quiet NAT Gateway and Cross-AZ Leakage',
         paragraphs: [
-          'During infrastructure audits for growing SaaS teams, the largest single waste driver is rarely EC2 compute—it is private container tasks pulling gigabytes of Docker images and pushing S3 backups through a central NAT Gateway.',
-          'By deploying Gateway VPC Endpoints for S3 and Interface Endpoints for ECR within Terraform, internal storage and registry traffic stays off paid NAT paths entirely. Combined with AZ-aware service discovery routing, inter-zone data transfer drops overnight.',
+          'When we audit AWS accounts for growing SaaS products, the biggest shock on the invoice is rarely EC2 compute. Usually, private containers are pulling gigabytes of Docker images and writing S3 backups straight through a paid NAT Gateway.',
+          'Adding Gateway VPC Endpoints for S3 and Interface Endpoints for ECR in Terraform keeps that internal traffic off NAT billing completely. Pairing that with zone-aware routing drops inter-AZ transfer fees overnight.',
         ],
       },
       {
         id: 'ephemeral-staging',
-        heading: 'Schedule-Driven Staging & Spot Fargate Capacity',
+        heading: 'Scheduled Staging Shutdowns and Spot Workers',
         paragraphs: [
-          'We partition production workloads onto reserved baseline capacity paired with Spot/preemptible worker pools for asynchronous jobs such as PDF invoicing, video transcoding, and nightly exports. Meanwhile, non-production ECS services automatically scale desired_count to zero between 20:00 and 06:30 local engineering hours.',
+          'We keep production baselines on reserved capacity and move async jobs like PDF exports, video processing, and nightly reports onto Spot workers. Outside working hours (20:00 to 06:30), non-production ECS tasks automatically drop to zero.',
         ],
       },
     ],
@@ -251,9 +251,9 @@ resource "aws_vpc_endpoint" "s3_gateway" {
   {
     id: 'art-zero-trust-abac',
     slug: 'zero-trust-abac-database-rules',
-    title: 'Zero-Trust ABAC Rules: Closing Shadow Updates and PII Leaks in Serverless Backends',
+    title: 'Locking Down Serverless Database Rules Against Shadow Writes and PII Leaks',
     excerpt:
-      'Client-side route guards never protect a database. Learn how we structure strict schema allowlists, split PII collections, and enforce server-timestamp immutability at the rules layer.',
+      'Hiding buttons in React never protects your database. Here is how we isolate personal fields, lock down write schemas, and pin server timestamps.',
     category: 'Security',
     authorName: 'Arigye Wisdom',
     authorRole: 'Principal Systems Architect · 0xDEV',
@@ -263,27 +263,27 @@ resource "aws_vpc_endpoint" "s3_gateway" {
     coverImage: '/src/assets/images/blog_fintech_ledger_1794909287930.jpg',
     stackTags: ['Zero-Trust', 'ABAC', 'Firestore Rules', 'IAM'],
     keyTakeaways: [
-      'Separate public display metadata from sensitive PII documents (emails, phone numbers, tax IDs) into owner-only subcollections.',
-      'Validate incoming keys exhaustively with hasAll() and hasOnly() on every write to defeat shadow-field injection attacks.',
-      'Always lock immutable audit columns (createdAt, authorId) and verify request.auth.token.email_verified == true.',
+      'Split public display names and avatars away from private contact fields into owner-only subcollections.',
+      'Check every allowed key with hasAll() and hasOnly() on writes so extra fields cannot be smuggled in.',
+      'Lock immutable audit columns (createdAt, authorId) and verify email ownership on sensitive actions.',
     ],
     calloutQuote:
-      'If a security rule relies on the frontend promising to pass a clean where() filter or omit an admin flag, the database is already compromised.',
+      'If your database security depends on the browser promising to send a clean query or leave out an admin flag, the database is already wide open.',
     sections: [
       {
         id: 'split-collections',
-        heading: 'Enforcing PII Isolation Through Split Collections',
+        heading: 'Splitting Public Identity From Private Contact Data',
         paragraphs: [
-          'Storing public usernames alongside private phone numbers, emails, and billing preferences in one flat user document forces teams into risky compromises whenever another screen needs a creator name.',
-          'At 0xDEV, we physically isolate public identity records (/users/{uid}) from sensitive personal data (/users/{uid}/private/info). Even if an engineer accidentally queries the outer directory, zero personally identifiable fields can ever cross the wire.',
+          'Putting public display names in the same flat document as phone numbers, private emails, and billing flags forces awkward security compromises as soon as any screen needs to show a name.',
+          'We separate public profile docs (/users/{uid}) from private contact records (/users/{uid}/private/info). Even if someone fetches a public profile record, zero private contact data sits inside it.',
         ],
       },
       {
         id: 'anti-update-gap',
-        heading: 'Closing the Update-Gap With Dual Validation Blueprints',
+        heading: 'Validating Both Create and Update Rules',
         paragraphs: [
-          'A frequent vulnerability in serverless rulesets happens when teams validate document schemas during create but skip full field checks on update—allowing attackers to overwrite status flags or inject 1MB payloads into notes fields.',
-          'Every collection we ship calls a shared isValid[Entity]() blueprint on both create and update, paired with affectedKeys().hasOnly([...]) so clients can only transition explicitly permitted columns while timestamps remain pinned to server request.time.',
+          'A classic gap in serverless rules happens when teams validate document fields during create but leave update loosely guarded. Anyone with a token can then slip in extra keys or flip a status field.',
+          'Every collection we write runs the same schema validator on create and update, checks affectedKeys().hasOnly([...]), and pins updatedAt directly to request.time.',
         ],
       },
     ],
@@ -304,9 +304,9 @@ resource "aws_vpc_endpoint" "s3_gateway" {
   {
     id: 'art-redis-atomic-locking',
     slug: 'redis-atomic-inventory-locking',
-    title: 'Sub-10ms Atomic Inventory & Booking Locks Without Distributed Deadlocks',
+    title: 'Sub-10ms Redis Inventory & Slot Locks Without Overselling',
     excerpt:
-      'How we prevent double-bookings and oversold flash inventory using single-round-trip Redis Lua scripts, monotonic fencing tokens, and PostgreSQL safety constraints.',
+      'How we stop double-bookings and flash-sale overselling using single-trip Redis Lua scripts and PostgreSQL safety checks.',
     category: 'Architecture',
     authorName: 'Arigye Wisdom',
     authorRole: 'Principal Systems Architect · 0xDEV',
@@ -316,24 +316,24 @@ resource "aws_vpc_endpoint" "s3_gateway" {
     coverImage: '/src/assets/images/blog_cloud_infra_1794909289647.jpg',
     stackTags: ['Redis Lua', 'PostgreSQL', 'Concurrency', 'TypeScript'],
     keyTakeaways: [
-      'Execute check-and-decrement logic atomically inside a single Redis Lua script so no race window exists between GET and DECR.',
-      'Pair fast in-memory reservations with short TTL leases and a PostgreSQL CHECK (stock >= 0) backstop.',
-      'Attach monotonic fencing tokens to locks so paused workers can never overwrite newer leases after a GC pause.',
+      'Run the stock check and decrement together inside one Redis Lua script so concurrent requests cannot race.',
+      'Back fast memory holds with short TTL leases and a PostgreSQL CHECK (stock >= 0) constraint.',
+      'Attach monotonic fencing tokens so stalled workers cannot overwrite newer leases.',
     ],
     sections: [
       {
         id: 'race-windows',
-        heading: 'Why Application-Layer Mutexes Break Under Horizontal Scaling',
+        heading: 'Why App-Level Checks Break Under Concurrent Traffic',
         paragraphs: [
-          'Reading remaining stock in Node.js or Go, validating availability in memory, and writing back the decremented count works under single-user QA—and immediately oversells under 200 concurrent checkout requests across four container replicas.',
-          'Moving the critical section into an atomic Redis Lua script eliminates network round-trip gaps while keeping p99 reservation latency under 4 milliseconds.',
+          'Reading available stock in Node.js or Go, checking it in an if statement, and then writing the new number back works fine with one tester in QA. Put 200 shoppers on four app containers during a flash sale, and you immediately sell items you do not have.',
+          'Moving that check-and-subtract step into a single Redis Lua script removes the network gap and keeps p99 lock times below 4 milliseconds.',
         ],
       },
       {
         id: 'graceful-expiry',
-        heading: 'Self-Healing Reservations With Lease TTLs',
+        heading: 'Self-Cleaning Holds With Short TTL Leases',
         paragraphs: [
-          'When a user abandons checkout mid-payment, held inventory or consultation slots must return cleanly to the pool without brittle cron cleanup scripts. Storing reservation holds with deterministic TTL expiration alongside idempotent order-finalization commits ensures stock automatically self-heals.',
+          'If someone closes the browser halfway through checkout, held rooms or units should go back on sale automatically without flaky cleanup cron jobs. Short TTL leases paired with idempotent commit checks let holds expire cleanly on their own.',
         ],
       },
     ],
@@ -359,9 +359,9 @@ return available - qty`,
   {
     id: 'art-single-pipeline-ownership',
     slug: 'consolidating-five-vendors-one-engineering-pipeline',
-    title: 'Why Multi-Vendor Software Projects Stall—and How Single-Pipeline Ownership Fixes It',
+    title: 'Why Multi-Vendor Projects Stall and How One Team Fixes It',
     excerpt:
-      'When UX designers, backend contractors, DevOps freelancers, and support desks operate under separate contracts, every bug triggers a handoff tax. Here is our unified delivery model.',
+      'When UI freelancers, backend contractors, hosting consultants, and support desks sit on separate contracts, every bug starts an email chain. Here is a cleaner setup.',
     category: 'Architecture',
     authorName: 'Arigye Wisdom',
     authorRole: 'Principal Systems Architect · 0xDEV',
@@ -371,24 +371,24 @@ return available - qty`,
     coverImage: '/src/assets/images/blog_offline_sync_1794909287812.jpg',
     stackTags: ['System Design', 'CI/CD', 'OpenAPI', 'Delivery Ops'],
     keyTakeaways: [
-      'Share a single typed contract (OpenAPI / Zod / TypeScript) across frontend, mobile, and backend teams to kill integration drift.',
-      'Own infrastructure-as-code alongside application sprints so staging environments match production from Week 1.',
-      'Consolidate accountability under one engineering lead so incidents resolve in minutes rather than vendor email threads.',
+      'Share one typed API contract (OpenAPI / Zod / TypeScript) across web, mobile, and backend.',
+      'Keep Terraform infrastructure in the same delivery cycle so staging mirrors production from week one.',
+      'Put one engineering lead in charge of the full stack so bugs get fixed instead of bounced around.',
     ],
     sections: [
       {
         id: 'handoff-tax',
-        heading: 'The Hidden Cost of Disconnected Agency Handoffs',
+        heading: 'Where Separate Contracts Slow Everything Down',
         paragraphs: [
-          'Most stalled software initiatives fail in the seams between teams: a Figma mockup ignores pagination edge cases, an API returns inconsistent snake_case errors, and an external DevOps contractor provisions IAM roles without understanding runtime queue memory limits.',
-          'Organizations end up acting as unpaid technical project managers translating tickets between five unaligned vendors.',
+          'Most stalled software builds fail in the gaps between teams: a Figma mockup ignores pagination edge cases, an API returns mismatched error formats, and a separate DevOps contractor configures IAM roles without knowing how background queues use memory.',
+          'Founders end up acting as unpaid project managers forwarding screenshots between five different contractors.',
         ],
       },
       {
         id: 'unified-sprint',
-        heading: 'The 0xDEV 4-Layer Unified Delivery Architecture',
+        heading: 'Running Design, Code, Cloud, and Support Together',
         paragraphs: [
-          'We organize design, full-stack engineering, cloud provisioning, and 24/7 observability into one shared repository and deployment pipeline. Before a feature leaves sprint review, its database indexes, Terraform IAM permissions, error states, and monitoring alerts ship together as one verified increment.',
+          'At 0xDEV we keep UI design, app code, cloud provisioning, and uptime monitoring inside one shared repo and sprint rhythm. Before a feature clears weekly review, its database indexes, Terraform permissions, error states, and monitoring checks go out together.',
         ],
       },
     ],

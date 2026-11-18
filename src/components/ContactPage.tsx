@@ -21,11 +21,13 @@ import {
   Send,
   User,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { COUNTRIES, stripLeadingDialCode } from '../data/countries';
 import { COMPANY_CONTACT, PageRoute, SERVICES } from '../data/siteData';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { DiscoveryBookingPanel } from './DiscoveryBookingPanel';
+import { EASE_OUT_EXPO, Reveal, SPRING_SNAPPY } from './MotionPrimitives';
 import { PageHeader } from './PageHeader';
 
 interface ContactPageProps {
@@ -331,8 +333,8 @@ export const ContactPage: React.FC<ContactPageProps> = ({
     <>
       <PageHeader
         eyebrow="Start a Conversation"
-        title="Speak directly with our Kabale studio."
-        description="Whether you need a complete software and cloud team or a focused freelance developer, share your brief below and Arigye Wisdom will reply within one business day."
+        title="Talk directly with our Kabale team."
+        description="Whether you need a full software and cloud crew or one senior developer for a sprint, send your brief below. Arigye Wisdom replies within one business day."
         currentLabel="Contact"
         onNavigate={onNavigate}
       />
@@ -341,7 +343,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 items-start">
             {/* Left Direct Details Column */}
-            <div className="lg:col-span-5 space-y-6">
+            <Reveal delay={0.05} className="lg:col-span-5 space-y-6">
               <div className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-6 sm:p-7">
                 <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#EE1119]">
                   Direct Studio Contact
@@ -350,8 +352,8 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                   {COMPANY_CONTACT.location}
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
-                  We are physically located in Kabale, Uganda and welcome both in-person meetings
-                  and remote or freelance collaborations globally.
+                  Our office is in Kabale, Uganda. We meet local teams in person and work remotely
+                  with founders and companies worldwide.
                 </p>
 
                 <div className="mt-6 space-y-4 border-t border-[#E5E7F0] dark:border-[#242C54] pt-5">
@@ -465,10 +467,10 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                   </div>
                 </div>
               )}
-            </div>
+            </Reveal>
 
             {/* Right Intake Form / Discovery Call Scheduler */}
-            <div className="lg:col-span-7">
+            <Reveal delay={0.12} className="lg:col-span-7">
               <div className="relative rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-9 shadow-[0_18px_45px_rgba(26,20,100,0.06)] dark:shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
                 <div
                   aria-hidden="true"
@@ -486,38 +488,72 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                     role="tab"
                     aria-selected={rightTab === 'brief'}
                     onClick={() => setRightTab('brief')}
-                    className={`inline-flex items-center justify-center gap-2 rounded-lg py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
+                    className={`relative inline-flex items-center justify-center gap-2 rounded-lg py-2.5 px-3 text-xs sm:text-sm font-bold transition-colors ${
                       rightTab === 'brief'
-                        ? 'bg-[#1A1464] dark:bg-[#2E368F] text-white shadow-sm'
+                        ? 'text-white'
                         : 'text-[#4A4F63] dark:text-[#C2C9E0] hover:text-[#1A1464] dark:hover:text-white'
                     }`}
                   >
-                    <Send className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>Send Project Brief</span>
+                    {rightTab === 'brief' && (
+                      <motion.span
+                        layoutId="contact-mode-pill"
+                        aria-hidden="true"
+                        transition={SPRING_SNAPPY}
+                        className="absolute inset-0 rounded-lg bg-[#1A1464] dark:bg-[#2E368F] shadow-sm"
+                      />
+                    )}
+                    <Send className="relative z-10 h-3.5 w-3.5" aria-hidden="true" />
+                    <span className="relative z-10">Send Project Brief</span>
                   </button>
                   <button
                     type="button"
                     role="tab"
                     aria-selected={rightTab === 'booking'}
                     onClick={() => setRightTab('booking')}
-                    className={`inline-flex items-center justify-center gap-2 rounded-lg py-2.5 px-3 text-xs sm:text-sm font-bold transition-all ${
+                    className={`relative inline-flex items-center justify-center gap-2 rounded-lg py-2.5 px-3 text-xs sm:text-sm font-bold transition-colors ${
                       rightTab === 'booking'
-                        ? 'bg-[#1A1464] dark:bg-[#2E368F] text-white shadow-sm'
+                        ? 'text-white'
                         : 'text-[#4A4F63] dark:text-[#C2C9E0] hover:text-[#1A1464] dark:hover:text-white'
                     }`}
                   >
-                    <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>Book 30-Min Discovery Call</span>
+                    {rightTab === 'booking' && (
+                      <motion.span
+                        layoutId="contact-mode-pill"
+                        aria-hidden="true"
+                        transition={SPRING_SNAPPY}
+                        className="absolute inset-0 rounded-lg bg-[#1A1464] dark:bg-[#2E368F] shadow-sm"
+                      />
+                    )}
+                    <Calendar className="relative z-10 h-3.5 w-3.5" aria-hidden="true" />
+                    <span className="relative z-10">Book 30-Min Discovery Call</span>
                   </button>
                 </div>
 
-                {rightTab === 'booking' ? (
-                  <DiscoveryBookingPanel onRequestAuth={saveDraftAndRequestAuth} />
-                ) : submittedRef ? (
-                  <div className="py-6" role="status" aria-live="polite">
-                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1A1464] dark:bg-[#232B6E] text-white">
-                      <CheckCircle2 className="h-7 w-7 text-[#EE1119]" aria-hidden="true" />
-                    </div>
+                <AnimatePresence mode="wait">
+                  {rightTab === 'booking' ? (
+                    <motion.div
+                      key="contact-tab-booking"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.22, ease: EASE_OUT_EXPO }}
+                    >
+                      <DiscoveryBookingPanel onRequestAuth={saveDraftAndRequestAuth} />
+                    </motion.div>
+                  ) : submittedRef ? (
+                    <motion.div
+                      key="contact-tab-submitted"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.22, ease: EASE_OUT_EXPO }}
+                      className="py-6"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1A1464] dark:bg-[#232B6E] text-white">
+                        <CheckCircle2 className="h-7 w-7 text-[#EE1119]" aria-hidden="true" />
+                      </div>
                     <h2 className="mt-5 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
                       Project Brief Saved
                     </h2>
@@ -552,9 +588,18 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                     >
                       Submit Another Inquiry
                     </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} noValidate className="space-y-5">
+                    </motion.div>
+                  ) : (
+                    <motion.form
+                      key="contact-tab-form"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.22, ease: EASE_OUT_EXPO }}
+                      onSubmit={handleSubmit}
+                      noValidate
+                      className="space-y-5"
+                    >
                     <div className="border-b border-[#E5E7F0] dark:border-[#242C54] pb-4">
                       <h2 className="font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
                         Request a Free Consultation or Freelance Quote
@@ -604,7 +649,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                                   setVerifyFeedback(
                                     verified
                                       ? 'Email verified! You can submit your brief now.'
-                                      : 'Still awaiting verification—please click the link in your inbox.'
+                                      : 'Still awaiting verification. Please click the link in your inbox.'
                                   );
                                 } catch {
                                   setVerifyFeedback(
@@ -644,7 +689,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                             setForm({ ...form, name: e.target.value });
                             if (errors.name) setErrors({ ...errors, name: undefined });
                           }}
-                          placeholder="Arigye Wisdom"
+                          placeholder="Your full name"
                           aria-invalid={Boolean(errors.name)}
                           className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm text-[#1A1464] dark:text-white bg-[#F6F7FB]/50 dark:bg-[#101530] placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 transition-colors focus:bg-white dark:focus:bg-[#182044] ${
                             errors.name ? 'border-[#EE1119]' : 'border-[#E5E7F0] dark:border-[#242C54] focus:border-[#1A1464] dark:focus:border-[#7C8CFF]'
@@ -670,7 +715,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                             setForm({ ...form, email: e.target.value });
                             if (errors.email) setErrors({ ...errors, email: undefined });
                           }}
-                          placeholder="arigyewisdom7@gmail.com"
+                          placeholder="Your email address"
                           aria-invalid={Boolean(errors.email)}
                           className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm text-[#1A1464] dark:text-white bg-[#F6F7FB]/50 dark:bg-[#101530] placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 transition-colors focus:bg-white dark:focus:bg-[#182044] ${
                             errors.email
@@ -739,7 +784,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                             setForm({ ...form, phone: e.target.value });
                             if (errors.phone) setErrors({ ...errors, phone: undefined });
                           }}
-                          placeholder="+256 766 922 566"
+                          placeholder="Phone or WhatsApp number"
                           aria-invalid={Boolean(errors.phone)}
                           className={`mt-2 w-full rounded-xl border px-4 py-3 text-sm text-[#1A1464] dark:text-white bg-[#F6F7FB]/50 dark:bg-[#101530] placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 transition-colors focus:bg-white dark:focus:bg-[#182044] ${
                             errors.phone
@@ -766,7 +811,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                           type="text"
                           value={form.company}
                           onChange={(e) => setForm({ ...form, company: e.target.value })}
-                          placeholder="0xDEV Studio / Freelance Client"
+                          placeholder="Company or project name (optional)"
                           className="mt-2 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB]/50 dark:bg-[#101530] px-4 py-3 text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188]/70 dark:placeholder:text-[#8E97B8]/70 transition-colors focus:border-[#1A1464] dark:focus:border-[#7C8CFF] focus:bg-white dark:focus:bg-[#182044]"
                         />
                       </div>
@@ -881,10 +926,11 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                         </button>
                       </div>
                     )}
-                  </form>
-                )}
+                    </motion.form>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
