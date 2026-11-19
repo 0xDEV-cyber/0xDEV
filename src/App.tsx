@@ -22,6 +22,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { BLOG_ARTICLES } from './data/blogData';
 import { PageRoute } from './data/siteData';
+import { useAdminAutoMovieSync } from './hooks/useAdminAutoMovieSync';
 
 const ROUTE_TO_PATH: Record<PageRoute, string> = {
   home: '/',
@@ -164,6 +165,8 @@ function AppShell() {
     resendVerificationEmail,
     refreshUserStatus,
   } = useAuth();
+
+  useAdminAutoMovieSync();
 
   const [isAuthActionRoute, setIsAuthActionRoute] = useState<boolean>(() => isEmailActionUrl());
   const [showAuthPortal, setShowAuthPortal] = useState<boolean>(() =>

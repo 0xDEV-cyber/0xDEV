@@ -26,6 +26,8 @@ import {
   Mail,
   Pencil,
   Plus,
+  Radio,
+  RefreshCw,
   Search,
   Send,
   Sparkles,
@@ -43,13 +45,27 @@ import {
 import { VERIFIED_ARCHIVE_MOVIES } from '../data/moviesData';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { AUTO_SYNC_RESULT_EVENT } from '../hooks/useAdminAutoMovieSync';
 import {
+  EXTERNAL_SOURCES_UPDATED_EVENT,
   MovieCategory,
   MovieItem,
   MovieQualityLabel,
   useMovies,
 } from '../hooks/useMovies';
 import { buildMovieReleaseEmailHtml } from '../utils/brandedEmailTemplates';
+import {
+  AutoFirestoreSyncResult,
+  AutoSyncSettings,
+  discoverLatestExternalMovies,
+  ExternalFeedSource,
+  getAutoSyncSettings,
+  getExternalFeedSources,
+  parseCustomExternalSourceInput,
+  saveAutoSyncSettings,
+  saveExternalFeedSources,
+  syncDiscoveredMoviesToFirestore,
+} from '../utils/externalMovieFeed';
 import {
   ArchiveSearchCandidate,
   ArchiveSearchScope,
@@ -95,7 +111,7 @@ export const AdminMoviesManager: React.FC = () => {
   const isPrimaryAdmin =
     Boolean(user?.emailVerified) && user?.email?.toLowerCase() === 'arigyewisdom7@gmail.com';
 
-  const { movies } = useMovies(isPrimaryAdmin);
+  const { movies } = useMovies(isPrimaryAdmin, false);
   const [subscribers, setSubscribers] = useState<MovieSubscriberRecord[]>([]);
   const [subsLoading, setSubsLoading] = useState(true);
 
@@ -139,6 +155,17 @@ export const AdminMoviesManager: React.FC = () => {
   const [archiveImportingId, setArchiveImportingId] = useState<string | null>(null);
   const [archiveDirectInput, setArchiveDirectInput] = useState('');
   const [importingDirect, setImportingDirect] = useState(false);
+
+  // External Sites Auto-Sync Engine state
+  const [showAutoSyncPanel, setShowAutoSyncPanel] = useState(true);
+  const [syncSettings, setSyncSettings] = useState<AutoSyncSettings>(() => getAutoSyncSettings());
+  const [externalSources, setExternalSources] = useState<ExternalFeedSource[]>(() =>
+    getExternalFeedSources()
+  );
+  const [newFeedUrl, setNewFeedUrl] = useState('');
+  const [newFeedLabel, setNewFeedLabel] = useState('');
+  const [runningAutoSync, setRunningAutoSync] = useState(false);
+  const [lastAutoSyncAt, setLastAutoSyncAt] = useState<number | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
 
   useEffect(() => {
@@ -176,6 +203,25 @@ export const AdminMoviesManager: React.FC = () => {
 
     return () => unsubscribe();
   }, [isPrimaryAdmin]);
+
+  useEffect(() => {
+    const handleAutoSyncDone = (event: Event) => {
+      const detail = (event as CustomEvent<AutoFirestoreSyncResult>).detail;
+      if (!detail) return;
+      setLastAutoSyncAt(detail.checkedAtMs);
+      if (detail.syncedCount > 0) {
+        setFeedback(
+          `${detail.message}${
+            detail.notifiedCount > 0
+              ? ` Alerted ${detail.notifiedCount} subscribed users (${detail.emailSentCount} emails).`
+              : ''
+          }`
+        );
+      }
+    };
+    window.addEventListener(AUTO_SYNC_RESULT_EVENT, handleAutoSyncDone);
+    return () => window.removeEventListener(AUTO_SYNC_RESULT_EVENT, handleAutoSyncDone);
+  }, []);
 
   const activeSubscribers = useMemo(
     () => subscribers.filter((s) => s.active && s.email),
@@ -758,6 +804,102 @@ export const AdminMoviesManager: React.FC = () => {
     }
   };
 
+  const handleToggleAutoSyncSetting = (
+    key: 'autoSyncToFirestore' | 'autoNotifySubscribers'
+  ) => {
+    const next: AutoSyncSettings = {
+      ...syncSettings,
+      [key]: !syncSettings[key],
+    };
+    setSyncSettings(next);
+    saveAutoSyncSettings(next);
+    if (key === 'autoSyncToFirestore' && next.autoSyncToFirestore) {
+      window.dispatchEvent(new Event(EXTERNAL_SOURCES_UPDATED_EVENT));
+    }
+  };
+
+  const handleToggleExternalSource = (sourceId: string) => {
+    const next = externalSources.map((s) =>
+      s.id === sourceId ? { ...s, enabled: !s.enabled } : s
+    );
+    setExternalSources(next);
+    saveExternalFeedSources(next);
+    window.dispatchEvent(new Event(EXTERNAL_SOURCES_UPDATED_EVENT));
+  };
+
+  const handleRemoveExternalSource = (sourceId: string) => {
+    const next = externalSources.filter((s) => s.id !== sourceId);
+    setExternalSources(next);
+    saveExternalFeedSources(next);
+    window.dispatchEvent(new Event(EXTERNAL_SOURCES_UPDATED_EVENT));
+  };
+
+  const handleAddExternalSource = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setFeedback(null);
+    try {
+      const created = parseCustomExternalSourceInput(newFeedUrl, newFeedLabel);
+      const next = [...externalSources.filter((s) => s.id !== created.id), created];
+      setExternalSources(next);
+      saveExternalFeedSources(next);
+      setNewFeedUrl('');
+      setNewFeedLabel('');
+      setFeedback(`Now watching "${created.label}" for newly uploaded movies.`);
+      window.dispatchEvent(new Event(EXTERNAL_SOURCES_UPDATED_EVENT));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid external site or feed URL.');
+    }
+  };
+
+  const handleRunExternalSyncNow = async () => {
+    setError(null);
+    setFeedback(null);
+    setRunningAutoSync(true);
+    try {
+      const discovery = await discoverLatestExternalMovies({
+        forceRefresh: true,
+        existingMovies: movies,
+      });
+      const result = await syncDiscoveredMoviesToFirestore({
+        discoveredMovies: discovery.movies,
+        existingFirestoreMovies: movies,
+        adminUser: user,
+        activeSubscribers: activeSubscribers.map((s) => ({
+          subscriberUid: s.subscriberUid,
+          email: s.email,
+          subscriberName: s.subscriberName,
+        })),
+        notifySubscribers: syncSettings.autoNotifySubscribers,
+      });
+      setLastAutoSyncAt(result.checkedAtMs);
+      if (result.syncedCount > 0) {
+        setFeedback(
+          `${result.message}${
+            result.notifiedCount > 0
+              ? ` Sent ${result.notifiedCount} in-app alerts (${result.emailSentCount} emails).`
+              : ''
+          }`
+        );
+      } else {
+        setFeedback(
+          `Checked ${externalSources.filter((s) => s.enabled).length} external site feeds (${
+            discovery.movies.length
+          } recent uploads scanned). Your Firestore catalog is completely up to date.`
+        );
+      }
+      if (discovery.sourceErrors.length > 0 && result.syncedCount === 0) {
+        setError(discovery.sourceErrors[0]);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Unable to sync external sites right now.'
+      );
+    } finally {
+      setRunningAutoSync(false);
+    }
+  };
+
   return (
     <section
       aria-labelledby="admin-movies-heading"
@@ -786,6 +928,19 @@ export const AdminMoviesManager: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowAutoSyncPanel((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition-colors ${
+              showAutoSyncPanel
+                ? 'border-[#10B981]/50 bg-[#ECFDF5]/80 dark:bg-[#0D2A24]/60 text-[#065F46] dark:text-[#A7F3D0]'
+                : 'border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119]'
+            }`}
+          >
+            <Radio className="h-3.5 w-3.5 text-[#10B981]" aria-hidden="true" />
+            <span>{showAutoSyncPanel ? 'Hide Auto-Sync Feeds' : 'External Auto-Sync'}</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setShowArchiveImporter((prev) => !prev)}
@@ -858,6 +1013,136 @@ export const AdminMoviesManager: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Automatic External Sites Watcher & Firestore Sync Panel */}
+      {showAutoSyncPanel && (
+        <div className="mt-5 rounded-xl border border-[#10B981]/30 dark:border-[#10B981]/25 bg-[#F6F7FB] dark:bg-[#101530] p-5 space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#059669] dark:text-[#34D399] flex items-center gap-1.5">
+                <Radio className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Live Auto-Update Engine (External Movie Sites)</span>
+              </p>
+              <p className="mt-1 text-xs text-[#4A4F63] dark:text-[#C2C9E0]">
+                Automatically watches other sites for new uploads every 10 minutes, surfaces them live on <code className="font-mono">/movies</code> for all visitors, and optionally auto-publishes them into Firestore.
+                {lastAutoSyncAt && (
+                  <span className="ml-1 font-semibold text-[#1A1464] dark:text-[#F4F6FC]">
+                    Last synced {new Date(lastAutoSyncAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.
+                  </span>
+                )}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              disabled={runningAutoSync}
+              onClick={() => void handleRunExternalSyncNow()}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-4 py-2 text-xs font-bold text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8] disabled:opacity-60 shrink-0"
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${runningAutoSync ? 'animate-spin text-[#EE1119]' : 'text-[#34D399]'}`}
+                aria-hidden="true"
+              />
+              <span>{runningAutoSync ? 'Syncing Sites...' : 'Sync External Sites Now'}</span>
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-4 pt-2 border-t border-[#E5E7F0] dark:border-[#242C54]">
+            <label className="inline-flex items-center gap-2 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={syncSettings.autoSyncToFirestore}
+                onChange={() => handleToggleAutoSyncSetting('autoSyncToFirestore')}
+                className="h-4 w-4 accent-[#10B981]"
+              />
+              <span>Auto-save new external uploads into Firestore when I open the site</span>
+            </label>
+
+            <label className="inline-flex items-center gap-2 text-xs font-semibold text-[#1A1464] dark:text-[#F4F6FC] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={syncSettings.autoNotifySubscribers}
+                onChange={() => handleToggleAutoSyncSetting('autoNotifySubscribers')}
+                className="h-4 w-4 accent-[#EE1119]"
+              />
+              <span>Auto-send batch alert &amp; email to {activeSubscribers.length} subscribers</span>
+            </label>
+          </div>
+
+          {/* Watched External Sources List */}
+          <div className="space-y-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
+              Watched External Sites &amp; Channels ({externalSources.filter((s) => s.enabled).length} active)
+            </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {externalSources.map((src) => (
+                <div
+                  key={src.id}
+                  className="flex items-center justify-between gap-2 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2"
+                >
+                  <label className="flex items-center gap-2.5 min-w-0 cursor-pointer flex-1">
+                    <input
+                      type="checkbox"
+                      checked={src.enabled}
+                      onChange={() => handleToggleExternalSource(src.id)}
+                      className="h-3.5 w-3.5 shrink-0 accent-[#10B981]"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] truncate">
+                        {src.label}
+                      </p>
+                      <p className="text-[10px] font-mono text-[#6B7188] dark:text-[#8E97B8] truncate">
+                        {src.urlOrQuery}
+                      </p>
+                    </div>
+                  </label>
+
+                  {!src.builtIn && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveExternalSource(src.id)}
+                      aria-label={`Remove ${src.label}`}
+                      className="rounded-lg p-1 text-[#6B7188] hover:text-[#EE1119] shrink-0"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Add Custom External Site / Feed URL */}
+          <form
+            onSubmit={handleAddExternalSource}
+            className="grid grid-cols-1 gap-2 sm:grid-cols-12 pt-1"
+          >
+            <input
+              type="text"
+              value={newFeedUrl}
+              onChange={(e) => setNewFeedUrl(e.target.value)}
+              aria-label="External site URL, Archive.org uploader/collection, PeerTube site, or RSS feed URL"
+              placeholder="Watch another site: Archive.org @uploader, PeerTube URL, or RSS/JSON feed..."
+              className="sm:col-span-6 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2 text-xs font-mono text-[#1A1464] dark:text-white"
+            />
+            <input
+              type="text"
+              value={newFeedLabel}
+              onChange={(e) => setNewFeedLabel(e.target.value)}
+              aria-label="Optional display label for external feed"
+              placeholder="Site label (optional, e.g. VJ Channel)"
+              className="sm:col-span-4 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2 text-xs text-[#1A1464] dark:text-white"
+            />
+            <button
+              type="submit"
+              className="sm:col-span-2 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#EE1119] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#D00D14]"
+            >
+              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Watch Site</span>
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* Internet Archive 1-Click Search & Import Studio */}
       {showArchiveImporter && (

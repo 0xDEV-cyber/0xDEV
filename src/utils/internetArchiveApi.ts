@@ -155,6 +155,33 @@ function inferGenreFromMetadata(
   return inferCategoryFallbackGenre(category);
 }
 
+export function extractArchiveIdentifier(urlOrId: string): string | null {
+  const trimmed = String(urlOrId || '').trim();
+  if (!trimmed) return null;
+  const match = trimmed.match(/archive\.org\/(?:details|download|services\/img)\/([^/?#]+)/i);
+  if (match?.[1]) {
+    try {
+      return decodeURIComponent(match[1]).toLowerCase();
+    } catch {
+      return match[1].toLowerCase();
+    }
+  }
+  return null;
+}
+
+export function cleanArchiveMovieTitle(rawTitle: string): string {
+  const cleaned = String(rawTitle || '')
+    .replace(/\.ia\.mp4$/i, '')
+    .replace(/\.mp4$/i, '')
+    .replace(/\[www\.[^\]]+\]/gi, ' ')
+    .replace(/midcrushmovies/gi, ' ')
+    .replace(/[_]+/g, ' ')
+    .replace(/\s*-\s*$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return (cleaned || String(rawTitle || 'Untitled Film')).slice(0, 140);
+}
+
 function isUnwantedArchiveNoise(title: string, identifier: string): boolean {
   const combined = `${title} ${identifier}`.toLowerCase();
   return (
@@ -168,6 +195,8 @@ function isUnwantedArchiveNoise(title: string, identifier: string): boolean {
     combined.includes('boku no pico') ||
     combined.includes('capcut template') ||
     combined.includes('cyberleek') ||
+    /\b(official\s+)?trailers?\b/i.test(combined) ||
+    /\bteasers?\b/i.test(combined) ||
     identifier.toLowerCase().startsWith('goodman') ||
     identifier.toLowerCase().startsWith('soop-') ||
     identifier.toLowerCase().startsWith('chzzk-')
@@ -277,6 +306,94 @@ export async function searchInternetArchiveMovies(
 
       return {
         identifier: id,
+        title: cleanArchiveMovieTitle(title),
+        year: normalizedYear,
+        synopsis:
+          stripHtmlAndTruncate(
+            d.description || 'Public domain or Luganda-translated film hosted on Internet Archive.',
+            300
+          ) || 'Public domain or Luganda-translated film hosted on Internet Archive.',
+        downloads: Number(d.downloads || 0),
+        posterUrl: `https://archive.org/services/img/${encodeURIComponent(id)}`,
+        collectionHint:
+          translatorInfo.language === 'Luganda Translated'
+            ? `${translatorInfo.vjTranslator} · Luganda`
+            : defaultCollection,
+      };
+    });
+}
+
+export async function searchCustomArchiveSource(
+  filterClause: string
+): Promise<ArchiveSearchCandidate[]> {
+  const cleanClause = filterClause.trim();
+  if (!cleanClause) return [];
+
+  const qParts = [
+    'mediatype:movies',
+    'format:MPEG4',
+    `(${cleanClause})`,
+    'NOT MTV',
+    'NOT quran',
+    'NOT xvideos',
+  ];
+
+  const params = new URLSearchParams({
+    q: qParts.join(' AND '),
+    rows: '20',
+    page: '1',
+    output: 'json',
+  });
+  params.append('fl[]', 'identifier');
+  params.append('fl[]', 'title');
+  params.append('fl[]', 'year');
+  params.append('fl[]', 'publicdate');
+  params.append('fl[]', 'description');
+  params.append('fl[]', 'downloads');
+  params.append('fl[]', 'collection');
+  params.append('sort[]', 'publicdate desc');
+
+  const res = await fetch(`https://archive.org/advancedsearch.php?${params.toString()}`);
+  if (!res.ok) {
+    throw new Error(`Internet Archive feed returned HTTP ${res.status}.`);
+  }
+
+  const json = (await res.json()) as {
+    response?: {
+      docs?: Array<{
+        identifier?: string;
+        title?: string | string[];
+        year?: string | number | string[];
+        publicdate?: string;
+        description?: string | string[];
+        downloads?: number;
+        collection?: string | string[];
+      }>;
+    };
+  };
+
+  return (json.response?.docs || [])
+    .filter((d) => {
+      if (!d.identifier) return false;
+      const title = stripHtmlAndTruncate(d.title || d.identifier, 140);
+      return !isUnwantedArchiveNoise(title, String(d.identifier));
+    })
+    .slice(0, 12)
+    .map((d) => {
+      const id = String(d.identifier);
+      const rawYear = Array.isArray(d.year) ? d.year[0] : d.year;
+      const explicitYear = String(rawYear || '').match(/\d{4}/)?.[0];
+      const title = cleanArchiveMovieTitle(stripHtmlAndTruncate(d.title || id, 140));
+      const titleYear = title.match(/\b(202[0-9]|201[0-9])\b/)?.[0];
+      const pubYear = String(d.publicdate || '').match(/\d{4}/)?.[0];
+      const normalizedYear = explicitYear || titleYear || pubYear || '2026';
+      const translatorInfo = inferTranslatorFromText(`${title} ${id}`);
+      const defaultCollection = Array.isArray(d.collection)
+        ? String(d.collection[0] || 'Internet Archive')
+        : String(d.collection || 'Internet Archive');
+
+      return {
+        identifier: id,
         title,
         year: normalizedYear,
         synopsis:
@@ -359,7 +476,9 @@ export async function fetchInternetArchiveMovieDraft(
     .map(encodeURIComponent)
     .join('/')}`;
 
-  const rawTitle = stripHtmlAndTruncate(data.metadata?.title || identifier, 140) || identifier;
+  const rawTitle = cleanArchiveMovieTitle(
+    stripHtmlAndTruncate(data.metadata?.title || identifier, 140) || identifier
+  );
   const rawYearCandidate = Array.isArray(data.metadata?.year)
     ? data.metadata?.year[0]
     : data.metadata?.year ||

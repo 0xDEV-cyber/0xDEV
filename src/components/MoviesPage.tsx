@@ -16,6 +16,8 @@ import {
   Languages,
   Laptop,
   Play,
+  Radio,
+  RefreshCw,
   Search,
   Share2,
   ShieldCheck,
@@ -182,7 +184,14 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
   onRequestAuth,
 }) => {
   const { user } = useAuth();
-  const { movies, loading: moviesLoading } = useMovies(false);
+  const {
+    movies,
+    externalIdSet,
+    loading: moviesLoading,
+    syncingExternal,
+    lastExternalSyncMs,
+    refreshExternalFeed,
+  } = useMovies(false);
 
   const [activeTab, setActiveTab] = useState<LibraryViewTab>('catalog');
   const [languageFilter, setLanguageFilter] = useState<LanguageFilterScope>('all');
@@ -1301,9 +1310,53 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
             </div>
           )}
 
+          {/* Live Auto-Update Feed Strip */}
+          {activeTab === 'catalog' && (
+            <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] px-4 py-2.5">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#4A4F63] dark:text-[#C2C9E0]">
+                <Radio
+                  className={`h-3.5 w-3.5 shrink-0 ${
+                    syncingExternal ? 'text-[#EE1119] animate-pulse' : 'text-[#10B981]'
+                  }`}
+                  aria-hidden="true"
+                />
+                <span className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">
+                  Live Auto-Update Feed:
+                </span>
+                <span>
+                  {syncingExternal
+                    ? 'Checking other movie sites for new uploads...'
+                    : externalIdSet.size > 0
+                      ? `${externalIdSet.size} newly uploaded external movie${
+                          externalIdSet.size === 1 ? '' : 's'
+                        } auto-added`
+                      : 'Watching external sites every 10 min for new uploads'}
+                </span>
+                {lastExternalSyncMs && !syncingExternal && (
+                  <span className="text-[11px] text-[#6B7188] dark:text-[#8E97B8]">
+                    · Checked {new Date(lastExternalSyncMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                disabled={syncingExternal}
+                onClick={() => void refreshExternalFeed(true)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-1.5 text-[11px] font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119] hover:text-[#EE1119] disabled:opacity-60 shrink-0"
+              >
+                <RefreshCw
+                  className={`h-3 w-3 ${syncingExternal ? 'animate-spin text-[#EE1119]' : ''}`}
+                  aria-hidden="true"
+                />
+                <span>{syncingExternal ? 'Checking Sites...' : 'Check Other Sites Now'}</span>
+              </button>
+            </div>
+          )}
+
           {/* TAB 1: Structured Movie Grid */}
           {activeTab === 'catalog' && (
-            <div className="mt-8">
+            <div className="mt-6">
               {moviesLoading && movies.length === 0 ? (
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {[0, 1, 2].map((skeleton) => (
@@ -1405,6 +1458,11 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                                 aria-hidden="true"
                                 className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#090D1F]/80 via-transparent to-transparent"
                               />
+                              {externalIdSet.has(movie.movieId) && (
+                                <span className="absolute top-3 right-3 rounded-lg bg-[#090D1F]/85 border border-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#A7F3D0] backdrop-blur-sm">
+                                  Auto-Synced
+                                </span>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => void handleWatchMovieModal(movie)}

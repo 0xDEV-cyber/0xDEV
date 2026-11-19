@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { collection, onSnapshot, query, Timestamp, where } from 'firebase/firestore';
 import {
   MovieCategory,
@@ -10,13 +10,32 @@ import {
 } from '../data/movieSchema';
 import { VERIFIED_ARCHIVE_MOVIES } from '../data/moviesData';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import {
+  DiscoveredExternalMovie,
+  discoverLatestExternalMovies,
+  EXTERNAL_FEED_TTL_MS,
+  getCachedExternalFeedSnapshot,
+  mergeCatalogWithExternalMovies,
+} from '../utils/externalMovieFeed';
 
 export type { MovieCategory, MovieGenre, MovieItem, MovieQualityLabel, MovieSchema };
 
-export function useMovies(includeDrafts = false) {
+export const EXTERNAL_SOURCES_UPDATED_EVENT = '0xdev:external-sources-updated';
+
+export function useMovies(includeDrafts = false, enableExternalAutoFeed = true) {
   const [firestoreMovies, setFirestoreMovies] = useState<MovieItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const initialCache = useMemo(() => getCachedExternalFeedSnapshot(), []);
+  const [externalMovies, setExternalMovies] = useState<DiscoveredExternalMovie[]>(
+    () => initialCache?.movies || []
+  );
+  const [lastExternalSyncMs, setLastExternalSyncMs] = useState<number | null>(
+    () => initialCache?.checkedAtMs || null
+  );
+  const [syncingExternal, setSyncingExternal] = useState(false);
+  const [externalSyncError, setExternalSyncError] = useState<string | null>(null);
 
   useEffect(() => {
     const moviesRef = collection(db, 'movies');
@@ -73,16 +92,96 @@ export function useMovies(includeDrafts = false) {
     return () => unsubscribe();
   }, [includeDrafts]);
 
-  const movies = useMemo<MovieItem[]>(() => {
-    if (includeDrafts) {
-      return firestoreMovies;
-    }
+  const baseCatalog = useMemo<MovieItem[]>(() => {
     const firestoreIds = new Set(firestoreMovies.map((m) => m.movieId));
     const remainingBaseline = VERIFIED_ARCHIVE_MOVIES.filter(
       (baseline) => !firestoreIds.has(baseline.movieId)
     );
     return [...firestoreMovies, ...remainingBaseline];
-  }, [firestoreMovies, includeDrafts]);
+  }, [firestoreMovies]);
 
-  return { movies, firestoreMovies, loading, error };
+  const baseCatalogRef = useRef<MovieItem[]>(baseCatalog);
+  useEffect(() => {
+    baseCatalogRef.current = baseCatalog;
+  }, [baseCatalog]);
+
+  const refreshExternalFeed = useCallback(
+    async (forceRefresh = false) => {
+      if (!enableExternalAutoFeed) return [];
+      setSyncingExternal(true);
+      setExternalSyncError(null);
+      try {
+        const result = await discoverLatestExternalMovies({
+          forceRefresh,
+          existingMovies: baseCatalogRef.current,
+        });
+        setExternalMovies(result.movies);
+        setLastExternalSyncMs(result.checkedAtMs);
+        if (result.sourceErrors.length > 0 && result.movies.length === 0) {
+          setExternalSyncError(result.sourceErrors[0]);
+        }
+        return result.movies;
+      } catch (err) {
+        setExternalSyncError(
+          err instanceof Error ? err.message : 'Unable to check external movie sites right now.'
+        );
+        return [];
+      } finally {
+        setSyncingExternal(false);
+      }
+    },
+    [enableExternalAutoFeed]
+  );
+
+  // Automatic background polling + visibility resume + admin source updates
+  useEffect(() => {
+    if (!enableExternalAutoFeed) return;
+
+    void refreshExternalFeed(false);
+
+    const intervalId = window.setInterval(() => {
+      void refreshExternalFeed(true);
+    }, EXTERNAL_FEED_TTL_MS);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshExternalFeed(false);
+      }
+    };
+
+    const handleSourceUpdate = () => {
+      void refreshExternalFeed(true);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener(EXTERNAL_SOURCES_UPDATED_EVENT, handleSourceUpdate);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener(EXTERNAL_SOURCES_UPDATED_EVENT, handleSourceUpdate);
+    };
+  }, [enableExternalAutoFeed, refreshExternalFeed]);
+
+  const { merged: mergedPublicCatalog, externalIdSet } = useMemo(() => {
+    if (includeDrafts || !enableExternalAutoFeed) {
+      return { merged: baseCatalog, externalIdSet: new Set<string>() };
+    }
+    return mergeCatalogWithExternalMovies(baseCatalog, externalMovies);
+  }, [baseCatalog, externalMovies, includeDrafts, enableExternalAutoFeed]);
+
+  const movies = includeDrafts ? firestoreMovies : mergedPublicCatalog;
+
+  return {
+    movies,
+    firestoreMovies,
+    externalMovies,
+    externalIdSet,
+    loading,
+    error,
+    syncingExternal,
+    lastExternalSyncMs,
+    externalSyncError,
+    refreshExternalFeed,
+  };
 }
