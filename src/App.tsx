@@ -188,7 +188,11 @@ function AppShell() {
   const [verifyBusy, setVerifyBusy] = useState(false);
 
   const wasSignedInRef = useRef(false);
-  const returnPageRef = useRef<PageRoute>('dashboard');
+  const returnTargetRef = useRef<{
+    page: PageRoute;
+    articleSlug: string | null;
+    movieId: string | null;
+  }>({ page: 'dashboard', articleSlug: null, movieId: null });
 
   const navigateTo = useCallback((page: PageRoute) => {
     const targetPath = ROUTE_TO_PATH[page] || '/';
@@ -231,7 +235,12 @@ function AppShell() {
 
   const openAuthPortal = useCallback(
     (mode: 'login' | 'register' = 'login', returnTo?: PageRoute) => {
-      returnPageRef.current = returnTo || currentPage || 'dashboard';
+      const targetPage = returnTo || currentPage || 'dashboard';
+      returnTargetRef.current = {
+        page: targetPage,
+        articleSlug: targetPage === 'blog' ? selectedArticleSlug : null,
+        movieId: targetPage === 'movies' ? selectedMovieId : null,
+      };
       setAuthMode(mode);
       setShowAuthPortal(true);
       const authPath = mode === 'register' ? '/register' : '/login';
@@ -240,7 +249,7 @@ function AppShell() {
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
-    [currentPage]
+    [currentPage, selectedArticleSlug, selectedMovieId]
   );
 
   // Keep browser URL aligned with authentication transitions
@@ -252,11 +261,24 @@ function AppShell() {
     if (user) {
       wasSignedInRef.current = true;
       if (showAuthPortal || path === '/login' || path === '/register') {
-        const destPage = returnPageRef.current || currentPage || 'home';
-        const targetPath = ROUTE_TO_PATH[destPage] || '/';
+        const dest = returnTargetRef.current.page
+          ? returnTargetRef.current
+          : { page: currentPage || ('home' as PageRoute), articleSlug: null, movieId: null };
+        const targetPath =
+          dest.page === 'blog' && dest.articleSlug
+            ? `/blog/${dest.articleSlug}`
+            : dest.page === 'movies' && dest.movieId
+              ? `/movies/${dest.movieId}`
+              : ROUTE_TO_PATH[dest.page] || '/';
         setShowAuthPortal(false);
-        setCurrentPage(destPage);
-        window.history.replaceState({ page: destPage }, '', targetPath);
+        setCurrentPage(dest.page);
+        setSelectedArticleSlug(dest.articleSlug);
+        setSelectedMovieId(dest.movieId);
+        window.history.replaceState(
+          { page: dest.page, slug: dest.articleSlug, movieId: dest.movieId },
+          '',
+          targetPath
+        );
       }
       return;
     }
@@ -501,13 +523,7 @@ function AppShell() {
       <main className="flex-1">
         <AnimatePresence mode="wait">
           <motion.div
-            key={
-              currentPage === 'blog' && selectedArticleSlug
-                ? `blog-${selectedArticleSlug}`
-                : currentPage === 'movies' && selectedMovieId
-                  ? `movies-${selectedMovieId}`
-                  : currentPage
-            }
+            key={currentPage}
             initial={{ opacity: 0, y: 14, scale: 0.995 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.995 }}

@@ -1,39 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, query, Timestamp, where } from 'firebase/firestore';
+import {
+  MovieCategory,
+  MovieGenre,
+  MovieItem,
+  MovieQualityLabel,
+  MovieSchema,
+  normalizeMovieRecord,
+} from '../data/movieSchema';
 import { VERIFIED_ARCHIVE_MOVIES } from '../data/moviesData';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 
-export type MovieCategory =
-  | 'Open Classics'
-  | 'Indie & Regional'
-  | 'Tech Documentaries'
-  | 'Short Films';
-
-export type MovieQualityLabel = '480p Lite' | '720p HD' | '1080p Full HD';
-
-export interface MovieItem {
-  movieId: string;
-  title: string;
-  category: MovieCategory;
-  releaseYear: string;
-  durationLabel: string;
-  qualityLabel: MovieQualityLabel;
-  fileSizeLabel: string;
-  synopsis: string;
-  posterUrl: string;
-  videoUrl: string;
-  published: boolean;
-  createdAtMs: number;
-}
-
-const VALID_CATEGORIES: MovieCategory[] = [
-  'Open Classics',
-  'Indie & Regional',
-  'Tech Documentaries',
-  'Short Films',
-];
-
-const VALID_QUALITIES: MovieQualityLabel[] = ['480p Lite', '720p HD', '1080p Full HD'];
+export type { MovieCategory, MovieGenre, MovieItem, MovieQualityLabel, MovieSchema };
 
 export function useMovies(includeDrafts = false) {
   const [firestoreMovies, setFirestoreMovies] = useState<MovieItem[]>([]);
@@ -52,29 +30,28 @@ export function useMovies(includeDrafts = false) {
         const items: MovieItem[] = snapshot.docs
           .map((d) => {
             const data = d.data();
-            const rawCat = String(data.category || 'Open Classics') as MovieCategory;
-            const category = VALID_CATEGORIES.includes(rawCat) ? rawCat : 'Open Classics';
-            const rawQuality = String(data.qualityLabel || '720p HD') as MovieQualityLabel;
-            const qualityLabel = VALID_QUALITIES.includes(rawQuality) ? rawQuality : '720p HD';
             const createdAtMs =
               data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now();
 
-            return {
+            return normalizeMovieRecord({
               movieId: String(data.movieId || d.id),
-              title: String(data.title || 'Untitled Film'),
-              category,
-              releaseYear: String(data.releaseYear || '2026'),
-              durationLabel: String(data.durationLabel || '1h 30m'),
-              qualityLabel,
-              fileSizeLabel: String(data.fileSizeLabel || '500 MB'),
-              synopsis: String(data.synopsis || ''),
-              posterUrl: String(
-                data.posterUrl || '/src/assets/images/movies_cinema_hub_1795014042309.jpg'
-              ),
-              videoUrl: String(data.videoUrl || ''),
+              title: typeof data.title === 'string' ? data.title : 'Untitled Film',
+              category: data.category as MovieCategory | undefined,
+              genre: typeof data.genre === 'string' ? data.genre : undefined,
+              language: typeof data.language === 'string' ? data.language : undefined,
+              vjTranslator: typeof data.vjTranslator === 'string' ? data.vjTranslator : undefined,
+              releaseYear: typeof data.releaseYear === 'string' ? data.releaseYear : '2024',
+              durationLabel: typeof data.durationLabel === 'string' ? data.durationLabel : '1h 30m',
+              qualityLabel: data.qualityLabel as MovieQualityLabel | undefined,
+              fileSizeLabel: typeof data.fileSizeLabel === 'string' ? data.fileSizeLabel : '350 MB',
+              synopsis: typeof data.synopsis === 'string' ? data.synopsis : '',
+              posterUrl: typeof data.posterUrl === 'string' ? data.posterUrl : undefined,
+              coverArtUrl: typeof data.coverArtUrl === 'string' ? data.coverArtUrl : undefined,
+              videoUrl: typeof data.videoUrl === 'string' ? data.videoUrl : undefined,
+              downloadUrl: typeof data.downloadUrl === 'string' ? data.downloadUrl : undefined,
               published: Boolean(data.published),
               createdAtMs,
-            };
+            });
           })
           .sort((a, b) => b.createdAtMs - a.createdAtMs);
 

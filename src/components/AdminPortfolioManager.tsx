@@ -58,13 +58,34 @@ export const AdminPortfolioManager: React.FC = () => {
     setError(null);
     setFeedback(null);
 
+    const cleanTitle = title.trim().slice(0, 120);
+    const cleanSector = sector.trim().slice(0, 40);
+    const cleanRegion = region.trim().slice(0, 80);
+    const cleanTimeline = timeline.trim().slice(0, 80);
+    const cleanClient = clientType.trim().slice(0, 80);
+    const cleanDeliverable = deliverableType.trim().slice(0, 80);
+    const cleanPreviewUrl = previewUrl.trim().slice(0, 120);
+    const cleanProblem = problem.trim().slice(0, 800);
+    const cleanSolution = solution.trim().slice(0, 800);
+    const cleanArch = architectureNotes.trim().slice(0, 500);
+    const cleanStack = stackSummary.trim().slice(0, 160);
+
     if (
-      title.trim().length < 3 ||
-      problem.trim().length < 10 ||
-      solution.trim().length < 10 ||
-      architectureNotes.trim().length < 5
+      cleanTitle.length < 3 ||
+      cleanSector.length < 2 ||
+      cleanRegion.length < 2 ||
+      cleanTimeline.length < 2 ||
+      cleanClient.length < 2 ||
+      cleanDeliverable.length < 2 ||
+      cleanPreviewUrl.length < 4 ||
+      cleanProblem.length < 10 ||
+      cleanSolution.length < 10 ||
+      cleanArch.length < 5 ||
+      cleanStack.length < 3
     ) {
-      setError('Please complete title (3+ chars), challenge (10+ chars), solution (10+ chars), and architecture notes.');
+      setError(
+        'Please complete title (3+ chars), sector/region/timeline/client/deliverable (2+ chars), preview URL (4+ chars), challenge (10+ chars), solution (10+ chars), architecture notes (5+ chars), and stack summary (3+ chars).'
+      );
       return;
     }
 
@@ -73,24 +94,24 @@ export const AdminPortfolioManager: React.FC = () => {
     try {
       await setDoc(doc(db, 'portfolioProjects', projectId), {
         projectId,
-        title: title.trim().slice(0, 120),
-        sector: sector.trim().slice(0, 40) || 'SaaS',
-        region: region.trim().slice(0, 80) || 'Global',
-        timeline: timeline.trim().slice(0, 80) || '8 Weeks',
-        clientType: clientType.trim().slice(0, 80) || 'Client',
-        deliverableType: deliverableType.trim().slice(0, 80) || 'Web App',
-        previewUrl: previewUrl.trim().slice(0, 120) || 'app.0xdev.io',
+        title: cleanTitle,
+        sector: cleanSector,
+        region: cleanRegion,
+        timeline: cleanTimeline,
+        clientType: cleanClient,
+        deliverableType: cleanDeliverable,
+        previewUrl: cleanPreviewUrl,
         previewKind,
-        problem: problem.trim().slice(0, 800),
-        solution: solution.trim().slice(0, 800),
-        architectureNotes: architectureNotes.trim().slice(0, 500),
+        problem: cleanProblem,
+        solution: cleanSolution,
+        architectureNotes: cleanArch,
         metric1Value: metric1Value.trim().slice(0, 30) || '99.9%',
-        metric1Label: metric1Label.trim().slice(0, 60) || 'Uptime',
+        metric1Label: metric1Label.trim().length >= 2 ? metric1Label.trim().slice(0, 60) : 'Uptime',
         metric2Value: metric2Value.trim().slice(0, 30) || '2x',
-        metric2Label: metric2Label.trim().slice(0, 60) || 'Velocity',
+        metric2Label: metric2Label.trim().length >= 2 ? metric2Label.trim().slice(0, 60) : 'Velocity',
         metric3Value: metric3Value.trim().slice(0, 30) || '24/7',
-        metric3Label: metric3Label.trim().slice(0, 60) || 'Support',
-        stackSummary: stackSummary.trim().slice(0, 160) || 'React · TypeScript',
+        metric3Label: metric3Label.trim().length >= 2 ? metric3Label.trim().slice(0, 60) : 'Support',
+        stackSummary: cleanStack,
         featured: true,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),

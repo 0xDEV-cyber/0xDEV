@@ -13,12 +13,15 @@ import {
   Download,
   Film,
   HardDrive,
+  Languages,
   Laptop,
   Play,
+  Search,
   Share2,
   ShieldCheck,
   Smartphone,
   Subtitles,
+  Tag,
   Trash2,
   X,
 } from 'lucide-react';
@@ -57,15 +60,8 @@ interface MoviesPageProps {
 }
 
 type LibraryViewTab = 'catalog' | 'offline' | 'roadmap';
+type LanguageFilterScope = 'all' | 'luganda' | 'english';
 type QualityTierId = '480p' | '720p' | '1080p';
-
-const CATEGORY_FILTERS: ('All' | MovieCategory)[] = [
-  'All',
-  'Open Classics',
-  'Indie & Regional',
-  'Tech Documentaries',
-  'Short Films',
-];
 
 const QUALITY_TIERS: {
   id: QualityTierId;
@@ -167,13 +163,18 @@ type DisplayMovie = Pick<
   | 'movieId'
   | 'title'
   | 'category'
+  | 'genre'
+  | 'language'
+  | 'vjTranslator'
   | 'releaseYear'
   | 'durationLabel'
   | 'qualityLabel'
   | 'fileSizeLabel'
   | 'synopsis'
   | 'posterUrl'
+  | 'coverArtUrl'
   | 'videoUrl'
+  | 'downloadUrl'
 >;
 
 export const MoviesPage: React.FC<MoviesPageProps> = ({
@@ -186,7 +187,9 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
   const { movies, loading: moviesLoading } = useMovies(false);
 
   const [activeTab, setActiveTab] = useState<LibraryViewTab>('catalog');
-  const [selectedCategory, setSelectedCategory] = useState<'All' | MovieCategory>('All');
+  const [languageFilter, setLanguageFilter] = useState<LanguageFilterScope>('all');
+  const [selectedGenre, setSelectedGenre] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<QualityTierId>('720p');
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
@@ -282,14 +285,21 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
     return () => window.clearTimeout(timer);
   }, [justSubscribed]);
 
+  // Automatically revoke theater modal Blob ObjectURL when switching or unmounting
+  useEffect(() => {
+    return () => {
+      if (activePlayer?.isObjectUrl) {
+        URL.revokeObjectURL(activePlayer.srcUrl);
+      }
+    };
+  }, [activePlayer]);
+
   useEffect(() => {
     if (!activePlayer) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (activePlayer.isObjectUrl) {
-          URL.revokeObjectURL(activePlayer.srcUrl);
-        }
         setActivePlayer(null);
+        setPlayerError(null);
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -297,9 +307,6 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
   }, [activePlayer]);
 
   const closePlayer = () => {
-    if (activePlayer?.isObjectUrl) {
-      URL.revokeObjectURL(activePlayer.srcUrl);
-    }
     setActivePlayer(null);
     setPlayerError(null);
   };
@@ -315,10 +322,55 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
     [savedMovies]
   );
 
+  const lugandaCount = useMemo(
+    () => movies.filter((m) => m.language.toLowerCase().includes('luganda')).length,
+    [movies]
+  );
+
+  const englishCount = useMemo(
+    () => movies.filter((m) => !m.language.toLowerCase().includes('luganda')).length,
+    [movies]
+  );
+
+  const languageScopedMovies = useMemo(() => {
+    if (languageFilter === 'luganda') {
+      return movies.filter((m) => m.language.toLowerCase().includes('luganda'));
+    }
+    if (languageFilter === 'english') {
+      return movies.filter((m) => !m.language.toLowerCase().includes('luganda'));
+    }
+    return movies;
+  }, [movies, languageFilter]);
+
+  const availableGenres = useMemo(() => {
+    const genreCounts = new Map<string, number>();
+    languageScopedMovies.forEach((m) => {
+      const g = m.genre || 'Action';
+      genreCounts.set(g, (genreCounts.get(g) || 0) + 1);
+    });
+    const sorted = Array.from(genreCounts.keys()).sort((a, b) => a.localeCompare(b));
+    return ['All', ...sorted];
+  }, [languageScopedMovies]);
+
+  const effectiveGenre = availableGenres.includes(selectedGenre) ? selectedGenre : 'All';
+
   const filteredMovies = useMemo(() => {
-    if (selectedCategory === 'All') return movies;
-    return movies.filter((m) => m.category === selectedCategory);
-  }, [movies, selectedCategory]);
+    const q = searchQuery.trim().toLowerCase();
+    return languageScopedMovies.filter((m) => {
+      if (effectiveGenre !== 'All' && m.genre !== effectiveGenre) {
+        return false;
+      }
+      if (!q) return true;
+      return (
+        m.title.toLowerCase().includes(q) ||
+        m.genre.toLowerCase().includes(q) ||
+        m.vjTranslator.toLowerCase().includes(q) ||
+        m.language.toLowerCase().includes(q) ||
+        m.releaseYear.toLowerCase().includes(q) ||
+        m.synopsis.toLowerCase().includes(q)
+      );
+    });
+  }, [languageScopedMovies, effectiveGenre, searchQuery]);
 
   // Resolve active movie detail from live catalog or offline IndexedDB cache
   const selectedMovie: DisplayMovie | null = useMemo(() => {
@@ -330,14 +382,19 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
       return {
         movieId: fromOffline.movieId,
         title: fromOffline.title,
-        category: (fromOffline.category as MovieCategory) || 'Open Classics',
+        category: (fromOffline.category as MovieCategory) || 'Indie & Regional',
+        genre: fromOffline.genre || 'Action',
+        language: fromOffline.language || 'Luganda Translated',
+        vjTranslator: fromOffline.vjTranslator || 'Offline Archive',
         releaseYear: fromOffline.releaseYear,
         durationLabel: fromOffline.durationLabel,
-        qualityLabel: (fromOffline.qualityLabel as MovieItem['qualityLabel']) || '720p HD',
+        qualityLabel: (fromOffline.qualityLabel as MovieItem['qualityLabel']) || '480p Lite',
         fileSizeLabel: fromOffline.fileSizeLabel,
         synopsis: fromOffline.synopsis,
         posterUrl: fromOffline.posterUrl,
+        coverArtUrl: fromOffline.coverArtUrl || fromOffline.posterUrl,
         videoUrl: fromOffline.videoUrl,
+        downloadUrl: fromOffline.downloadUrl || fromOffline.videoUrl,
       };
     }
     return null;
@@ -345,8 +402,22 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
 
   const relatedMovies = useMemo(() => {
     if (!selectedMovie) return [];
-    return movies.filter((m) => m.movieId !== selectedMovie.movieId).slice(0, 3);
+    const sameGenre = movies.filter(
+      (m) => m.movieId !== selectedMovie.movieId && m.genre === selectedMovie.genre
+    );
+    const others = movies.filter(
+      (m) => m.movieId !== selectedMovie.movieId && m.genre !== selectedMovie.genre
+    );
+    return [...sameGenre, ...others].slice(0, 3);
   }, [movies, selectedMovie]);
+
+  useEffect(() => {
+    if (selectedMovie) {
+      document.title = `${selectedMovie.title} | 0xDEV Movies`;
+    } else if (!selectedMovieId) {
+      document.title = 'Movies & Free Offline Downloads | 0xDEV';
+    }
+  }, [selectedMovie, selectedMovieId]);
 
   const activeTier = QUALITY_TIERS.find((t) => t.id === selectedTier) || QUALITY_TIERS[1];
 
@@ -444,24 +515,39 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
       // Fallback to remote stream
     }
 
+    const streamUrl = movie.downloadUrl || movie.videoUrl;
+    const coverArt = movie.coverArtUrl || movie.posterUrl;
+
     setInlinePlayer({
       movieId: movie.movieId,
-      srcUrl: movie.videoUrl,
+      srcUrl: streamUrl,
       isOfflineBlob: false,
       isObjectUrl: false,
     });
+    void coverArt;
   };
 
   const handleWatchMovieModal = async (movie: DisplayMovie) => {
     setPlayerError(null);
+    const coverArt = movie.coverArtUrl || movie.posterUrl;
+    const streamUrl = movie.downloadUrl || movie.videoUrl;
+    const metaLabel = [
+      movie.genre || movie.category,
+      movie.releaseYear,
+      movie.language || 'Offline Copy',
+      movie.vjTranslator || movie.durationLabel,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+
     try {
       const offlineBlobUrl = await getSavedMovieBlobUrl(movie.movieId);
       if (offlineBlobUrl) {
         setActivePlayer({
           title: movie.title,
-          meta: `${movie.category} · ${movie.releaseYear} · ${movie.durationLabel} · ${movie.qualityLabel}`,
+          meta: metaLabel,
           synopsis: movie.synopsis,
-          posterUrl: movie.posterUrl,
+          posterUrl: coverArt,
           srcUrl: offlineBlobUrl,
           isOfflineBlob: true,
           isObjectUrl: true,
@@ -474,10 +560,10 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
 
     setActivePlayer({
       title: movie.title,
-      meta: `${movie.category} · ${movie.releaseYear} · ${movie.durationLabel} · ${movie.qualityLabel}`,
+      meta: metaLabel,
       synopsis: movie.synopsis,
-      posterUrl: movie.posterUrl,
-      srcUrl: movie.videoUrl,
+      posterUrl: coverArt,
+      srcUrl: streamUrl,
       isOfflineBlob: false,
       isObjectUrl: false,
     });
@@ -552,9 +638,10 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
   };
 
   // =========================================================================
-  // MOVIE DETAIL VIEW (/movies/:movieId)
+  // RENDER (DETAIL VIEW / CATALOG VIEW + SHARED THEATER MODAL)
   // =========================================================================
-  if (selectedMovieId) {
+  const detailContent = (() => {
+    if (!selectedMovieId) return null;
     const savedMeta = selectedMovie ? savedById.get(selectedMovie.movieId) : undefined;
     const isSaved = Boolean(savedMeta);
     const activeProgress = selectedMovie ? downloadProgress[selectedMovie.movieId] : undefined;
@@ -568,13 +655,13 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
         <PageHeader
           eyebrow={
             selectedMovie
-              ? `${selectedMovie.category} · ${selectedMovie.releaseYear} · ${selectedMovie.durationLabel}`
+              ? `${selectedMovie.genre} · ${selectedMovie.releaseYear} · ${selectedMovie.language} · ${selectedMovie.vjTranslator}`
               : 'Movies & Offline Downloads'
           }
           title={selectedMovie ? selectedMovie.title : 'Movie Details'}
           description={
             selectedMovie
-              ? `${selectedMovie.qualityLabel} · ${selectedMovie.fileSizeLabel} · Stream directly or save into local browser storage for offline playback.`
+              ? `${selectedMovie.qualityLabel} · ${selectedMovie.fileSizeLabel} · ${selectedMovie.durationLabel} · Stream directly or save into local browser storage.`
               : 'Loading movie metadata and offline playback availability.'
           }
           currentLabel={selectedMovie ? selectedMovie.title : 'Movie Detail'}
@@ -680,9 +767,13 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                           <video
                             src={inlinePlayer.srcUrl}
                             poster={
-                              selectedMovie.posterUrl.startsWith('https://') ||
-                              selectedMovie.posterUrl.startsWith('/src/assets/images/')
-                                ? selectedMovie.posterUrl
+                              (selectedMovie.coverArtUrl || selectedMovie.posterUrl).startsWith(
+                                'https://'
+                              ) ||
+                              (selectedMovie.coverArtUrl || selectedMovie.posterUrl).startsWith(
+                                '/src/assets/images/'
+                              )
+                                ? selectedMovie.coverArtUrl || selectedMovie.posterUrl
                                 : undefined
                             }
                             controls
@@ -700,8 +791,8 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                         <div className="relative aspect-video w-full overflow-hidden bg-[#120D4A]">
                           {!imgFailed ? (
                             <img
-                              src={selectedMovie.posterUrl}
-                              alt={`${selectedMovie.title} poster`}
+                              src={selectedMovie.coverArtUrl || selectedMovie.posterUrl}
+                              alt={`${selectedMovie.title} cover art`}
                               referrerPolicy="no-referrer"
                               onError={() =>
                                 setFailedImages((prev) => ({
@@ -786,16 +877,16 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                       </h2>
 
                       <dl className="mt-5 divide-y divide-[#E5E7F0] dark:divide-[#242C54] text-xs sm:text-sm">
-                        <div className="flex items-center justify-between py-2.5">
-                          <dt className="inline-flex items-center gap-1.5 font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                        <div className="flex items-center justify-between gap-4 py-2.5">
+                          <dt className="inline-flex items-center gap-1.5 font-semibold text-[#6B7188] dark:text-[#8E97B8] shrink-0">
                             <Film className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
-                            <span>Category</span>
+                            <span>Title</span>
                           </dt>
-                          <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">
-                            {selectedMovie.category}
+                          <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC] text-right truncate">
+                            {selectedMovie.title}
                           </dd>
                         </div>
-                        <div className="flex items-center justify-between py-2.5">
+                        <div className="flex items-center justify-between gap-4 py-2.5">
                           <dt className="inline-flex items-center gap-1.5 font-semibold text-[#6B7188] dark:text-[#8E97B8]">
                             <Calendar className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
                             <span>Release Year</span>
@@ -804,7 +895,25 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                             {selectedMovie.releaseYear}
                           </dd>
                         </div>
-                        <div className="flex items-center justify-between py-2.5">
+                        <div className="flex items-center justify-between gap-4 py-2.5">
+                          <dt className="inline-flex items-center gap-1.5 font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                            <Tag className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                            <span>Genre</span>
+                          </dt>
+                          <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">
+                            {selectedMovie.genre}
+                          </dd>
+                        </div>
+                        <div className="flex items-center justify-between gap-4 py-2.5">
+                          <dt className="inline-flex items-center gap-1.5 font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                            <Languages className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                            <span>Audio &amp; VJ</span>
+                          </dt>
+                          <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC] text-right">
+                            {selectedMovie.language} · {selectedMovie.vjTranslator}
+                          </dd>
+                        </div>
+                        <div className="flex items-center justify-between gap-4 py-2.5">
                           <dt className="inline-flex items-center gap-1.5 font-semibold text-[#6B7188] dark:text-[#8E97B8]">
                             <Clock className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
                             <span>Runtime</span>
@@ -813,7 +922,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                             {selectedMovie.durationLabel}
                           </dd>
                         </div>
-                        <div className="flex items-center justify-between py-2.5">
+                        <div className="flex items-center justify-between gap-4 py-2.5">
                           <dt className="inline-flex items-center gap-1.5 font-semibold text-[#6B7188] dark:text-[#8E97B8]">
                             <ShieldCheck
                               className="h-3.5 w-3.5 text-[#EE1119]"
@@ -821,11 +930,11 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                             />
                             <span>Quality &amp; Size</span>
                           </dt>
-                          <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">
+                          <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
                             {selectedMovie.qualityLabel} · {selectedMovie.fileSizeLabel}
                           </dd>
                         </div>
-                        <div className="flex items-center justify-between py-2.5">
+                        <div className="flex items-center justify-between gap-4 py-2.5">
                           <dt className="inline-flex items-center gap-1.5 font-semibold text-[#6B7188] dark:text-[#8E97B8]">
                             <HardDrive className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
                             <span>Local Storage</span>
@@ -922,7 +1031,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                         )}
 
                         <a
-                          href={selectedMovie.videoUrl}
+                          href={selectedMovie.downloadUrl || selectedMovie.videoUrl}
                           download
                           target="_blank"
                           rel="noopener noreferrer"
@@ -966,7 +1075,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                           className="group text-left rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-5 transition-colors hover:border-[#EE1119]/40"
                         >
                           <p className="text-[11px] font-bold uppercase tracking-wider text-[#EE1119]">
-                            {rel.category} · {rel.releaseYear} · {rel.qualityLabel}
+                            {rel.genre} · {rel.releaseYear} · {rel.vjTranslator}
                           </p>
                           <h4 className="mt-1.5 font-display text-lg font-extrabold text-[#1A1464] dark:text-[#F4F6FC] group-hover:text-[#EE1119] transition-colors">
                             {rel.title}
@@ -983,104 +1092,21 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
             )}
           </div>
         </section>
-
-        {/* Theater Modal */}
-        <AnimatePresence>
-          {activePlayer && (
-            <motion.div
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="movie-player-title"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-[#090D1F]/85 backdrop-blur-sm p-4"
-              onClick={closePlayer}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 14 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 10 }}
-                transition={{ duration: 0.24, ease: EASE_OUT_EXPO }}
-                onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-4xl overflow-hidden rounded-2xl border border-[#242C54] bg-[#101530] text-white shadow-2xl"
-              >
-                <div className="flex items-center justify-between gap-4 border-b border-[#242C54] px-5 py-4">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#EE1119]">
-                      {activePlayer.isOfflineBlob
-                        ? 'Playing From Local Browser Storage (Offline)'
-                        : 'Streaming Online'}
-                      {' · '}
-                      {activePlayer.meta}
-                    </p>
-                    <h3
-                      id="movie-player-title"
-                      className="mt-0.5 font-display text-lg font-extrabold text-white truncate"
-                    >
-                      {activePlayer.title}
-                    </h3>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={closePlayer}
-                    aria-label="Close movie player"
-                    className="rounded-lg border border-white/15 p-2 text-white/80 hover:border-[#EE1119] hover:text-white"
-                  >
-                    <X className="h-4 w-4" aria-hidden="true" />
-                  </button>
-                </div>
-
-                <div className="bg-black">
-                  <video
-                    src={activePlayer.srcUrl}
-                    poster={
-                      activePlayer.posterUrl.startsWith('https://') ||
-                      activePlayer.posterUrl.startsWith('/src/assets/images/')
-                        ? activePlayer.posterUrl
-                        : undefined
-                    }
-                    controls
-                    autoPlay
-                    playsInline
-                    onError={() =>
-                      setPlayerError(
-                        'This video file could not be streamed directly in the browser player. Try Direct Download MP4 to play it in your system media player.'
-                      )
-                    }
-                    className="aspect-video w-full"
-                  />
-                </div>
-
-                <div className="px-5 py-4 space-y-2">
-                  {playerError && (
-                    <p className="rounded-lg border border-[#EE1119]/40 bg-[#EE1119]/15 px-3 py-2 text-xs font-semibold text-white">
-                      {playerError}
-                    </p>
-                  )}
-                  <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
-                    {activePlayer.synopsis}
-                  </p>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <SharedCtaBanner onNavigate={onNavigate} />
       </>
     );
-  }
+  })();
 
   // =========================================================================
   // CATALOG & LOCAL OFFLINE VAULT VIEW (/movies)
   // =========================================================================
   return (
     <>
+      {detailContent || (
+        <>
       <PageHeader
-        eyebrow="Free Cinema & Offline Downloads"
-        title="Stream online or save movies into your local storage."
-        description="Browse films published by our studio admin, inspect full movie details, save copies into browser storage for offline playback, and subscribe for instant email alerts when new movies drop."
+        eyebrow="Free Cinema & Luganda VJ Library"
+        title="Stream Luganda-translated films or save movies to local storage."
+        description="Explore verified Luganda-translated VJ releases and open-access films with release year, genre, cover art, direct MP4 download links, and offline browser storage."
         currentLabel="Movies"
         onNavigate={onNavigate}
       />
@@ -1088,8 +1114,8 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
       {/* Section 1: Live Movie Library & Local Offline Vault */}
       <section className="bg-white dark:bg-[#090D1F] py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Interactive View Tabs */}
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-[#E5E7F0] dark:border-[#242C54] pb-6">
+          {/* Interactive View Tabs + Language Scope */}
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-[#E5E7F0] dark:border-[#242C54] pb-6">
             <div
               role="tablist"
               aria-label="Movie hub sections"
@@ -1131,27 +1157,83 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
             </div>
 
             {activeTab === 'catalog' && (
-              <div className="flex flex-wrap gap-2">
-                {CATEGORY_FILTERS.map((cat) => {
-                  const selected = selectedCategory === cat;
+              <div className="flex flex-wrap items-center gap-2">
+                {(
+                  [
+                    { id: 'all', label: `All Audio (${movies.length})` },
+                    { id: 'luganda', label: `Luganda Translated (${lugandaCount})` },
+                    { id: 'english', label: `English & Classics (${englishCount})` },
+                  ] as { id: LanguageFilterScope; label: string }[]
+                ).map((langOpt) => {
+                  const active = languageFilter === langOpt.id;
                   return (
                     <button
-                      key={cat}
+                      key={langOpt.id}
                       type="button"
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-bold border transition-colors whitespace-nowrap shrink-0 ${
-                        selected
+                      onClick={() => setLanguageFilter(langOpt.id)}
+                      className={`rounded-lg px-3.5 py-2 text-xs font-bold border transition-colors whitespace-nowrap shrink-0 ${
+                        active
                           ? 'border-[#EE1119] bg-[#EE1119] text-white'
                           : 'border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] text-[#4A4F63] dark:text-[#C2C9E0] hover:border-[#1A1464]/35'
                       }`}
                     >
-                      {cat}
+                      {langOpt.label}
                     </button>
                   );
                 })}
               </div>
             )}
           </div>
+
+          {/* Search & Dynamic Genre Filter Strip */}
+          {activeTab === 'catalog' && (
+            <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="relative w-full lg:max-w-md">
+                <Search
+                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6B7188]"
+                  aria-hidden="true"
+                />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search movies by title, VJ translator, genre, or year"
+                  placeholder="Search title, VJ (Junior, Mark, Ice P, Jingo, Emmy), genre, or year..."
+                  className="w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] pl-10 pr-9 py-2.5 text-xs sm:text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188] focus:border-[#EE1119] focus:outline-none"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Clear search query"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#6B7188] hover:text-[#EE1119]"
+                  >
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {availableGenres.map((genreName) => {
+                  const selected = effectiveGenre === genreName;
+                  return (
+                    <button
+                      key={genreName}
+                      type="button"
+                      onClick={() => setSelectedGenre(genreName)}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-bold border transition-colors whitespace-nowrap shrink-0 ${
+                        selected
+                          ? 'border-[#1A1464] dark:border-[#9FA8FF] bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                          : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#4A4F63] dark:text-[#C2C9E0] hover:border-[#EE1119]/50'
+                      }`}
+                    >
+                      {genreName}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {storageError && (
             <div
@@ -1172,7 +1254,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
             </div>
           )}
 
-          {/* TAB 1: Live Admin-Published Catalog */}
+          {/* TAB 1: Structured Movie Grid */}
           {activeTab === 'catalog' && (
             <div className="mt-8">
               {moviesLoading ? (
@@ -1189,24 +1271,39 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                   <Clapperboard className="mx-auto h-10 w-10 text-[#EE1119]" aria-hidden="true" />
                   <h2 className="mt-3 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
                     {movies.length === 0
-                      ? 'First movies are being uploaded by our admin.'
-                      : 'No movies match this category yet.'}
+                      ? 'Movies are loading into the library.'
+                      : 'No movies matched that filter or search query.'}
                   </h2>
                   <p className="mx-auto mt-2 max-w-xl text-sm text-[#4A4F63] dark:text-[#C2C9E0] leading-relaxed">
                     {movies.length === 0
-                      ? 'Subscribe below so we automatically send an email alert to your inbox and dashboard the moment the admin uploads a movie.'
-                      : 'Switch back to All categories or inspect the offline local storage tab.'}
+                      ? 'Subscribe below so we send an instant email alert when new releases publish.'
+                      : 'Clear your search query or switch back to All Audio and All Genres to browse all releases.'}
                   </p>
+                  {movies.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedGenre('All');
+                        setLanguageFilter('all');
+                      }}
+                      className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#EE1119] px-4 py-2 text-xs font-bold text-white hover:bg-[#D00D14]"
+                    >
+                      Reset Filters
+                    </button>
+                  )}
                 </div>
               ) : (
                 <StaggerGrid
-                  staggerDelay={0.05}
+                  staggerDelay={0.04}
                   className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
                 >
                   {filteredMovies.map((movie) => {
                     const isSaved = savedById.has(movie.movieId);
                     const activeProgress = downloadProgress[movie.movieId];
                     const imgFailed = Boolean(failedImages[movie.movieId]);
+                    const coverArt = movie.coverArtUrl || movie.posterUrl;
+                    const downloadHref = movie.downloadUrl || movie.videoUrl;
 
                     return (
                       <StaggerItem key={movie.movieId} className="h-full">
@@ -1224,8 +1321,9 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                               >
                                 {!imgFailed ? (
                                   <img
-                                    src={movie.posterUrl}
-                                    alt={`${movie.title} poster`}
+                                    src={coverArt}
+                                    alt={`${movie.title} cover art`}
+                                    loading="lazy"
                                     referrerPolicy="no-referrer"
                                     onError={() =>
                                       setFailedImages((prev) => ({
@@ -1238,8 +1336,11 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                                 ) : (
                                   <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#1A1464] to-[#090D1F] p-6 text-center text-white">
                                     <Film className="h-10 w-10 text-[#EE1119]" aria-hidden="true" />
-                                    <p className="mt-2 font-display text-sm font-bold">
+                                    <p className="mt-2 font-display text-sm font-bold line-clamp-2">
                                       {movie.title}
+                                    </p>
+                                    <p className="mt-1 text-[11px] font-semibold text-white/75">
+                                      {movie.vjTranslator}
                                     </p>
                                   </div>
                                 )}
@@ -1261,25 +1362,59 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
 
                             <div className="p-5 sm:p-6">
                               <p className="text-[11px] font-bold uppercase tracking-wider text-[#EE1119]">
-                                {movie.category} · {movie.releaseYear} · {movie.durationLabel}
+                                {movie.genre} · {movie.releaseYear} · {movie.language}
                               </p>
                               <button
                                 type="button"
                                 onClick={() => handleOpenMovieDetail(movie.movieId)}
-                                className="mt-1.5 text-left font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC] hover:text-[#EE1119] transition-colors"
+                                className="mt-1.5 text-left font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC] hover:text-[#EE1119] transition-colors line-clamp-2"
                               >
                                 {movie.title}
                               </button>
-                              <p className="mt-1 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">
-                                {movie.qualityLabel} · {movie.fileSizeLabel} · Free Download
-                              </p>
-                              <p className="mt-3 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0] line-clamp-3">
+
+                              {/* Structured Movie Schema Specification Rows */}
+                              <dl className="mt-3 divide-y divide-[#E5E7F0] dark:divide-[#242C54] rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] px-3.5 py-1 text-[11px]">
+                                <div className="flex items-center justify-between gap-3 py-1.5">
+                                  <dt className="font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                                    Release Year
+                                  </dt>
+                                  <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
+                                    {movie.releaseYear}
+                                  </dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3 py-1.5">
+                                  <dt className="font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                                    Genre
+                                  </dt>
+                                  <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC]">
+                                    {movie.genre}
+                                  </dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3 py-1.5">
+                                  <dt className="font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                                    Translator / Audio
+                                  </dt>
+                                  <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC] truncate">
+                                    {movie.vjTranslator}
+                                  </dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3 py-1.5">
+                                  <dt className="font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                                    Quality &amp; Size
+                                  </dt>
+                                  <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
+                                    {movie.qualityLabel} · {movie.fileSizeLabel}
+                                  </dd>
+                                </div>
+                              </dl>
+
+                              <p className="mt-3 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0] line-clamp-2">
                                 {movie.synopsis}
                               </p>
                               <button
                                 type="button"
                                 onClick={() => handleOpenMovieDetail(movie.movieId)}
-                                className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#1A1464] dark:text-[#9FA8FF] hover:text-[#EE1119]"
+                                className="mt-2.5 inline-flex items-center gap-1 text-xs font-bold text-[#1A1464] dark:text-[#9FA8FF] hover:text-[#EE1119]"
                               >
                                 <span>View Movie Details</span>
                                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1340,7 +1475,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                               )}
 
                               <a
-                                href={movie.videoUrl}
+                                href={downloadHref}
                                 download
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -1420,7 +1555,9 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                           {saved.title}
                         </button>
                         <p className="mt-1 text-xs text-[#6B7188] dark:text-[#8E97B8]">
-                          {saved.category} · {saved.releaseYear} · {saved.durationLabel}
+                          {saved.genre || saved.category} · {saved.releaseYear} ·{' '}
+                          {saved.language || 'Offline Copy'} ·{' '}
+                          {saved.vjTranslator || saved.durationLabel}
                         </p>
                         <p className="mt-2 text-sm text-[#4A4F63] dark:text-[#C2C9E0] line-clamp-2">
                           {saved.synopsis}
@@ -1430,7 +1567,26 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                       <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-[#E5E7F0] dark:border-[#242C54]">
                         <button
                           type="button"
-                          onClick={() => void handleWatchMovieModal(saved as DisplayMovie)}
+                          onClick={() =>
+                            void handleWatchMovieModal({
+                              movieId: saved.movieId,
+                              title: saved.title,
+                              category: (saved.category as MovieCategory) || 'Indie & Regional',
+                              genre: saved.genre || saved.category || 'Action',
+                              language: saved.language || 'Luganda Translated',
+                              vjTranslator: saved.vjTranslator || 'Offline Archive',
+                              releaseYear: saved.releaseYear,
+                              durationLabel: saved.durationLabel,
+                              qualityLabel:
+                                (saved.qualityLabel as MovieItem['qualityLabel']) || '480p Lite',
+                              fileSizeLabel: saved.fileSizeLabel,
+                              synopsis: saved.synopsis,
+                              posterUrl: saved.posterUrl,
+                              coverArtUrl: saved.coverArtUrl || saved.posterUrl,
+                              videoUrl: saved.videoUrl,
+                              downloadUrl: saved.downloadUrl || saved.videoUrl,
+                            })
+                          }
                           className="inline-flex items-center gap-1.5 rounded-xl bg-[#EE1119] px-4 py-2 text-xs font-bold text-white hover:bg-[#D00D14]"
                         >
                           <Play className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1752,8 +1908,10 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
           </Reveal>
         </div>
       </section>
+        </>
+      )}
 
-      {/* Interactive Theater Video Player Modal */}
+      {/* Shared Interactive Theater Video Player Modal */}
       <AnimatePresence>
         {activePlayer && (
           <motion.div

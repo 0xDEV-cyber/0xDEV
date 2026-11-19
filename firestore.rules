@@ -350,13 +350,17 @@ service cloud.firestore {
           'videoUrl', 'published', 'createdAt', 'updatedAt'
         ])
         && data.keys().hasOnly([
-          'movieId', 'title', 'category', 'releaseYear', 'durationLabel',
-          'qualityLabel', 'fileSizeLabel', 'synopsis', 'posterUrl',
-          'videoUrl', 'published', 'createdAt', 'updatedAt'
+          'movieId', 'title', 'category', 'genre', 'language', 'vjTranslator',
+          'releaseYear', 'durationLabel', 'qualityLabel', 'fileSizeLabel',
+          'synopsis', 'posterUrl', 'coverArtUrl', 'videoUrl', 'downloadUrl',
+          'published', 'createdAt', 'updatedAt'
         ])
         && data.movieId is string && isValidId(data.movieId) && data.movieId == movieId
         && data.title is string && data.title.size() >= 2 && data.title.size() <= 140
         && data.category in ['Open Classics', 'Indie & Regional', 'Tech Documentaries', 'Short Films']
+        && (!('genre' in data) || (data.genre is string && data.genre.size() >= 2 && data.genre.size() <= 60))
+        && (!('language' in data) || (data.language is string && data.language.size() <= 60))
+        && (!('vjTranslator' in data) || (data.vjTranslator is string && data.vjTranslator.size() <= 80))
         && data.releaseYear is string && data.releaseYear.size() >= 4 && data.releaseYear.size() <= 12
         && data.durationLabel is string && data.durationLabel.size() >= 2 && data.durationLabel.size() <= 30
         && data.qualityLabel in ['480p Lite', '720p HD', '1080p Full HD']
@@ -364,8 +368,20 @@ service cloud.firestore {
         && data.synopsis is string && data.synopsis.size() >= 10 && data.synopsis.size() <= 800
         && data.posterUrl is string && data.posterUrl.size() >= 4 && data.posterUrl.size() <= 500
         && data.posterUrl.matches('^(https://.*|/src/assets/images/.*)$')
+        && (!('coverArtUrl' in data) || (
+          data.coverArtUrl is string
+          && data.coverArtUrl.size() >= 4
+          && data.coverArtUrl.size() <= 500
+          && data.coverArtUrl.matches('^(https://.*|/src/assets/images/.*)$')
+        ))
         && data.videoUrl is string && data.videoUrl.size() >= 8 && data.videoUrl.size() <= 1000
         && data.videoUrl.matches('^https://.*')
+        && (!('downloadUrl' in data) || (
+          data.downloadUrl is string
+          && data.downloadUrl.size() >= 8
+          && data.downloadUrl.size() <= 1000
+          && data.downloadUrl.matches('^https://.*')
+        ))
         && data.published is bool
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
@@ -763,8 +779,9 @@ service cloud.firestore {
         && incoming().createdAt == existing().createdAt
         && incoming().updatedAt == request.time
         && incoming().diff(existing()).affectedKeys().hasOnly([
-          'title', 'category', 'releaseYear', 'durationLabel', 'qualityLabel',
-          'fileSizeLabel', 'synopsis', 'posterUrl', 'videoUrl', 'published', 'updatedAt'
+          'title', 'category', 'genre', 'language', 'vjTranslator', 'releaseYear',
+          'durationLabel', 'qualityLabel', 'fileSizeLabel', 'synopsis',
+          'posterUrl', 'coverArtUrl', 'videoUrl', 'downloadUrl', 'published', 'updatedAt'
         ]);
 
       allow delete: if isAdmin() && isValidId(movieId);

@@ -231,24 +231,29 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ inquiry, mil
         updatedAt: serverTimestamp(),
       });
 
+      setChatInput('');
+
       // Notify client automatically when admin replies
       if (isPrimaryAdmin && inquiry.authorId !== user.uid) {
         const notifId = `NTF-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
-        await setDoc(doc(db, 'notifications', notifId), {
-          notificationId: notifId,
-          recipientId: inquiry.authorId,
-          senderEmail: user.email || COMPANY_CONTACT.email,
-          type: 'admin_message',
-          title: `New message on ${inquiry.service}`,
-          body: body.slice(0, 500),
-          inquiryId: inquiry.inquiryId,
-          isRead: false,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
+        const notifBody = body.length >= 2 ? body.slice(0, 500) : `Reply: ${body}`;
+        try {
+          await setDoc(doc(db, 'notifications', notifId), {
+            notificationId: notifId,
+            recipientId: inquiry.authorId,
+            senderEmail: user.email || COMPANY_CONTACT.email,
+            type: 'admin_message',
+            title: `New message on ${inquiry.service}`.slice(0, 140),
+            body: notifBody,
+            inquiryId: inquiry.inquiryId,
+            isRead: false,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+        } catch (notifErr) {
+          console.warn('Secondary notification delivery failed:', notifErr);
+        }
       }
-
-      setChatInput('');
     } catch (err) {
       setOpError('Unable to send message right now.');
       handleFirestoreError(
@@ -266,8 +271,18 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ inquiry, mil
     if (!isPrimaryAdmin) return;
     setOpError(null);
 
-    if (delTitle.trim().length < 2 || !delUrl.trim().startsWith('https://')) {
-      setOpError('Deliverable title and a valid https:// URL are required.');
+    const cleanTitle = delTitle.trim();
+    const cleanUrl = delUrl.trim();
+    let isValidHttpsUrl = false;
+    try {
+      const parsed = new URL(cleanUrl);
+      isValidHttpsUrl = parsed.protocol === 'https:' && parsed.hostname.includes('.');
+    } catch {
+      isValidHttpsUrl = false;
+    }
+
+    if (cleanTitle.length < 2 || !isValidHttpsUrl) {
+      setOpError('Deliverable title (2+ chars) and a valid https:// URL are required.');
       return;
     }
 
@@ -319,8 +334,13 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ inquiry, mil
     setOpError(null);
 
     const parsedAmount = Math.round(Number(invAmount));
-    if (invTitle.trim().length < 2 || !Number.isFinite(parsedAmount) || parsedAmount < 1) {
-      setOpError('Invoice title and positive USD amount are required.');
+    if (
+      invTitle.trim().length < 2 ||
+      !Number.isFinite(parsedAmount) ||
+      parsedAmount < 1 ||
+      parsedAmount > 1000000
+    ) {
+      setOpError('Invoice title (2+ chars) and a USD amount between 1 and 1,000,000 are required.');
       return;
     }
 

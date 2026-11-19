@@ -35,8 +35,10 @@ function slugifyTitle(raw: string): string {
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-')
-    .replace(/-+/g, '-');
-  return (cleaned || `engineering-note-${Date.now()}`).slice(0, 110);
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const slug = (cleaned || `engineering-note-${Date.now()}`).slice(0, 110).replace(/-+$/g, '');
+  return slug.length >= 3 ? slug : `note-${Date.now()}`;
 }
 
 export const AdminBlogManager: React.FC = () => {
@@ -97,19 +99,24 @@ export const AdminBlogManager: React.FC = () => {
 
     setSaving(true);
     try {
+      const rawAuthor = (user?.displayName || '').trim().slice(0, 80);
+      const safeAuthor = rawAuthor.length >= 2 ? rawAuthor : 'Arigye Wisdom';
+      const rawTags = stackTags.trim().slice(0, 200);
+      const safeTags = rawTags.length >= 2 ? rawTags : 'Engineering';
+
       const payload: Record<string, unknown> = {
         postId,
-        slug: slug.length >= 3 ? slug : `note-${Date.now()}`,
+        slug,
         title: title.trim().slice(0, 160),
         excerpt: excerpt.trim().slice(0, 400),
         category,
-        authorName: user?.displayName?.trim().slice(0, 80) || 'Arigye Wisdom',
+        authorName: safeAuthor,
         authorRole: 'Principal Systems Architect · 0xDEV',
         publishedDate: todayLabel,
         readTimeMinutes: Math.max(1, Math.min(60, Math.round(readTimeMinutes) || 5)),
         featured: false,
         coverImage,
-        stackTags: stackTags.trim().slice(0, 200) || 'Engineering',
+        stackTags: safeTags,
         keyTakeaways: keyTakeaways.trim().slice(0, 1000),
         section1Heading: section1Heading.trim().slice(0, 140),
         section1Body: section1Body.trim().slice(0, 4000),

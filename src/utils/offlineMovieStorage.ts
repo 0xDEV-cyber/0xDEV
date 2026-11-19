@@ -9,13 +9,18 @@ export interface SavedOfflineMovieMeta {
   movieId: string;
   title: string;
   category: string;
+  genre?: string;
+  language?: string;
+  vjTranslator?: string;
   releaseYear: string;
   durationLabel: string;
   qualityLabel: string;
   fileSizeLabel: string;
   synopsis: string;
   posterUrl: string;
+  coverArtUrl?: string;
   videoUrl: string;
+  downloadUrl?: string;
   mimeType: string;
   sizeBytes: number;
   savedAt: number;
@@ -132,6 +137,42 @@ export async function removeSavedMovie(movieId: string): Promise<void> {
   });
 }
 
+async function ensureStorageSpaceAvailable(requiredBytes: number | null): Promise<void> {
+  if (!requiredBytes || !Number.isFinite(requiredBytes) || requiredBytes <= 0) return;
+  const estimate = await estimateBrowserStorageQuota();
+  if (!estimate || estimate.quotaBytes <= 0) return;
+  const availableBytes = Math.max(0, estimate.quotaBytes - estimate.usageBytes);
+  if (availableBytes < requiredBytes) {
+    throw new Error(
+      `Not enough browser local storage space (${formatBytes(availableBytes)} free, needs ${formatBytes(
+        requiredBytes
+      )}). Remove older saved movies or use Direct Download MP4.`
+    );
+  }
+}
+
+async function fetchChunkWithRetry(chunkUrl: string, start: number): Promise<Uint8Array> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const chunkRes = await fetch(chunkUrl);
+      if (chunkRes.ok) {
+        return new Uint8Array(await chunkRes.arrayBuffer());
+      }
+      lastError = new Error(`Chunk download failed at byte ${start} (HTTP ${chunkRes.status}).`);
+      if (chunkRes.status >= 400 && chunkRes.status < 500) {
+        throw lastError;
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error('Chunk request failed.');
+    }
+    if (attempt < 2) {
+      await new Promise((r) => window.setTimeout(r, 400 * (attempt + 1)));
+    }
+  }
+  throw lastError || new Error(`Chunk download failed at byte ${start}.`);
+}
+
 async function fetchViaArchiveChunkProxy(
   videoUrl: string,
   onProgress?: (progress: DownloadProgressInfo) => void
@@ -164,6 +205,8 @@ async function fetchViaArchiveChunkProxy(
   }
 
   const totalBytes = probeData.totalBytes;
+  await ensureStorageSpaceAvailable(totalBytes);
+
   const contentType = probeData.contentType || 'video/mp4';
   const chunks: Uint8Array[] = [];
   let loadedBytes = 0;
@@ -175,12 +218,7 @@ async function fetchViaArchiveChunkProxy(
       videoUrl
     )}&start=${start}&end=${end}`;
 
-    const chunkRes = await fetch(chunkUrl);
-    if (!chunkRes.ok) {
-      throw new Error(`Chunk download failed at byte ${start} (HTTP ${chunkRes.status}).`);
-    }
-
-    const buf = new Uint8Array(await chunkRes.arrayBuffer());
+    const buf = await fetchChunkWithRetry(chunkUrl, start);
     if (buf.byteLength === 0) break;
 
     chunks.push(buf);
@@ -215,6 +253,7 @@ export async function saveMovieToLocalStorage(
 
   // 1. Try direct CORS fetch first (fastest when CDN/R2 allows CORS directly)
   let corsBlocked = false;
+  let startedStreaming = false;
   try {
     const response = await fetch(movie.videoUrl, { mode: 'cors' });
     if (!response.ok) {
@@ -224,8 +263,10 @@ export async function saveMovieToLocalStorage(
     contentType = response.headers.get('content-type') || 'video/mp4';
     const lengthHeader = response.headers.get('content-length');
     const totalBytes = lengthHeader ? Number(lengthHeader) : null;
+    await ensureStorageSpaceAvailable(totalBytes);
 
     if (response.body) {
+      startedStreaming = true;
       const reader = response.body.getReader();
       const chunks: Uint8Array[] = [];
       let loadedBytes = 0;
@@ -246,6 +287,7 @@ export async function saveMovieToLocalStorage(
 
       videoBlob = new Blob(chunks as BlobPart[], { type: contentType });
     } else {
+      startedStreaming = true;
       videoBlob = await response.blob();
       onProgress?.({
         loadedBytes: videoBlob.size,
@@ -254,7 +296,10 @@ export async function saveMovieToLocalStorage(
       });
     }
   } catch (err) {
-    if (err instanceof TypeError) {
+    const isNetworkOrCors =
+      err instanceof TypeError ||
+      (typeof DOMException !== 'undefined' && err instanceof DOMException && err.name === 'NetworkError');
+    if (isNetworkOrCors && !startedStreaming) {
       corsBlocked = true;
     } else {
       throw err;
@@ -282,13 +327,18 @@ export async function saveMovieToLocalStorage(
     movieId: movie.movieId,
     title: movie.title,
     category: movie.category,
+    genre: movie.genre,
+    language: movie.language,
+    vjTranslator: movie.vjTranslator,
     releaseYear: movie.releaseYear,
     durationLabel: movie.durationLabel,
     qualityLabel: movie.qualityLabel,
     fileSizeLabel: movie.fileSizeLabel,
     synopsis: movie.synopsis,
     posterUrl: movie.posterUrl,
+    coverArtUrl: movie.coverArtUrl,
     videoUrl: movie.videoUrl,
+    downloadUrl: movie.downloadUrl,
     mimeType: videoBlob.type || contentType,
     sizeBytes: videoBlob.size,
     savedAt: Date.now(),

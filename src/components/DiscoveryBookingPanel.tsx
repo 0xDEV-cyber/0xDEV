@@ -56,8 +56,11 @@ function getUpcomingBusinessDays(count = 8): { iso: string; label: string }[] {
   while (days.length < count) {
     const dow = cursor.getDay();
     if (dow !== 0) {
-      // Allow Mon-Sat
-      const iso = cursor.toISOString().slice(0, 10);
+      // Allow Mon-Sat using local calendar date to match displayed weekday label
+      const y = cursor.getFullYear();
+      const m = String(cursor.getMonth() + 1).padStart(2, '0');
+      const d = String(cursor.getDate()).padStart(2, '0');
+      const iso = `${y}-${m}-${d}`;
       const label = new Intl.DateTimeFormat('en-US', {
         weekday: 'short',
         month: 'short',

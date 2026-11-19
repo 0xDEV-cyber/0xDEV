@@ -46,6 +46,7 @@ async function verifyAdminIdToken(idToken) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken }),
+      signal: AbortSignal.timeout(5000),
     }
   );
 
@@ -86,6 +87,7 @@ async function sendViaBrevo({ apiKey, senderEmail, recipient, subject, html, tex
       htmlContent: html || `<p>${text}</p>`,
       textContent: text,
     }),
+    signal: AbortSignal.timeout(6000),
   });
   return res;
 }
@@ -104,6 +106,7 @@ async function sendViaResend({ apiKey, fromAddress, recipient, subject, html, te
       html,
       text,
     }),
+    signal: AbortSignal.timeout(6000),
   });
   return res;
 }
@@ -204,39 +207,55 @@ export async function handler(event) {
   let failedCount = 0;
   const errors = [];
 
-  for (const recipient of dedupedEmails.slice(0, 50)) {
-    try {
-      const apiRes = brevoApiKey
-        ? await sendViaBrevo({
-            apiKey: brevoApiKey,
-            senderEmail: brevoSenderEmail,
-            recipient,
-            subject: customSubject,
-            html: customHtml,
-            text: customText,
-          })
-        : await sendViaResend({
-            apiKey: resendApiKey,
-            fromAddress: resendFromAddress,
-            recipient,
-            subject: customSubject,
-            html: customHtml,
-            text: customText,
-          });
+  const recipients = dedupedEmails.slice(0, 50);
+  const BATCH_SIZE = 10;
 
-      if (apiRes.ok) {
-        sentCount += 1;
+  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+    const batch = recipients.slice(i, i + BATCH_SIZE);
+    const settled = await Promise.allSettled(
+      batch.map(async (recipient) => {
+        const apiRes = brevoApiKey
+          ? await sendViaBrevo({
+              apiKey: brevoApiKey,
+              senderEmail: brevoSenderEmail,
+              recipient,
+              subject: customSubject,
+              html: customHtml,
+              text: customText,
+            })
+          : await sendViaResend({
+              apiKey: resendApiKey,
+              fromAddress: resendFromAddress,
+              recipient,
+              subject: customSubject,
+              html: customHtml,
+              text: customText,
+            });
+
+        if (apiRes.ok) {
+          return { ok: true, email: recipient.email };
+        }
+        const errPayload = await apiRes.text();
+        return { ok: false, email: recipient.email, error: errPayload.slice(0, 140) };
+      })
+    );
+
+    settled.forEach((result, idx) => {
+      const recipientEmail = batch[idx].email;
+      if (result.status === 'fulfilled') {
+        if (result.value.ok) {
+          sentCount += 1;
+        } else {
+          failedCount += 1;
+          errors.push(`${recipientEmail}: ${result.value.error}`);
+        }
       } else {
         failedCount += 1;
-        const errPayload = await apiRes.text();
-        errors.push(`${recipient.email}: ${errPayload.slice(0, 140)}`);
+        const msg =
+          result.reason instanceof Error ? result.reason.message : 'Network error';
+        errors.push(`${recipientEmail}: ${msg}`);
       }
-    } catch (err) {
-      failedCount += 1;
-      errors.push(
-        `${recipient.email}: ${err instanceof Error ? err.message : 'Network error'}`
-      );
-    }
+    });
   }
 
   return jsonResponse(200, {

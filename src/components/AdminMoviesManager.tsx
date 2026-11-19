@@ -33,6 +33,13 @@ import {
   UploadCloud,
   Users,
 } from 'lucide-react';
+import {
+  MOVIE_CATEGORIES,
+  MOVIE_FIELD_LIMITS,
+  MOVIE_GENRES,
+  MOVIE_QUALITY_OPTIONS,
+  validateMovieSchemaPayload,
+} from '../data/movieSchema';
 import { VERIFIED_ARCHIVE_MOVIES } from '../data/moviesData';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
@@ -45,18 +52,10 @@ import {
 import { buildMovieReleaseEmailHtml } from '../utils/brandedEmailTemplates';
 import {
   ArchiveSearchCandidate,
+  ArchiveSearchScope,
   fetchInternetArchiveMovieDraft,
   searchInternetArchiveMovies,
 } from '../utils/internetArchiveApi';
-
-const MOVIE_CATEGORIES: MovieCategory[] = [
-  'Open Classics',
-  'Indie & Regional',
-  'Tech Documentaries',
-  'Short Films',
-];
-
-const QUALITY_OPTIONS: MovieQualityLabel[] = ['480p Lite', '720p HD', '1080p Full HD'];
 
 const POSTER_PRESETS = [
   {
@@ -104,11 +103,14 @@ export const AdminMoviesManager: React.FC = () => {
   const [editingMovieId, setEditingMovieId] = useState<string | null>(null);
   const [showLiveGuide, setShowLiveGuide] = useState(false);
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<MovieCategory>('Open Classics');
-  const [releaseYear, setReleaseYear] = useState('2026');
+  const [category, setCategory] = useState<MovieCategory>('Indie & Regional');
+  const [genre, setGenre] = useState<string>('Action');
+  const [language, setLanguage] = useState<string>('Luganda Translated');
+  const [vjTranslator, setVjTranslator] = useState<string>('VJ Junior');
+  const [releaseYear, setReleaseYear] = useState('2024');
   const [durationLabel, setDurationLabel] = useState('1h 28m');
-  const [qualityLabel, setQualityLabel] = useState<MovieQualityLabel>('720p HD');
-  const [fileSizeLabel, setFileSizeLabel] = useState('640 MB');
+  const [qualityLabel, setQualityLabel] = useState<MovieQualityLabel>('480p Lite');
+  const [fileSizeLabel, setFileSizeLabel] = useState('340 MB');
   const [synopsis, setSynopsis] = useState('');
   const [posterPreset, setPosterPreset] = useState<string>(POSTER_PRESETS[0].value);
   const [customPosterUrl, setCustomPosterUrl] = useState('');
@@ -124,12 +126,11 @@ export const AdminMoviesManager: React.FC = () => {
   const [dispatchSummary, setDispatchSummary] = useState<DispatchSummary | null>(null);
   const [copiedHtml, setCopiedHtml] = useState(false);
   const [copiedCors, setCopiedCors] = useState(false);
+  const [previewVideoError, setPreviewVideoError] = useState<string | null>(null);
 
   // Internet Archive Search & Auto-Import state
   const [archiveQuery, setArchiveQuery] = useState('');
-  const [archiveCollection, setArchiveCollection] = useState<
-    'all' | 'feature_films' | 'computerchronicles' | 'opensource_movies'
-  >('all');
+  const [archiveCollection, setArchiveCollection] = useState<ArchiveSearchScope>('luganda');
   const [archiveCandidates, setArchiveCandidates] = useState<ArchiveSearchCandidate[]>([]);
   const [archiveSearching, setArchiveSearching] = useState(false);
   const [hasSearchedArchive, setHasSearchedArchive] = useState(false);
@@ -321,9 +322,26 @@ export const AdminMoviesManager: React.FC = () => {
         failedCount?: number;
         reason?: string;
         error?: string;
+        errors?: string[];
       };
 
-      if (!result.configured) {
+      if (!response.ok) {
+        return {
+          movieTitle: moviePayload.title,
+          activeCount,
+          inAppSentCount,
+          emailMode: 'preview_fallback',
+          emailSentCount: 0,
+          emailFailedCount: activeCount,
+          detailMessage: `Delivered ${inAppSentCount} in-app notifications, but automated email authentication/delivery returned HTTP ${response.status}: ${
+            result.error || result.reason || 'Unexpected server response.'
+          } You can still send via your email app below.`,
+          mailtoHref,
+          emailHtml,
+        };
+      }
+
+      if (result.configured === false) {
         return {
           movieTitle: moviePayload.title,
           activeCount,
@@ -340,14 +358,20 @@ export const AdminMoviesManager: React.FC = () => {
       }
 
       const providerLabel = result.provider === 'brevo' ? 'Brevo' : 'Resend';
+      const sentCount = result.sentCount || 0;
+      const failedCount = result.failedCount || 0;
+      const firstErr = result.errors?.[0] ? ` (${result.errors[0]})` : '';
       return {
         movieTitle: moviePayload.title,
         activeCount,
         inAppSentCount,
-        emailMode: 'resend_sent',
-        emailSentCount: result.sentCount || 0,
-        emailFailedCount: result.failedCount || 0,
-        detailMessage: `Dispatched ${result.sentCount || 0} release emails via ${providerLabel} and ${inAppSentCount} dashboard notifications.`,
+        emailMode: sentCount > 0 ? 'resend_sent' : 'preview_fallback',
+        emailSentCount: sentCount,
+        emailFailedCount: failedCount,
+        detailMessage:
+          sentCount > 0
+            ? `Dispatched ${sentCount} release emails via ${providerLabel} and ${inAppSentCount} dashboard notifications.`
+            : `Delivered ${inAppSentCount} in-app notifications, but ${providerLabel} returned 0 sent (${failedCount} failed)${firstErr}. Use the email app fallback below.`,
         mailtoHref,
         emailHtml,
       };
@@ -369,15 +393,19 @@ export const AdminMoviesManager: React.FC = () => {
   const resetForm = () => {
     setEditingMovieId(null);
     setTitle('');
-    setCategory('Open Classics');
-    setReleaseYear('2026');
+    setCategory('Indie & Regional');
+    setGenre('Action');
+    setLanguage('Luganda Translated');
+    setVjTranslator('VJ Junior');
+    setReleaseYear('2024');
     setDurationLabel('1h 28m');
-    setQualityLabel('720p HD');
-    setFileSizeLabel('640 MB');
+    setQualityLabel('480p Lite');
+    setFileSizeLabel('340 MB');
     setSynopsis('');
     setPosterPreset(POSTER_PRESETS[0].value);
     setCustomPosterUrl('');
     setVideoUrl('');
+    setPreviewVideoError(null);
     setPublishNow(true);
     setNotifyOnPublish(true);
   };
@@ -388,20 +416,24 @@ export const AdminMoviesManager: React.FC = () => {
     setEditingMovieId(movie.movieId);
     setTitle(movie.title);
     setCategory(movie.category);
+    setGenre(movie.genre || 'Action');
+    setLanguage(movie.language || 'Luganda Translated');
+    setVjTranslator(movie.vjTranslator || 'Original Audio');
     setReleaseYear(movie.releaseYear);
     setDurationLabel(movie.durationLabel);
     setQualityLabel(movie.qualityLabel);
     setFileSizeLabel(movie.fileSizeLabel);
     setSynopsis(movie.synopsis);
-    const isPreset = POSTER_PRESETS.some((p) => p.value === movie.posterUrl);
+    const coverArt = movie.coverArtUrl || movie.posterUrl;
+    const isPreset = POSTER_PRESETS.some((p) => p.value === coverArt);
     if (isPreset) {
-      setPosterPreset(movie.posterUrl);
+      setPosterPreset(coverArt);
       setCustomPosterUrl('');
     } else {
       setPosterPreset(POSTER_PRESETS[0].value);
-      setCustomPosterUrl(movie.posterUrl);
+      setCustomPosterUrl(coverArt);
     }
-    setVideoUrl(movie.videoUrl);
+    setVideoUrl(movie.downloadUrl || movie.videoUrl);
     setPublishNow(movie.published);
     setNotifyOnPublish(false);
     setShowForm(true);
@@ -413,40 +445,38 @@ export const AdminMoviesManager: React.FC = () => {
     setFeedback(null);
     setDispatchSummary(null);
 
-    const cleanTitle = title.trim().slice(0, 140);
-    const cleanYear = releaseYear.trim().slice(0, 12);
-    const cleanDuration = durationLabel.trim().slice(0, 30);
-    const cleanSize = fileSizeLabel.trim().slice(0, 30);
-    const cleanSynopsis = synopsis.trim().slice(0, 800);
-    const cleanVideo = videoUrl.trim().slice(0, 1000);
-    const cleanPoster = (customPosterUrl.trim() || posterPreset).slice(0, 500);
+    const cleanTitle = title.trim().slice(0, MOVIE_FIELD_LIMITS.titleMax);
+    const cleanGenre = (genre.trim() || 'Action').slice(0, MOVIE_FIELD_LIMITS.genreMax);
+    const cleanLanguage = (language.trim() || 'Luganda Translated').slice(
+      0,
+      MOVIE_FIELD_LIMITS.languageMax
+    );
+    const cleanTranslator = (vjTranslator.trim() || 'Original Audio').slice(
+      0,
+      MOVIE_FIELD_LIMITS.vjTranslatorMax
+    );
+    const cleanYear = releaseYear.trim().slice(0, MOVIE_FIELD_LIMITS.releaseYearMax);
+    const cleanDuration = durationLabel.trim().slice(0, MOVIE_FIELD_LIMITS.durationMax);
+    const cleanSize = fileSizeLabel.trim().slice(0, MOVIE_FIELD_LIMITS.fileSizeMax);
+    const cleanSynopsis = synopsis.trim().slice(0, MOVIE_FIELD_LIMITS.synopsisMax);
+    const cleanDownloadUrl = videoUrl.trim().slice(0, MOVIE_FIELD_LIMITS.downloadMax);
+    const cleanCoverArtUrl = (customPosterUrl.trim() || posterPreset).slice(
+      0,
+      MOVIE_FIELD_LIMITS.coverArtMax
+    );
 
-    if (cleanTitle.length < 2) {
-      setError('Movie title must be at least 2 characters.');
-      return;
-    }
-    if (cleanYear.length < 4) {
-      setError('Release year must be at least 4 characters (e.g. 2026).');
-      return;
-    }
-    if (cleanDuration.length < 2 || cleanSize.length < 2) {
-      setError('Please enter duration (e.g. 1h 28m) and approximate file size (e.g. 640 MB).');
-      return;
-    }
-    if (cleanSynopsis.length < 10) {
-      setError('Synopsis must be at least 10 characters.');
-      return;
-    }
-    if (!cleanVideo.startsWith('https://') || cleanVideo.length < 8) {
-      setError('Video URL must be a valid direct https:// MP4 or WebM link.');
-      return;
-    }
-    if (
-      !(
-        cleanPoster.startsWith('https://') || cleanPoster.startsWith('/src/assets/images/')
-      )
-    ) {
-      setError('Poster image must be a selected preset or a valid https:// image URL.');
+    const validationError = validateMovieSchemaPayload({
+      title: cleanTitle,
+      releaseYear: cleanYear,
+      genre: cleanGenre,
+      coverArtUrl: cleanCoverArtUrl,
+      downloadUrl: cleanDownloadUrl,
+      durationLabel: cleanDuration,
+      fileSizeLabel: cleanSize,
+      synopsis: cleanSynopsis,
+    });
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -460,13 +490,18 @@ export const AdminMoviesManager: React.FC = () => {
         await updateDoc(doc(db, 'movies', movieId), {
           title: cleanTitle,
           category,
+          genre: cleanGenre,
+          language: cleanLanguage,
+          vjTranslator: cleanTranslator,
           releaseYear: cleanYear,
           durationLabel: cleanDuration,
           qualityLabel,
           fileSizeLabel: cleanSize,
           synopsis: cleanSynopsis,
-          posterUrl: cleanPoster,
-          videoUrl: cleanVideo,
+          posterUrl: cleanCoverArtUrl,
+          coverArtUrl: cleanCoverArtUrl,
+          videoUrl: cleanDownloadUrl,
+          downloadUrl: cleanDownloadUrl,
           published: publishNow,
           updatedAt: serverTimestamp(),
         });
@@ -475,13 +510,18 @@ export const AdminMoviesManager: React.FC = () => {
           movieId,
           title: cleanTitle,
           category,
+          genre: cleanGenre,
+          language: cleanLanguage,
+          vjTranslator: cleanTranslator,
           releaseYear: cleanYear,
           durationLabel: cleanDuration,
           qualityLabel,
           fileSizeLabel: cleanSize,
           synopsis: cleanSynopsis,
-          posterUrl: cleanPoster,
-          videoUrl: cleanVideo,
+          posterUrl: cleanCoverArtUrl,
+          coverArtUrl: cleanCoverArtUrl,
+          videoUrl: cleanDownloadUrl,
+          downloadUrl: cleanDownloadUrl,
           published: publishNow,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -489,17 +529,23 @@ export const AdminMoviesManager: React.FC = () => {
       }
 
       if (publishNow && notifyOnPublish) {
-        const summary = await dispatchNotificationsForMovie({
-          movieId,
-          title: cleanTitle,
-          category,
-          releaseYear: cleanYear,
-          durationLabel: cleanDuration,
-          qualityLabel,
-          fileSizeLabel: cleanSize,
-          synopsis: cleanSynopsis,
-        });
-        setDispatchSummary(summary);
+        try {
+          const summary = await dispatchNotificationsForMovie({
+            movieId,
+            title: cleanTitle,
+            category,
+            releaseYear: cleanYear,
+            durationLabel: cleanDuration,
+            qualityLabel,
+            fileSizeLabel: cleanSize,
+            synopsis: cleanSynopsis,
+          });
+          setDispatchSummary(summary);
+        } catch {
+          setError(
+            `"${cleanTitle}" was saved, but subscriber alerts encountered a delivery error. Click Notify on the card below to retry.`
+          );
+        }
       }
 
       resetForm();
@@ -512,7 +558,7 @@ export const AdminMoviesManager: React.FC = () => {
             : `"${cleanTitle}" saved as an unpublished admin draft.`
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to save movie to Firestore.');
+      setError('Unable to save movie to database right now. Please verify all fields.');
       handleFirestoreError(
         err,
         isEditing ? OperationType.UPDATE : OperationType.CREATE,
@@ -577,6 +623,9 @@ export const AdminMoviesManager: React.FC = () => {
     setEditingMovieId(null);
     setTitle(draft.title);
     setCategory(draft.category);
+    setGenre(draft.genre);
+    setLanguage(draft.language);
+    setVjTranslator(draft.vjTranslator);
     setReleaseYear(draft.releaseYear);
     setDurationLabel(draft.durationLabel);
     setQualityLabel(draft.qualityLabel);
@@ -589,7 +638,7 @@ export const AdminMoviesManager: React.FC = () => {
     setNotifyOnPublish(true);
     setShowForm(true);
     setFeedback(
-      `Auto-filled "${draft.title}" (${draft.fileSizeLabel} · ${draft.qualityLabel}) from Internet Archive. Review details below and click Save Movie Release to publish.`
+      `Auto-filled "${draft.title}" (${draft.genre} · ${draft.language} · ${draft.fileSizeLabel}) from Internet Archive. Review details below and click Save Movie Release to publish.`
     );
     window.setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -661,30 +710,38 @@ export const AdminMoviesManager: React.FC = () => {
     setFeedback(null);
     setSyncingStarter(true);
     try {
-      const batch = writeBatch(db);
-      missingStarterMovies.forEach((item) => {
-        batch.set(doc(db, 'movies', item.movieId), {
-          movieId: item.movieId,
-          title: item.title,
-          category: item.category,
-          releaseYear: item.releaseYear,
-          durationLabel: item.durationLabel,
-          qualityLabel: item.qualityLabel,
-          fileSizeLabel: item.fileSizeLabel,
-          synopsis: item.synopsis,
-          posterUrl: item.posterUrl,
-          videoUrl: item.videoUrl,
-          published: true,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
+      for (let i = 0; i < missingStarterMovies.length; i += 400) {
+        const chunk = missingStarterMovies.slice(i, i + 400);
+        const batch = writeBatch(db);
+        chunk.forEach((item) => {
+          batch.set(doc(db, 'movies', item.movieId), {
+            movieId: item.movieId,
+            title: item.title,
+            category: item.category,
+            genre: item.genre,
+            language: item.language,
+            vjTranslator: item.vjTranslator,
+            releaseYear: item.releaseYear,
+            durationLabel: item.durationLabel,
+            qualityLabel: item.qualityLabel,
+            fileSizeLabel: item.fileSizeLabel,
+            synopsis: item.synopsis,
+            posterUrl: item.coverArtUrl,
+            coverArtUrl: item.coverArtUrl,
+            videoUrl: item.downloadUrl,
+            downloadUrl: item.downloadUrl,
+            published: true,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
         });
-      });
-      await batch.commit();
+        await batch.commit();
+      }
       setFeedback(
-        `Synced ${missingStarterMovies.length} verified Internet Archive movies into your Firestore catalog. You can now edit, unpublish, or trigger subscriber emails for each title.`
+        `Synced ${missingStarterMovies.length} verified Luganda & public archive movies into your Firestore catalog.`
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sync starter Archive catalog.');
+      setError('Failed to sync starter Archive catalog to database.');
       handleFirestoreError(err, OperationType.WRITE, 'movies');
     } finally {
       setSyncingStarter(false);
@@ -778,7 +835,7 @@ export const AdminMoviesManager: React.FC = () => {
             <span>Public Catalog Status</span>
           </p>
           <p className="mt-1 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
-            {movies.filter((m) => m.published).length} Firestore + 6 Starter Live
+            {movies.filter((m) => m.published).length} Firestore + {VERIFIED_ARCHIVE_MOVIES.length} Live
           </p>
         </div>
         <div className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-4">
@@ -885,7 +942,7 @@ export const AdminMoviesManager: React.FC = () => {
                 value={archiveQuery}
                 onChange={(e) => setArchiveQuery(e.target.value)}
                 aria-label="Search Internet Archive movies"
-                placeholder="Search Archive.org movies (e.g. Chaplin, Blender, NASA, Documentary)..."
+                placeholder="Search Archive.org (e.g. VJ Junior, VJ Mark, VJ Ice P, Wakaliwood, Action)..."
                 className="w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] pl-9 pr-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
             </div>
@@ -893,18 +950,11 @@ export const AdminMoviesManager: React.FC = () => {
             <div className="sm:col-span-4">
               <select
                 value={archiveCollection}
-                onChange={(e) =>
-                  setArchiveCollection(
-                    e.target.value as
-                      | 'all'
-                      | 'feature_films'
-                      | 'computerchronicles'
-                      | 'opensource_movies'
-                  )
-                }
+                onChange={(e) => setArchiveCollection(e.target.value as ArchiveSearchScope)}
                 aria-label="Filter Internet Archive collection"
                 className="w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-white"
               >
+                <option value="luganda">Luganda Translated (VJ Movies)</option>
                 <option value="all">All Free Movie Collections</option>
                 <option value="feature_films">Feature Films (Public Domain)</option>
                 <option value="opensource_movies">Open Source &amp; Indie Movies</option>
@@ -1187,6 +1237,83 @@ export const AdminMoviesManager: React.FC = () => {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div>
+              <label
+                htmlFor="movie-cms-genre"
+                className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]"
+              >
+                Genre *
+              </label>
+              <select
+                id="movie-cms-genre"
+                value={genre || 'Action'}
+                onChange={(e) => setGenre(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-white"
+              >
+                {genre &&
+                  !MOVIE_GENRES.includes(genre as (typeof MOVIE_GENRES)[number]) && (
+                    <option value={genre}>{genre}</option>
+                  )}
+                {MOVIE_GENRES.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="movie-cms-language"
+                className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]"
+              >
+                Audio Language
+              </label>
+              <input
+                id="movie-cms-language"
+                type="text"
+                list="movie-language-options"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                placeholder="Luganda Translated"
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
+              />
+              <datalist id="movie-language-options">
+                <option value="Luganda Translated" />
+                <option value="English" />
+                <option value="Luganda & English" />
+              </datalist>
+            </div>
+
+            <div>
+              <label
+                htmlFor="movie-cms-translator"
+                className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]"
+              >
+                VJ / Narrator
+              </label>
+              <input
+                id="movie-cms-translator"
+                type="text"
+                list="movie-translator-options"
+                value={vjTranslator}
+                onChange={(e) => setVjTranslator(e.target.value)}
+                placeholder="VJ Junior"
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
+              />
+              <datalist id="movie-translator-options">
+                <option value="VJ Junior" />
+                <option value="VJ Mark" />
+                <option value="VJ Ice P" />
+                <option value="VJ Jingo" />
+                <option value="VJ Emmy" />
+                <option value="VJ Saul" />
+                <option value="Original Audio" />
+              </datalist>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div>
               <label
@@ -1200,7 +1327,7 @@ export const AdminMoviesManager: React.FC = () => {
                 type="text"
                 value={releaseYear}
                 onChange={(e) => setReleaseYear(e.target.value)}
-                placeholder="2026"
+                placeholder="2024"
                 className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
             </div>
@@ -1235,7 +1362,7 @@ export const AdminMoviesManager: React.FC = () => {
                 onChange={(e) => setQualityLabel(e.target.value as MovieQualityLabel)}
                 className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-white"
               >
-                {QUALITY_OPTIONS.map((q) => (
+                {MOVIE_QUALITY_OPTIONS.map((q) => (
                   <option key={q} value={q}>
                     {q}
                   </option>
@@ -1255,7 +1382,7 @@ export const AdminMoviesManager: React.FC = () => {
                 type="text"
                 value={fileSizeLabel}
                 onChange={(e) => setFileSizeLabel(e.target.value)}
-                placeholder="640 MB"
+                placeholder="340 MB"
                 className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
             </div>
@@ -1272,7 +1399,10 @@ export const AdminMoviesManager: React.FC = () => {
               id="movie-cms-video"
               type="url"
               value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
+              onChange={(e) => {
+                setVideoUrl(e.target.value);
+                setPreviewVideoError(null);
+              }}
               placeholder="https://cdn.example.com/movies/film-720p.mp4"
               className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3.5 py-2 text-xs font-mono text-[#1A1464] dark:text-white"
             />
@@ -1338,8 +1468,8 @@ export const AdminMoviesManager: React.FC = () => {
           </div>
 
           {videoUrl.trim().startsWith('https://') && (
-            <div className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-3">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8] mb-2">
+            <div className="rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-3 space-y-2">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
                 Live Video Source Check
               </p>
               <video
@@ -1347,8 +1477,17 @@ export const AdminMoviesManager: React.FC = () => {
                 controls
                 playsInline
                 preload="metadata"
+                onLoadedMetadata={() => setPreviewVideoError(null)}
+                onError={() =>
+                  setPreviewVideoError(
+                    'Preview player could not load metadata for this URL yet. Double-check the direct .mp4 link before saving.'
+                  )
+                }
                 className="aspect-video w-full max-w-md rounded-lg bg-black"
               />
+              {previewVideoError && (
+                <p className="text-xs font-semibold text-[#EE1119]">{previewVideoError}</p>
+              )}
             </div>
           )}
 
@@ -1400,7 +1539,7 @@ export const AdminMoviesManager: React.FC = () => {
       <div className="mt-6 space-y-4">
         {movies.length === 0 ? (
           <p className="text-xs text-[#6B7188] dark:text-[#8E97B8]">
-            No custom Firestore movies added yet (your 6 starter Internet Archive films are already live on /movies). Click &ldquo;Sync 6 Starter Films to DB&rdquo; or search Archive.org above to manage and email subscribers.
+            No custom Firestore movies synced yet ({VERIFIED_ARCHIVE_MOVIES.length} curated Luganda &amp; classic Archive.org films are already live on /movies). Click &ldquo;Sync {missingStarterMovies.length} Starter Films to DB&rdquo; or search Archive.org above to manage and email subscribers.
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -1411,8 +1550,7 @@ export const AdminMoviesManager: React.FC = () => {
               >
                 <div className="min-w-0">
                   <p className="text-[11px] font-bold text-[#EE1119]">
-                    {movie.category} · {movie.releaseYear} · {movie.qualityLabel} ·{' '}
-                    {movie.fileSizeLabel}
+                    {movie.genre} · {movie.releaseYear} · {movie.language} · {movie.vjTranslator}
                   </p>
                   <p className="mt-0.5 font-display text-sm font-extrabold text-[#1A1464] dark:text-[#F4F6FC] truncate">
                     {movie.title}

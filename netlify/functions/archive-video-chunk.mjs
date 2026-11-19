@@ -67,6 +67,8 @@ export async function handler(event) {
         : Number(probeRes.headers.get('content-length') || 0);
       const contentType = probeRes.headers.get('content-type') || 'video/mp4';
 
+      await probeRes.body?.cancel().catch(() => {});
+
       return {
         statusCode: 200,
         headers: corsHeaders({ 'Content-Type': 'application/json' }),
@@ -109,6 +111,7 @@ export async function handler(event) {
     });
 
     if (!chunkRes.ok && chunkRes.status !== 206) {
+      await chunkRes.body?.cancel().catch(() => {});
       return {
         statusCode: chunkRes.status,
         headers: corsHeaders({ 'Content-Type': 'application/json' }),
@@ -118,7 +121,32 @@ export async function handler(event) {
       };
     }
 
+    const upstreamLen = Number(chunkRes.headers.get('content-length') || 0);
+    if (
+      chunkRes.status !== 206 &&
+      (!Number.isFinite(upstreamLen) || upstreamLen === 0 || upstreamLen > MAX_CHUNK_BYTES + 4096)
+    ) {
+      await chunkRes.body?.cancel().catch(() => {});
+      return {
+        statusCode: 502,
+        headers: corsHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          error: 'Upstream server ignored the byte-range request.',
+        }),
+      };
+    }
+
     const arrayBuffer = await chunkRes.arrayBuffer();
+    if (arrayBuffer.byteLength > MAX_CHUNK_BYTES + 4096) {
+      return {
+        statusCode: 502,
+        headers: corsHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          error: 'Upstream chunk exceeded safe Netlify proxy payload limit.',
+        }),
+      };
+    }
+
     const contentType = chunkRes.headers.get('content-type') || 'video/mp4';
     const contentRange = chunkRes.headers.get('content-range') || '';
 

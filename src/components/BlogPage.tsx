@@ -684,6 +684,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   const [resolvedDirectArticle, setResolvedDirectArticle] = useState<LiveNewsArticle | null>(
     null
   );
+  const [resolvingDirect, setResolvingDirect] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -723,6 +724,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   // Handle direct deep-link refresh to /blog/news-dev-<id>
   useEffect(() => {
     setResolvedDirectArticle(null);
+    setResolvingDirect(false);
     if (!selectedSlug) return;
     if (allPool.some((a) => a.slug === selectedSlug)) return;
 
@@ -730,11 +732,18 @@ export const BlogPage: React.FC<BlogPageProps> = ({
     if (!extId) return;
 
     let cancelled = false;
-    void fetchLiveDevArticleById(extId).then((fetched) => {
-      if (!cancelled && fetched) {
-        setResolvedDirectArticle(fetched);
-      }
-    });
+    setResolvingDirect(true);
+    void fetchLiveDevArticleById(extId)
+      .then((fetched) => {
+        if (!cancelled && fetched) {
+          setResolvedDirectArticle(fetched);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setResolvingDirect(false);
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -749,9 +758,11 @@ export const BlogPage: React.FC<BlogPageProps> = ({
     if (!activeArticle) return [];
     return allPool
       .filter((a) => a.slug !== activeArticle.slug)
-      .sort((a, b) =>
-        a.category === activeArticle.category && b.category !== activeArticle.category ? -1 : 1
-      )
+      .sort((a, b) => {
+        const aMatch = a.category === activeArticle.category ? 0 : 1;
+        const bMatch = b.category === activeArticle.category ? 0 : 1;
+        return aMatch - bMatch;
+      })
       .slice(0, 3);
   }, [allPool, activeArticle]);
 
@@ -867,6 +878,50 @@ export const BlogPage: React.FC<BlogPageProps> = ({
         onSelectArticle={(slug) => onSelectArticle(slug)}
         onNavigate={onNavigate}
       />
+    );
+  }
+
+  if (selectedSlug) {
+    return (
+      <>
+        <PageHeader
+          eyebrow="Engineering Blog & Tech Wire"
+          title={resolvingDirect ? 'Loading engineering article...' : 'Article not found.'}
+          description={
+            resolvingDirect
+              ? 'Fetching the full engineering dispatch from the developer wire.'
+              : 'This engineering brief may have been removed or the URL slug is incorrect.'
+          }
+          currentLabel="Blog"
+          onNavigate={onNavigate}
+        />
+        <section className="bg-white dark:bg-[#090D1F] py-16">
+          <div className="mx-auto max-w-3xl px-4 text-center">
+            {resolvingDirect ? (
+              <div className="h-56 animate-pulse rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530]" />
+            ) : (
+              <div className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-10">
+                <BookOpen className="mx-auto h-10 w-10 text-[#EE1119]" aria-hidden="true" />
+                <h2 className="mt-4 font-display text-2xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
+                  Engineering Article Not Found
+                </h2>
+                <p className="mt-2 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
+                  Browse all live 0xDEV technical briefs and the daily engineering wire below.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onSelectArticle(null)}
+                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#EE1119] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#D00D14]"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>Browse All Articles</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+        <SharedCtaBanner onNavigate={onNavigate} />
+      </>
     );
   }
 
