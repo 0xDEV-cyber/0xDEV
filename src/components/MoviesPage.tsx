@@ -46,8 +46,6 @@ import {
   InteractiveCard,
   Reveal,
   SPRING_SNAPPY,
-  StaggerGrid,
-  StaggerItem,
 } from './MotionPrimitives';
 import { PageHeader } from './PageHeader';
 import { SharedCtaBanner } from './SharedCtaBanner';
@@ -882,7 +880,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                             <Film className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
                             <span>Title</span>
                           </dt>
-                          <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC] text-right truncate">
+                          <dd className="min-w-0 font-bold text-[#1A1464] dark:text-[#F4F6FC] text-right truncate">
                             {selectedMovie.title}
                           </dd>
                         </div>
@@ -905,11 +903,11 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                           </dd>
                         </div>
                         <div className="flex items-center justify-between gap-4 py-2.5">
-                          <dt className="inline-flex items-center gap-1.5 font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                          <dt className="inline-flex items-center gap-1.5 font-semibold text-[#6B7188] dark:text-[#8E97B8] shrink-0">
                             <Languages className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
                             <span>Audio &amp; VJ</span>
                           </dt>
-                          <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC] text-right">
+                          <dd className="min-w-0 font-bold text-[#1A1464] dark:text-[#F4F6FC] text-right break-words">
                             {selectedMovie.language} · {selectedMovie.vjTranslator}
                           </dd>
                         </div>
@@ -1257,7 +1255,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
           {/* TAB 1: Structured Movie Grid */}
           {activeTab === 'catalog' && (
             <div className="mt-8">
-              {moviesLoading ? (
+              {moviesLoading && movies.length === 0 ? (
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {[0, 1, 2].map((skeleton) => (
                     <div
@@ -1294,11 +1292,8 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                   )}
                 </div>
               ) : (
-                <StaggerGrid
-                  staggerDelay={0.04}
-                  className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-                >
-                  {filteredMovies.map((movie) => {
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredMovies.map((movie, idx) => {
                     const isSaved = savedById.has(movie.movieId);
                     const activeProgress = downloadProgress[movie.movieId];
                     const imgFailed = Boolean(failedImages[movie.movieId]);
@@ -1306,7 +1301,18 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                     const downloadHref = movie.downloadUrl || movie.videoUrl;
 
                     return (
-                      <StaggerItem key={movie.movieId} className="h-full">
+                      <motion.div
+                        key={movie.movieId}
+                        initial={{ opacity: 0, y: 12 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 'some' }}
+                        transition={{
+                          duration: 0.36,
+                          delay: (idx % 3) * 0.04,
+                          ease: EASE_OUT_EXPO,
+                        }}
+                        className="h-full"
+                      >
                         <InteractiveCard
                           hoverY={-5}
                           className="group flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] shadow-sm transition-colors hover:border-[#1A1464]/35 dark:hover:border-white/25"
@@ -1391,18 +1397,18 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                                   </dd>
                                 </div>
                                 <div className="flex items-center justify-between gap-3 py-1.5">
-                                  <dt className="font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                                  <dt className="font-semibold text-[#6B7188] dark:text-[#8E97B8] shrink-0">
                                     Translator / Audio
                                   </dt>
-                                  <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC] truncate">
+                                  <dd className="min-w-0 font-bold text-[#1A1464] dark:text-[#F4F6FC] truncate text-right">
                                     {movie.vjTranslator}
                                   </dd>
                                 </div>
                                 <div className="flex items-center justify-between gap-3 py-1.5">
-                                  <dt className="font-semibold text-[#6B7188] dark:text-[#8E97B8]">
+                                  <dt className="font-semibold text-[#6B7188] dark:text-[#8E97B8] shrink-0">
                                     Quality &amp; Size
                                   </dt>
-                                  <dd className="font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums">
+                                  <dd className="min-w-0 font-bold text-[#1A1464] dark:text-[#F4F6FC] tabular-nums truncate text-right">
                                     {movie.qualityLabel} · {movie.fileSizeLabel}
                                   </dd>
                                 </div>
@@ -1487,10 +1493,10 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                             </div>
                           </div>
                         </InteractiveCard>
-                      </StaggerItem>
+                      </motion.div>
                     );
                   })}
-                </StaggerGrid>
+                </div>
               )}
             </div>
           )}
@@ -1930,7 +1936,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
               exit={{ opacity: 0, scale: 0.96, y: 10 }}
               transition={{ duration: 0.24, ease: EASE_OUT_EXPO }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-4xl overflow-hidden rounded-2xl border border-[#242C54] bg-[#101530] text-white shadow-2xl"
+              className="max-h-[92dvh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-[#242C54] bg-[#101530] text-white shadow-2xl"
             >
               <div className="flex items-center justify-between gap-4 border-b border-[#242C54] px-5 py-4">
                 <div className="min-w-0">

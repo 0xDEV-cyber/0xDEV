@@ -221,7 +221,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className="border-t border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#0D1229] px-4 pb-6 pt-4 shadow-lg lg:hidden"
+            className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#0D1229] px-4 pb-6 pt-4 shadow-lg lg:hidden"
           >
             <nav aria-label="Mobile Navigation" className="flex flex-col gap-1">
               <a

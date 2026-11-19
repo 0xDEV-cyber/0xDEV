@@ -25,7 +25,7 @@ export const SharedCtaBanner: React.FC<SharedCtaBannerProps> = ({ onNavigate }) 
               aria-hidden="true"
               initial={{ scaleY: 0, opacity: 0 }}
               whileInView={{ scaleY: 1, opacity: 1 }}
-              viewport={{ once: true, amount: 0.3 }}
+              viewport={{ once: true, amount: 'some' }}
               transition={{ duration: 0.6, delay: 0.12, ease: EASE_OUT_EXPO }}
               className="pointer-events-none origin-top absolute top-0 right-16 h-full w-16 translate-x-20 -skew-x-12 bg-[#120D4A]/40 hidden md:block"
             />

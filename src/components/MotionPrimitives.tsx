@@ -58,7 +58,7 @@ export const Reveal: React.FC<RevealProps> = ({
     <motion.div
       initial={{ opacity: 0, scale, ...offset }}
       whileInView={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-      viewport={{ once: true, amount: 0.12 }}
+      viewport={{ once: true, amount: 'some' }}
       transition={{ duration, delay, ease: EASE_OUT_EXPO }}
       className={className}
     >
@@ -113,7 +113,7 @@ export const ArchitecturalRule: React.FC<ArchitecturalRuleProps> = ({
       aria-hidden="true"
       initial={{ scaleX: 0, opacity: 0 }}
       whileInView={{ scaleX: 1, opacity: 1 }}
-      viewport={{ once: true, amount: 0.4 }}
+      viewport={{ once: true, amount: 'some' }}
       transition={{ duration: 0.65, delay, ease: EASE_OUT_EXPO }}
       className={`${originClass} h-px bg-[#E5E7F0] dark:bg-[#242C54] ${className}`}
     />
@@ -146,7 +146,7 @@ export const StaggerGrid: React.FC<StaggerGroupProps> = ({
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.08 }}
+      viewport={{ once: true, amount: 'some' }}
       className={className}
     >
       {children}
