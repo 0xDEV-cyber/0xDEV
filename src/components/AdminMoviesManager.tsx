@@ -53,6 +53,7 @@ import { buildMovieReleaseEmailHtml } from '../utils/brandedEmailTemplates';
 import {
   ArchiveSearchCandidate,
   ArchiveSearchScope,
+  ArchiveSortMode,
   fetchInternetArchiveMovieDraft,
   searchInternetArchiveMovies,
 } from '../utils/internetArchiveApi';
@@ -107,7 +108,7 @@ export const AdminMoviesManager: React.FC = () => {
   const [genre, setGenre] = useState<string>('Action');
   const [language, setLanguage] = useState<string>('Luganda Translated');
   const [vjTranslator, setVjTranslator] = useState<string>('VJ Junior');
-  const [releaseYear, setReleaseYear] = useState('2024');
+  const [releaseYear, setReleaseYear] = useState('2026');
   const [durationLabel, setDurationLabel] = useState('1h 28m');
   const [qualityLabel, setQualityLabel] = useState<MovieQualityLabel>('480p Lite');
   const [fileSizeLabel, setFileSizeLabel] = useState('340 MB');
@@ -130,7 +131,8 @@ export const AdminMoviesManager: React.FC = () => {
 
   // Internet Archive Search & Auto-Import state
   const [archiveQuery, setArchiveQuery] = useState('');
-  const [archiveCollection, setArchiveCollection] = useState<ArchiveSearchScope>('luganda');
+  const [archiveCollection, setArchiveCollection] = useState<ArchiveSearchScope>('luganda_2026');
+  const [archiveSort, setArchiveSort] = useState<ArchiveSortMode>('latest');
   const [archiveCandidates, setArchiveCandidates] = useState<ArchiveSearchCandidate[]>([]);
   const [archiveSearching, setArchiveSearching] = useState(false);
   const [hasSearchedArchive, setHasSearchedArchive] = useState(false);
@@ -397,7 +399,7 @@ export const AdminMoviesManager: React.FC = () => {
     setGenre('Action');
     setLanguage('Luganda Translated');
     setVjTranslator('VJ Junior');
-    setReleaseYear('2024');
+    setReleaseYear('2026');
     setDurationLabel('1h 28m');
     setQualityLabel('480p Lite');
     setFileSizeLabel('340 MB');
@@ -645,13 +647,16 @@ export const AdminMoviesManager: React.FC = () => {
     }, 60);
   };
 
-  const handleSearchArchive = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const runArchiveSearch = async (
+    queryOverride: string,
+    scopeOverride: ArchiveSearchScope,
+    sortOverride: ArchiveSortMode
+  ) => {
     setError(null);
     setArchiveSearching(true);
     setHasSearchedArchive(true);
     try {
-      const results = await searchInternetArchiveMovies(archiveQuery, archiveCollection);
+      const results = await searchInternetArchiveMovies(queryOverride, scopeOverride, sortOverride);
       setArchiveCandidates(results);
     } catch (err) {
       setError(
@@ -660,6 +665,11 @@ export const AdminMoviesManager: React.FC = () => {
     } finally {
       setArchiveSearching(false);
     }
+  };
+
+  const handleSearchArchive = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    await runArchiveSearch(archiveQuery, archiveCollection, archiveSort);
   };
 
   const handleImportCandidate = async (candidate: ArchiveSearchCandidate) => {
@@ -927,12 +937,49 @@ export const AdminMoviesManager: React.FC = () => {
             </button>
           </form>
 
+          {/* Quick 2026 & Latest Presets */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[#E5E7F0] dark:border-[#242C54]">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8] mr-1">
+              Quick Target:
+            </span>
+            {(
+              [
+                { label: '2026 Luganda Movies', query: '', scope: 'luganda_2026', sort: 'latest' },
+                { label: 'VJ Junior 2026', query: 'VJ Junior', scope: 'luganda_2026', sort: 'latest' },
+                { label: 'VJ Ice P 2026', query: 'VJ Ice P', scope: 'luganda_2026', sort: 'latest' },
+                { label: 'VJ Emmy 2026', query: 'VJ Emmy', scope: 'luganda_2026', sort: 'latest' },
+                { label: 'VJ Mande 2026', query: 'VJ Mande', scope: 'luganda_2026', sort: 'latest' },
+                { label: '2026 Open Films', query: '', scope: 'latest_2026', sort: 'latest' },
+              ] as {
+                label: string;
+                query: string;
+                scope: ArchiveSearchScope;
+                sort: ArchiveSortMode;
+              }[]
+            ).map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                disabled={archiveSearching}
+                onClick={() => {
+                  setArchiveQuery(preset.query);
+                  setArchiveCollection(preset.scope);
+                  setArchiveSort(preset.sort);
+                  void runArchiveSearch(preset.query, preset.scope, preset.sort);
+                }}
+                className="rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-2.5 py-1 text-[11px] font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119] hover:text-[#EE1119] disabled:opacity-60"
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
           {/* Search Public Archive Catalog */}
           <form
             onSubmit={handleSearchArchive}
-            className="grid grid-cols-1 gap-2 sm:grid-cols-12 pt-2 border-t border-[#E5E7F0] dark:border-[#242C54]"
+            className="grid grid-cols-1 gap-2 sm:grid-cols-12"
           >
-            <div className="sm:col-span-6 relative">
+            <div className="sm:col-span-5 relative">
               <Search
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B7188]"
                 aria-hidden="true"
@@ -942,23 +989,37 @@ export const AdminMoviesManager: React.FC = () => {
                 value={archiveQuery}
                 onChange={(e) => setArchiveQuery(e.target.value)}
                 aria-label="Search Internet Archive movies"
-                placeholder="Search Archive.org (e.g. VJ Junior, VJ Mark, VJ Ice P, Wakaliwood, Action)..."
+                placeholder="Search 2026 releases, VJ Junior, VJ Mark, Ice P, Action..."
                 className="w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] pl-9 pr-3 py-2 text-xs text-[#1A1464] dark:text-white"
               />
             </div>
 
-            <div className="sm:col-span-4">
+            <div className="sm:col-span-3">
               <select
                 value={archiveCollection}
                 onChange={(e) => setArchiveCollection(e.target.value as ArchiveSearchScope)}
                 aria-label="Filter Internet Archive collection"
                 className="w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-white"
               >
-                <option value="luganda">Luganda Translated (VJ Movies)</option>
+                <option value="luganda_2026">2026 &amp; Latest Luganda (VJ)</option>
+                <option value="latest_2026">2026 &amp; Latest Open Movies</option>
+                <option value="luganda">All Luganda Translated (VJ)</option>
                 <option value="all">All Free Movie Collections</option>
                 <option value="feature_films">Feature Films (Public Domain)</option>
                 <option value="opensource_movies">Open Source &amp; Indie Movies</option>
                 <option value="computerchronicles">Tech &amp; Computer History</option>
+              </select>
+            </div>
+
+            <div className="sm:col-span-2">
+              <select
+                value={archiveSort}
+                onChange={(e) => setArchiveSort(e.target.value as ArchiveSortMode)}
+                aria-label="Sort Internet Archive search results"
+                className="w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-white"
+              >
+                <option value="latest">Latest First</option>
+                <option value="downloads">Most Downloaded</option>
               </select>
             </div>
 

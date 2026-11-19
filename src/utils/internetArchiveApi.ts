@@ -7,11 +7,15 @@ import {
 } from '../data/movieSchema';
 
 export type ArchiveSearchScope =
+  | 'luganda_2026'
+  | 'latest_2026'
   | 'luganda'
   | 'all'
   | 'feature_films'
   | 'computerchronicles'
   | 'opensource_movies';
+
+export type ArchiveSortMode = 'latest' | 'downloads';
 
 export interface ArchiveSearchCandidate {
   identifier: string;
@@ -158,21 +162,43 @@ function isUnwantedArchiveNoise(title: string, identifier: string): boolean {
     combined.includes('القران') ||
     combined.includes('مصحف') ||
     combined.includes('mtv ') ||
-    identifier.toLowerCase().startsWith('goodman')
+    combined.includes('xvideos') ||
+    combined.includes('pornhub') ||
+    combined.includes('hentai') ||
+    combined.includes('boku no pico') ||
+    combined.includes('capcut template') ||
+    combined.includes('cyberleek') ||
+    identifier.toLowerCase().startsWith('goodman') ||
+    identifier.toLowerCase().startsWith('soop-') ||
+    identifier.toLowerCase().startsWith('chzzk-')
   );
 }
 
 export async function searchInternetArchiveMovies(
   queryText: string,
-  collectionScope: ArchiveSearchScope = 'luganda'
+  collectionScope: ArchiveSearchScope = 'luganda_2026',
+  sortMode?: ArchiveSortMode
 ): Promise<ArchiveSearchCandidate[]> {
   const trimmed = queryText.trim();
   const qParts = ['mediatype:movies', 'format:MPEG4'];
 
-  if (collectionScope === 'luganda') {
-    qParts.push(
-      '("luganda" OR "vj junior" OR "vj jingo" OR "vj emmy" OR "vj ice" OR "vj mark" OR "vj saul" OR "wakaliwood" OR "enjogerere")'
-    );
+  const lugandaClauses =
+    '("luganda" OR "vj junior" OR "vj jingo" OR "vj emmy" OR "vj ice" OR "vj mark" OR "vj mande" OR "vj saul" OR "wakaliwood" OR "enjogerere" OR "midcrushmovies")';
+
+  if (collectionScope === 'luganda_2026') {
+    qParts.push(lugandaClauses);
+    qParts.push('(2026 OR year:2026 OR year:2025 OR publicdate:[2025-09-01 TO 2026-12-31])');
+    qParts.push('NOT MTV');
+    qParts.push('NOT quran');
+  } else if (collectionScope === 'latest_2026') {
+    qParts.push('(collection:(opensource_movies OR feature_films OR computerchronicles) OR "2026 movie" OR "full movie")');
+    qParts.push('(year:2026 OR year:2025 OR publicdate:[2025-09-01 TO 2026-12-31])');
+    qParts.push('NOT MTV');
+    qParts.push('NOT quran');
+    qParts.push('NOT xvideos');
+    qParts.push('NOT trailer');
+  } else if (collectionScope === 'luganda') {
+    qParts.push(lugandaClauses);
     qParts.push('NOT MTV');
     qParts.push('NOT quran');
   } else if (collectionScope === 'all') {
@@ -188,19 +214,26 @@ export async function searchInternetArchiveMovies(
     }
   }
 
+  const effectiveSort: ArchiveSortMode =
+    sortMode ||
+    (collectionScope === 'luganda_2026' || collectionScope === 'latest_2026'
+      ? 'latest'
+      : 'downloads');
+
   const params = new URLSearchParams({
     q: qParts.join(' AND '),
-    rows: '18',
+    rows: '28',
     page: '1',
     output: 'json',
   });
   params.append('fl[]', 'identifier');
   params.append('fl[]', 'title');
   params.append('fl[]', 'year');
+  params.append('fl[]', 'publicdate');
   params.append('fl[]', 'description');
   params.append('fl[]', 'downloads');
   params.append('fl[]', 'collection');
-  params.append('sort[]', 'downloads desc');
+  params.append('sort[]', effectiveSort === 'latest' ? 'publicdate desc' : 'downloads desc');
 
   const res = await fetch(`https://archive.org/advancedsearch.php?${params.toString()}`);
   if (!res.ok) {
@@ -213,6 +246,7 @@ export async function searchInternetArchiveMovies(
         identifier?: string;
         title?: string | string[];
         year?: string | number | string[];
+        publicdate?: string;
         description?: string | string[];
         downloads?: number;
         collection?: string | string[];
@@ -227,12 +261,14 @@ export async function searchInternetArchiveMovies(
       const title = stripHtmlAndTruncate(d.title || d.identifier, 140);
       return !isUnwantedArchiveNoise(title, String(d.identifier));
     })
-    .slice(0, 12)
+    .slice(0, 15)
     .map((d) => {
       const id = String(d.identifier);
       const rawYear = Array.isArray(d.year) ? d.year[0] : d.year;
-      const yearStr = String(rawYear || 'Classic').slice(0, 12);
-      const normalizedYear = yearStr.length >= 4 ? yearStr : 'Public Domain';
+      const explicitYear = String(rawYear || '').match(/\d{4}/)?.[0];
+      const titleYear = stripHtmlAndTruncate(d.title || id, 140).match(/\b(202[0-9]|201[0-9])\b/)?.[0];
+      const pubYear = String(d.publicdate || '').match(/\d{4}/)?.[0];
+      const normalizedYear = explicitYear || titleYear || pubYear || '2026';
       const title = stripHtmlAndTruncate(d.title || id, 140);
       const translatorInfo = inferTranslatorFromText(`${title} ${id}`);
       const defaultCollection = Array.isArray(d.collection)
@@ -284,6 +320,7 @@ export async function fetchInternetArchiveMovieDraft(
       title?: string | string[];
       year?: string | number | string[];
       date?: string | string[];
+      publicdate?: string | string[];
       description?: string | string[];
       subject?: string | string[];
       collection?: string | string[];
@@ -326,9 +363,13 @@ export async function fetchInternetArchiveMovieDraft(
   const rawYearCandidate = Array.isArray(data.metadata?.year)
     ? data.metadata?.year[0]
     : data.metadata?.year ||
-      (Array.isArray(data.metadata?.date) ? data.metadata?.date[0] : data.metadata?.date);
+      (Array.isArray(data.metadata?.date) ? data.metadata?.date[0] : data.metadata?.date) ||
+      (Array.isArray(data.metadata?.publicdate)
+        ? data.metadata?.publicdate[0]
+        : data.metadata?.publicdate);
   const yearMatch = String(rawYearCandidate || '').match(/\d{4}/);
-  const releaseYear = yearMatch ? yearMatch[0] : '2024';
+  const titleYearMatch = rawTitle.match(/\b(202[0-9]|201[0-9])\b/);
+  const releaseYear = yearMatch?.[0] || titleYearMatch?.[0] || '2026';
 
   const durationLabel = formatDurationSeconds(chosen.length);
   const fileSizeLabel = formatFileSize(chosen.size);

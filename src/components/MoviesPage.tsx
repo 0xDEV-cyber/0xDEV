@@ -186,6 +186,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
 
   const [activeTab, setActiveTab] = useState<LibraryViewTab>('catalog');
   const [languageFilter, setLanguageFilter] = useState<LanguageFilterScope>('all');
+  const [releaseFilter, setReleaseFilter] = useState<'all' | '2026' | 'latest'>('all');
   const [selectedGenre, setSelectedGenre] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<QualityTierId>('720p');
@@ -330,15 +331,35 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
     [movies]
   );
 
+  const release2026Count = useMemo(
+    () => movies.filter((m) => m.releaseYear.includes('2026')).length,
+    [movies]
+  );
+
+  const releaseLatestCount = useMemo(
+    () =>
+      movies.filter(
+        (m) => m.releaseYear.includes('2026') || m.releaseYear.includes('2025')
+      ).length,
+    [movies]
+  );
+
   const languageScopedMovies = useMemo(() => {
+    let list = movies;
     if (languageFilter === 'luganda') {
-      return movies.filter((m) => m.language.toLowerCase().includes('luganda'));
+      list = list.filter((m) => m.language.toLowerCase().includes('luganda'));
+    } else if (languageFilter === 'english') {
+      list = list.filter((m) => !m.language.toLowerCase().includes('luganda'));
     }
-    if (languageFilter === 'english') {
-      return movies.filter((m) => !m.language.toLowerCase().includes('luganda'));
+    if (releaseFilter === '2026') {
+      list = list.filter((m) => m.releaseYear.includes('2026'));
+    } else if (releaseFilter === 'latest') {
+      list = list.filter(
+        (m) => m.releaseYear.includes('2026') || m.releaseYear.includes('2025')
+      );
     }
-    return movies;
-  }, [movies, languageFilter]);
+    return list;
+  }, [movies, languageFilter, releaseFilter]);
 
   const availableGenres = useMemo(() => {
     const genreCounts = new Map<string, number>();
@@ -1179,6 +1200,34 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                     </button>
                   );
                 })}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setReleaseFilter((prev) => (prev === '2026' ? 'all' : '2026'))
+                  }
+                  className={`rounded-lg px-3.5 py-2 text-xs font-bold border transition-colors whitespace-nowrap shrink-0 ${
+                    releaseFilter === '2026'
+                      ? 'border-[#1A1464] dark:border-[#9FA8FF] bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                      : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119]/50'
+                  }`}
+                >
+                  2026 Only ({release2026Count})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setReleaseFilter((prev) => (prev === 'latest' ? 'all' : 'latest'))
+                  }
+                  className={`rounded-lg px-3.5 py-2 text-xs font-bold border transition-colors whitespace-nowrap shrink-0 ${
+                    releaseFilter === 'latest'
+                      ? 'border-[#1A1464] dark:border-[#9FA8FF] bg-[#1A1464] dark:bg-[#2E368F] text-white'
+                      : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119]/50'
+                  }`}
+                >
+                  2025–2026 Latest ({releaseLatestCount})
+                </button>
               </div>
             )}
           </div>
@@ -1196,7 +1245,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   aria-label="Search movies by title, VJ translator, genre, or year"
-                  placeholder="Search title, VJ (Junior, Mark, Ice P, Jingo, Emmy), genre, or year..."
+                  placeholder="Search 2026 movies, VJ (Junior, Mark, Ice P, Jingo, Emmy, Mande)..."
                   className="w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] pl-10 pr-9 py-2.5 text-xs sm:text-sm text-[#1A1464] dark:text-white placeholder:text-[#6B7188] focus:border-[#EE1119] focus:outline-none"
                 />
                 {searchQuery && (
@@ -1284,6 +1333,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                         setSearchQuery('');
                         setSelectedGenre('All');
                         setLanguageFilter('all');
+                        setReleaseFilter('all');
                       }}
                       className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#EE1119] px-4 py-2 text-xs font-bold text-white hover:bg-[#D00D14]"
                     >
