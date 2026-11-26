@@ -41,6 +41,8 @@ export interface ResolvedArchiveMovieDraft {
   synopsis: string;
   posterUrl: string;
   videoUrl: string;
+  durationSeconds: number;
+  fileSizeBytes: number;
 }
 
 function stripHtmlAndTruncate(raw: unknown, maxLen: number): string {
@@ -58,26 +60,27 @@ function stripHtmlAndTruncate(raw: unknown, maxLen: number): string {
     .slice(0, maxLen);
 }
 
-function formatDurationSeconds(rawLength: unknown): string {
+function parseDurationToSeconds(rawLength: unknown): number {
   const str = String(rawLength || '').trim();
-  if (!str) return '1h 15m';
+  if (!str) return 0;
 
   if (str.includes(':')) {
     const parts = str.split(':').map((n) => Number(n));
     if (parts.length === 3 && parts.every(Number.isFinite)) {
-      const totalMin = parts[0] * 60 + parts[1];
-      if (totalMin >= 60) {
-        return `${Math.floor(totalMin / 60)}h ${totalMin % 60}m`;
-      }
-      return `${Math.max(1, totalMin)}m`;
+      return parts[0] * 3600 + parts[1] * 60 + parts[2];
     }
     if (parts.length === 2 && parts.every(Number.isFinite)) {
-      return `${Math.max(1, parts[0])}m`;
+      return parts[0] * 60 + parts[1];
     }
   }
 
   const seconds = Number(str);
-  if (!Number.isFinite(seconds) || seconds <= 0) return '1h 15m';
+  return Number.isFinite(seconds) && seconds > 0 ? Math.round(seconds) : 0;
+}
+
+function formatDurationSeconds(rawLength: unknown): string {
+  const seconds = parseDurationToSeconds(rawLength);
+  if (seconds <= 0) return '1h 15m';
   const totalMinutes = Math.max(1, Math.round(seconds / 60));
   if (totalMinutes < 60) return `${totalMinutes}m`;
   const hrs = Math.floor(totalMinutes / 60);
@@ -170,21 +173,106 @@ export function extractArchiveIdentifier(urlOrId: string): string | null {
 }
 
 export function cleanArchiveMovieTitle(rawTitle: string): string {
-  const cleaned = String(rawTitle || '')
+  let cleaned = String(rawTitle || '')
+    // Remove enclosed pictographs, UI emojis (🆕 U+1F195), & symbols
+    .replace(/[\u{1F100}-\u{1FAFF}\u2600-\u27BF\uFE0F]/gu, ' ')
     .replace(/\.ia\.mp4$/i, '')
     .replace(/\.mp4$/i, '')
     .replace(/\[www\.[^\]]+\]/gi, ' ')
-    .replace(/midcrushmovies/gi, ' ')
+    .replace(/\bwww\.[a-z0-9.-]+\.[a-z]{2,}\b/gi, ' ')
     .replace(/[_]+/g, ' ')
-    .replace(/\s*-\s*$/g, '')
+    // Separate stuck "1Midcrushmovies" -> "1 Midcrushmovies"
+    .replace(/(\d)(midcrush[a-z]*)/gi, '$1 $2')
+    .replace(/\b(by\s+)?(midcrushmoviies|midcrushmovies|midcrush|myvj|geekjuicemedia|munowatch|kindlysubscribe)\b/gi, ' ')
+    .replace(/^FILM\s+/i, '')
+    .replace(/^MOVIE\s+/i, '')
+    // Strip trailing/embedded uploader/VJ attribution tags (translator shown in dedicated badge)
+    .replace(/\b(by|translated\s+by)?\s*vj\s+(junior|juniour|mark|ice\s*p|icep|jingo|jinggo|emmy|emmie|mande|saul|ulio|neil|ivo|banks)\b.*$/i, '')
+    .replace(/\s+(by\s+)?\b(jr|icep|emmy)\b(\s+by)?\s*$/i, '')
+    .replace(/\s+\b(vj|by)\s*$/i, '')
+    .replace(/#\s*(action|horror|thriller|comedy|romance|sci-fi|scifi|luganda)\b/gi, ' ')
+    .replace(/\(\s*(720\s*p|1080\s*p|480\s*p|360\s*p)(\s+(hd|h\s*264))?\s*\)/gi, ' ')
+    .replace(/\(\s*(19\d{2}|20[0-2]\d)\s*\)\s*$/g, '')
+    .replace(/\b(luganda\s+translated\s+movies?|film\s+enjogerere|enjogerere|dubbed\s*&\s*subtitled|full\s+movie|new\s+movie)\b/gi, ' ')
+    .replace(/\s+\bmovie\b\s*$/i, '')
+    .replace(/\bpart\s+(\d+)\b/gi, '(Part $1)')
+    .replace(/\s*[-–:|]+\s*$/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+
+  // Fix common misspelling from Archive upload ("Memaid" -> "Mermaid")
+  cleaned = cleaned.replace(/\bmemaid\b/i, 'Mermaid');
+
+  // If raw title is shouted ALL CAPS, convert nicely to Title Case while preserving Roman numerals
+  const letters = cleaned.replace(/[^a-zA-Z]/g, '');
+  if (letters.length >= 4 && letters === letters.toUpperCase()) {
+    const romanSet = new Set(['II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII']);
+    const smallWords = new Set(['of', 'the', 'and', 'in', 'on', 'at', 'to', 'for', 'by', 'or', 'vs']);
+    cleaned = cleaned
+      .split(' ')
+      .map((word, idx) => {
+        const cleanWord = word.replace(/[^a-zA-Z0-9]/g, '');
+        if (romanSet.has(cleanWord.toUpperCase())) return word.toUpperCase();
+        const lower = word.toLowerCase();
+        if (idx > 0 && smallWords.has(lower)) return lower;
+        return lower.charAt(0).toUpperCase() + lower.slice(1);
+      })
+      .join(' ');
+  }
+
   return (cleaned || String(rawTitle || 'Untitled Film')).slice(0, 140);
+}
+
+export function isRealMovieTitle(title: string, identifier = ''): boolean {
+  const cleanTitle = String(title || '').trim();
+  const combined = `${cleanTitle} ${identifier}`.toLowerCase();
+
+  if (cleanTitle.length < 2 || /^untitled(\s+film)?$/i.test(cleanTitle)) {
+    return false;
+  }
+
+  // Must contain readable Latin letters (reject raw non-Latin livestream spam)
+  if (!/[a-zA-Z]{2,}/.test(cleanTitle)) {
+    return false;
+  }
+
+  // Reject coded media filenames, UUIDs, episode dumps, and collection playlists
+  const badPatterns: RegExp[] = [
+    /\bmc[-_\s]*media[-_\s]*file/i,
+    /\bmedia[-_\s]*file[-_\s]*\d/i,
+    /^(file|video|vid|clip|mov|dsc|img|upload)[-_\s]*\d+/i,
+    /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/i,
+    /^\d{4}[.\-_]\d{2}[.\-_]\d{2}\b/,
+    /^e0*\d+[_\s-]/i,
+    /\bs\s*0?\d+\s*[exd]\s*0?\d+\b/i,
+    /\b\d+\s+episodes\b/i,
+    /^he[-\s]man[-\s]\d{2}\b/i,
+    /\b(all movies|movies collection|ugandan movies|all episodes)\b/i,
+    /^vj\s+[a-z]+\s+(ugandan\s+)?movies$/i,
+    /directo\s*-\s*clip/i,
+    /\bstreamed live\b/i,
+    /\bmirrativ\b/i,
+    /\byoutube\b/i,
+    /\bmatch card\b/i,
+    /\bmain theme\b/i,
+    /\bexplainer\b/i,
+    /\bpodcast\b/i,
+    /\bgameplay\b/i,
+    /\bpeak cinema\b/i,
+    /\b(official\s+)?trailers?\b/i,
+    /\bteasers?\b/i,
+  ];
+
+  if (badPatterns.some((rx) => rx.test(combined))) {
+    return false;
+  }
+
+  return true;
 }
 
 function isUnwantedArchiveNoise(title: string, identifier: string): boolean {
   const combined = `${title} ${identifier}`.toLowerCase();
-  return (
+  if (
     combined.includes('quran') ||
     combined.includes('القران') ||
     combined.includes('مصحف') ||
@@ -195,12 +283,17 @@ function isUnwantedArchiveNoise(title: string, identifier: string): boolean {
     combined.includes('boku no pico') ||
     combined.includes('capcut template') ||
     combined.includes('cyberleek') ||
-    /\b(official\s+)?trailers?\b/i.test(combined) ||
-    /\bteasers?\b/i.test(combined) ||
     identifier.toLowerCase().startsWith('goodman') ||
     identifier.toLowerCase().startsWith('soop-') ||
-    identifier.toLowerCase().startsWith('chzzk-')
-  );
+    identifier.toLowerCase().startsWith('chzzk-') ||
+    identifier.toLowerCase().startsWith('mirrativ-') ||
+    identifier.toLowerCase().startsWith('youtube-') ||
+    identifier.toLowerCase().startsWith('salseo_')
+  ) {
+    return true;
+  }
+
+  return !isRealMovieTitle(cleanArchiveMovieTitle(title), identifier);
 }
 
 export async function searchInternetArchiveMovies(
@@ -217,17 +310,25 @@ export async function searchInternetArchiveMovies(
   if (collectionScope === 'luganda_2026') {
     qParts.push(lugandaClauses);
     qParts.push('(2026 OR year:2026 OR year:2025 OR publicdate:[2025-09-01 TO 2026-12-31])');
+    qParts.push('NOT "mc-media-file"');
+    qParts.push('NOT "All movies collection"');
     qParts.push('NOT MTV');
     qParts.push('NOT quran');
+    qParts.push('NOT trailers');
+    qParts.push('NOT trailer');
+    qParts.push('NOT teaser');
   } else if (collectionScope === 'latest_2026') {
-    qParts.push('(collection:(opensource_movies OR feature_films OR computerchronicles) OR "2026 movie" OR "full movie")');
-    qParts.push('(year:2026 OR year:2025 OR publicdate:[2025-09-01 TO 2026-12-31])');
+    qParts.push('collection:(feature_films OR computerchronicles)');
+    qParts.push('NOT "All episodes"');
     qParts.push('NOT MTV');
     qParts.push('NOT quran');
     qParts.push('NOT xvideos');
+    qParts.push('NOT trailers');
     qParts.push('NOT trailer');
+    qParts.push('NOT teaser');
   } else if (collectionScope === 'luganda') {
     qParts.push(lugandaClauses);
+    qParts.push('NOT "mc-media-file"');
     qParts.push('NOT MTV');
     qParts.push('NOT quran');
   } else if (collectionScope === 'all') {
@@ -287,8 +388,10 @@ export async function searchInternetArchiveMovies(
   return docs
     .filter((d) => {
       if (!d.identifier) return false;
-      const title = stripHtmlAndTruncate(d.title || d.identifier, 140);
-      return !isUnwantedArchiveNoise(title, String(d.identifier));
+      const rawTitle = stripHtmlAndTruncate(d.title || d.identifier, 140);
+      const id = String(d.identifier);
+      if (isUnwantedArchiveNoise(rawTitle, id)) return false;
+      return isRealMovieTitle(cleanArchiveMovieTitle(rawTitle), id);
     })
     .slice(0, 15)
     .map((d) => {
@@ -375,8 +478,10 @@ export async function searchCustomArchiveSource(
   return (json.response?.docs || [])
     .filter((d) => {
       if (!d.identifier) return false;
-      const title = stripHtmlAndTruncate(d.title || d.identifier, 140);
-      return !isUnwantedArchiveNoise(title, String(d.identifier));
+      const rawTitle = stripHtmlAndTruncate(d.title || d.identifier, 140);
+      const id = String(d.identifier);
+      if (isUnwantedArchiveNoise(rawTitle, id)) return false;
+      return isRealMovieTitle(cleanArchiveMovieTitle(rawTitle), id);
     })
     .slice(0, 12)
     .map((d) => {
@@ -426,7 +531,8 @@ export async function fetchInternetArchiveMovieDraft(
   }
 
   const res = await fetch(
-    `https://archive.org/metadata/${encodeURIComponent(identifier)}`
+    `https://archive.org/metadata/${encodeURIComponent(identifier)}`,
+    { signal: AbortSignal.timeout(10000) }
   );
   if (!res.ok) {
     throw new Error(`Unable to load Internet Archive metadata (HTTP ${res.status}).`);
@@ -476,9 +582,9 @@ export async function fetchInternetArchiveMovieDraft(
     .map(encodeURIComponent)
     .join('/')}`;
 
-  const rawTitle = cleanArchiveMovieTitle(
-    stripHtmlAndTruncate(data.metadata?.title || identifier, 140) || identifier
-  );
+  const rawUnfilteredTitle =
+    stripHtmlAndTruncate(data.metadata?.title || identifier, 140) || identifier;
+  const rawTitle = cleanArchiveMovieTitle(rawUnfilteredTitle);
   const rawYearCandidate = Array.isArray(data.metadata?.year)
     ? data.metadata?.year[0]
     : data.metadata?.year ||
@@ -487,10 +593,12 @@ export async function fetchInternetArchiveMovieDraft(
         ? data.metadata?.publicdate[0]
         : data.metadata?.publicdate);
   const yearMatch = String(rawYearCandidate || '').match(/\d{4}/);
-  const titleYearMatch = rawTitle.match(/\b(202[0-9]|201[0-9])\b/);
+  const titleYearMatch = rawUnfilteredTitle.match(/\b(202[0-9]|201[0-9])\b/);
   const releaseYear = yearMatch?.[0] || titleYearMatch?.[0] || '2026';
 
+  const durationSeconds = parseDurationToSeconds(chosen.length);
   const durationLabel = formatDurationSeconds(chosen.length);
+  const fileSizeBytes = Number(chosen.size || 0);
   const fileSizeLabel = formatFileSize(chosen.size);
   const height = Number(chosen.height || 0);
   const qualityLabel: MovieQualityLabel =
@@ -508,14 +616,16 @@ export async function fetchInternetArchiveMovieDraft(
   const subjectText = Array.isArray(data.metadata?.subject)
     ? data.metadata?.subject.join(' ')
     : String(data.metadata?.subject || '');
-  const translatorInfo = inferTranslatorFromText(`${rawTitle} ${identifier} ${synopsis} ${subjectText}`);
+  const translatorInfo = inferTranslatorFromText(
+    `${rawUnfilteredTitle} ${identifier} ${synopsis} ${subjectText}`
+  );
   const category = inferCategory(
     data.metadata?.collection,
     rawTitle,
     durationLabel,
     translatorInfo.language
   );
-  const genre = inferGenreFromMetadata(`${rawTitle} ${synopsis} ${subjectText}`, category);
+  const genre = inferGenreFromMetadata(`${rawUnfilteredTitle} ${synopsis} ${subjectText}`, category);
 
   return {
     identifier,
@@ -531,5 +641,7 @@ export async function fetchInternetArchiveMovieDraft(
     synopsis,
     posterUrl: `https://archive.org/services/img/${encodeURIComponent(identifier)}`,
     videoUrl,
+    durationSeconds,
+    fileSizeBytes: Number.isFinite(fileSizeBytes) ? fileSizeBytes : 0,
   };
 }

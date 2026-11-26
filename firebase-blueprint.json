@@ -232,7 +232,7 @@
         },
         "type": {
           "type": "string",
-          "enum": ["status_update", "admin_message"],
+          "enum": ["status_update", "admin_message", "movie_release", "blog_upcoming"],
           "description": "Category of notification alert."
         },
         "title": {
@@ -258,6 +258,17 @@
           "minLength": 0,
           "maxLength": 40,
           "description": "Optional updated project status label."
+        },
+        "linkRoute": {
+          "type": "string",
+          "enum": ["dashboard", "movies", "blog"],
+          "description": "Optional target route inside 0xDEV when clicking the alert."
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 128,
+          "description": "Optional target movie ID or blog post slug."
         },
         "isRead": {
           "type": "boolean",
@@ -783,6 +794,11 @@
         "codeFilename": { "type": "string", "minLength": 0, "maxLength": 80 },
         "codeLanguage": { "type": "string", "minLength": 0, "maxLength": 40 },
         "codeSnippet": { "type": "string", "minLength": 0, "maxLength": 4000 },
+        "publishStatus": {
+          "type": "string",
+          "enum": ["published", "upcoming"]
+        },
+        "scheduledDate": { "type": "string", "minLength": 0, "maxLength": 40 },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
@@ -915,6 +931,334 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "WatchlistItem": {
+      "title": "WatchlistItem",
+      "description": "Movie bookmarked by a verified user into their personal watch-later queue.",
+      "type": "object",
+      "properties": {
+        "movieId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "posterUrl": { "type": "string", "minLength": 4, "maxLength": 500 },
+        "genre": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "releaseYear": { "type": "string", "minLength": 4, "maxLength": 12 },
+        "vjTranslator": { "type": "string", "minLength": 0, "maxLength": 80 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "movieId",
+        "userId",
+        "title",
+        "posterUrl",
+        "genre",
+        "releaseYear",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "WatchProgress": {
+      "title": "WatchProgress",
+      "description": "Cross-device playback resume timestamp and completion status for a movie watched by a verified user.",
+      "type": "object",
+      "properties": {
+        "movieId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "posterUrl": { "type": "string", "minLength": 4, "maxLength": 500 },
+        "positionSeconds": { "type": "integer", "minimum": 0, "maximum": 86400 },
+        "durationSeconds": { "type": "integer", "minimum": 0, "maximum": 86400 },
+        "progressPercent": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "movieId",
+        "userId",
+        "title",
+        "posterUrl",
+        "positionSeconds",
+        "durationSeconds",
+        "progressPercent",
+        "completed",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserEngagement": {
+      "title": "UserEngagement",
+      "description": "Daily visit streak, last seen catalog timestamp, and completed movies counter for a verified user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "streakDays": { "type": "integer", "minimum": 1, "maximum": 36500 },
+        "lastActiveDay": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "lastSeenCatalogMs": { "type": "integer", "minimum": 0, "maximum": 9999999999999 },
+        "totalMoviesWatched": { "type": "integer", "minimum": 0, "maximum": 100000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "uid",
+        "streakDays",
+        "lastActiveDay",
+        "lastSeenCatalogMs",
+        "totalMoviesWatched",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MovieRequest": {
+      "title": "MovieRequest",
+      "description": "Community movie or Luganda VJ translation request with upvotes and admin fulfillment tracking.",
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "title": { "type": "string", "minLength": 2, "maxLength": 140 },
+        "vjPreference": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "releaseYear": { "type": "string", "minLength": 0, "maxLength": 12 },
+        "notes": { "type": "string", "minLength": 0, "maxLength": 300 },
+        "status": {
+          "type": "string",
+          "enum": ["open", "fulfilled"]
+        },
+        "fulfilledMovieId": { "type": "string", "minLength": 0, "maxLength": 128 },
+        "upvoteCount": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "requestId",
+        "authorId",
+        "authorName",
+        "title",
+        "vjPreference",
+        "status",
+        "upvoteCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MovieRequestVote": {
+      "title": "MovieRequestVote",
+      "description": "Unique user upvote record keyed by requestId_userId to enforce one vote per verified member.",
+      "type": "object",
+      "properties": {
+        "voteId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "requestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["voteId", "requestId", "userId", "createdAt", "updatedAt"]
+    },
+    "UserRewards": {
+      "title": "UserRewards",
+      "description": "Daily login DevCredits ledger, consecutive streak tracker, referral credit totals, and unlocked technical resource vault IDs for a verified user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "devCredits": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "lifetimeCredits": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "streakDays": { "type": "integer", "minimum": 0, "maximum": 36500 },
+        "longestStreak": { "type": "integer", "minimum": 0, "maximum": 36500 },
+        "lastClaimDay": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "totalClaims": { "type": "integer", "minimum": 0, "maximum": 36500 },
+        "unlockedResourceIds": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 64 }
+        },
+        "referralsCount": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "referralCreditsEarned": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "inviteeBonusApplied": { "type": "boolean" },
+        "lastClaimedReferralId": { "type": "string", "minLength": 0, "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "uid",
+        "devCredits",
+        "lifetimeCredits",
+        "streakDays",
+        "longestStreak",
+        "lastClaimDay",
+        "totalClaims",
+        "unlockedResourceIds",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserNotificationState": {
+      "title": "UserNotificationState",
+      "description": "Owner-only acknowledged feed alert IDs for movies, upcoming blogs, and announcements.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "readIds": {
+          "type": "array",
+          "items": { "type": "string", "maxLength": 160 }
+        },
+        "lastCheckedMs": { "type": "integer", "minimum": 0, "maximum": 9999999999999 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "readIds", "lastCheckedMs", "createdAt", "updatedAt"]
+    },
+    "ReferralCode": {
+      "title": "ReferralCode",
+      "description": "Public non-PII shareable referral code owned by a verified 0xDEV member.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 24,
+          "pattern": "^[A-Z0-9\\-]+$"
+        },
+        "ownerUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerDisplayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "ownerUid", "ownerDisplayName", "createdAt", "updatedAt"]
+    },
+    "ReferralRecord": {
+      "title": "ReferralRecord",
+      "description": "Immutable 1-per-invitee referral record binding an invitee UID to a verified referrer code for atomic DevCredits payouts.",
+      "type": "object",
+      "properties": {
+        "referralId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "referralCode": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 24,
+          "pattern": "^[A-Z0-9\\-]+$"
+        },
+        "referrerUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "referrerName": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "inviteeUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "inviteeName": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "inviteeBonusCredits": { "type": "integer", "minimum": 50, "maximum": 50 },
+        "referrerBonusCredits": { "type": "integer", "minimum": 100, "maximum": 100 },
+        "inviteeBonusClaimed": { "type": "boolean" },
+        "referrerBonusClaimed": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["verified", "rewarded"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "referralId",
+        "referralCode",
+        "referrerUid",
+        "referrerName",
+        "inviteeUid",
+        "inviteeName",
+        "inviteeBonusCredits",
+        "referrerBonusCredits",
+        "inviteeBonusClaimed",
+        "referrerBonusClaimed",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -925,6 +1269,34 @@
     "/users/{userId}/private/info": {
       "schema": { "$ref": "#/entities/UserPrivateInfo" },
       "description": "Owner-only PII record storing email, country, and phone number."
+    },
+    "/users/{userId}/watchlist/{movieId}": {
+      "schema": { "$ref": "#/entities/WatchlistItem" },
+      "description": "Owner-only saved movies watchlist."
+    },
+    "/users/{userId}/watchProgress/{movieId}": {
+      "schema": { "$ref": "#/entities/WatchProgress" },
+      "description": "Owner-only playback resume timestamps and watched status."
+    },
+    "/users/{userId}/preferences/engagement": {
+      "schema": { "$ref": "#/entities/UserEngagement" },
+      "description": "Owner-only daily streak and last-seen catalog tracker."
+    },
+    "/users/{userId}/preferences/rewards": {
+      "schema": { "$ref": "#/entities/UserRewards" },
+      "description": "Owner-only daily login DevCredits balance, streak milestones, referral payouts, and unlocked exclusive technical resources."
+    },
+    "/users/{userId}/preferences/notificationState": {
+      "schema": { "$ref": "#/entities/UserNotificationState" },
+      "description": "Owner-only acknowledged real-time bell alert identifiers across devices."
+    },
+    "/referralCodes/{code}": {
+      "schema": { "$ref": "#/entities/ReferralCode" },
+      "description": "Non-PII shareable referral code mapping to a verified member's UID and display name."
+    },
+    "/referrals/{referralId}": {
+      "schema": { "$ref": "#/entities/ReferralRecord" },
+      "description": "Per-invitee referral record keyed by inviteeUid to prevent duplicate referrals or self-referrals."
     },
     "/inquiries/{inquiryId}": {
       "schema": { "$ref": "#/entities/ProjectInquiry" },
@@ -969,6 +1341,14 @@
     "/movieSubscribers/{subscriberId}": {
       "schema": { "$ref": "#/entities/MovieSubscriber" },
       "description": "Verified subscriber records for movie upload notifications."
+    },
+    "/movieRequests/{requestId}": {
+      "schema": { "$ref": "#/entities/MovieRequest" },
+      "description": "Community movie requests and admin fulfillment board."
+    },
+    "/movieRequestVotes/{voteId}": {
+      "schema": { "$ref": "#/entities/MovieRequestVote" },
+      "description": "Per-user upvote records enforcing one upvote per request per verified user."
     }
   }
 }

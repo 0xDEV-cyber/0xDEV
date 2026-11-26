@@ -63,6 +63,8 @@ export const AdminBlogManager: React.FC = () => {
   const [codeFilename, setCodeFilename] = useState('src/architecture/example.ts');
   const [codeLanguage, setCodeLanguage] = useState('typescript');
   const [codeSnippet, setCodeSnippet] = useState('');
+  const [publishStatus, setPublishStatus] = useState<'published' | 'upcoming'>('published');
+  const [scheduledDate, setScheduledDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -134,6 +136,10 @@ export const AdminBlogManager: React.FC = () => {
         payload.codeLanguage = codeLanguage.trim().slice(0, 40) || 'typescript';
         payload.codeSnippet = codeSnippet.trim().slice(0, 4000);
       }
+      payload.publishStatus = publishStatus;
+      if (publishStatus === 'upcoming' && scheduledDate.trim()) {
+        payload.scheduledDate = scheduledDate.trim().slice(0, 40);
+      }
 
       await setDoc(doc(db, 'blogPosts', postId), payload);
 
@@ -144,8 +150,14 @@ export const AdminBlogManager: React.FC = () => {
       setSection2Body('');
       setCalloutQuote('');
       setCodeSnippet('');
+      setPublishStatus('published');
+      setScheduledDate('');
       setShowForm(false);
-      setFeedback('Published new technical engineering article to /blog.');
+      setFeedback(
+        publishStatus === 'upcoming'
+          ? 'Scheduled upcoming blog post preview in Firestore — real-time bell alert active.'
+          : 'Published new technical engineering article to /blog.'
+      );
     } catch (err) {
       setError('Unable to publish article.');
       handleFirestoreError(err, OperationType.CREATE, `blogPosts/${postId}`);
@@ -445,13 +457,51 @@ export const AdminBlogManager: React.FC = () => {
             />
           </div>
 
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="blog-cms-status" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
+                Release Status
+              </label>
+              <select
+                id="blog-cms-status"
+                value={publishStatus}
+                onChange={(e) => setPublishStatus(e.target.value as 'published' | 'upcoming')}
+                className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs font-semibold text-[#1A1464] dark:text-white"
+              >
+                <option value="published">Publish Immediately</option>
+                <option value="upcoming">Upcoming Preview (Notifies Bell)</option>
+              </select>
+            </div>
+            {publishStatus === 'upcoming' && (
+              <div>
+                <label htmlFor="blog-cms-scheduled" className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]">
+                  Scheduled Release Date
+                </label>
+                <input
+                  id="blog-cms-scheduled"
+                  type="text"
+                  value={scheduledDate}
+                  onChange={(e) => setScheduledDate(e.target.value)}
+                  placeholder="e.g. Next Friday · 10:00 EAT"
+                  className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-3 py-2 text-xs text-[#1A1464] dark:text-white"
+                />
+              </div>
+            )}
+          </div>
+
           <button
             type="submit"
             disabled={saving}
             className="inline-flex items-center gap-2 rounded-xl bg-[#EE1119] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#D00D14] disabled:opacity-60"
           >
             <FilePlus2 className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{saving ? 'Publishing Article...' : 'Publish to Engineering Blog'}</span>
+            <span>
+              {saving
+                ? 'Saving Article...'
+                : publishStatus === 'upcoming'
+                  ? 'Schedule Upcoming Post'
+                  : 'Publish to Engineering Blog'}
+            </span>
           </button>
         </form>
       )}

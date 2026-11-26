@@ -23,6 +23,12 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { BLOG_ARTICLES } from './data/blogData';
 import { PageRoute } from './data/siteData';
 import { useAdminAutoMovieSync } from './hooks/useAdminAutoMovieSync';
+import {
+  captureReferralCodeFromUrl,
+  clearPendingReferralCode,
+  getPendingReferralCode,
+  redeemReferralCodeAsInvitee,
+} from './utils/referralUtils';
 
 const ROUTE_TO_PATH: Record<PageRoute, string> = {
   home: '/',
@@ -189,13 +195,20 @@ function AppShell() {
   const [preselectedMessage, setPreselectedMessage] = useState<string>('');
   const [verifyFeedback, setVerifyFeedback] = useState<string | null>(null);
   const [verifyBusy, setVerifyBusy] = useState(false);
+  const [referralBanner, setReferralBanner] = useState<string | null>(null);
 
   const wasSignedInRef = useRef(false);
+  const attemptedReferralRef = useRef<string | null>(null);
+  const initialRoute = resolveRouteFromPathname(window.location.pathname);
   const returnTargetRef = useRef<{
     page: PageRoute;
     articleSlug: string | null;
     movieId: string | null;
-  }>({ page: 'dashboard', articleSlug: null, movieId: null });
+  }>({
+    page: initialRoute === 'home' ? 'movies' : initialRoute,
+    articleSlug: resolveBlogSlugFromPathname(window.location.pathname),
+    movieId: resolveMovieIdFromPathname(window.location.pathname),
+  });
 
   const navigateTo = useCallback((page: PageRoute) => {
     const targetPath = ROUTE_TO_PATH[page] || '/';
@@ -238,7 +251,7 @@ function AppShell() {
 
   const openAuthPortal = useCallback(
     (mode: 'login' | 'register' = 'login', returnTo?: PageRoute) => {
-      const targetPage = returnTo || currentPage || 'dashboard';
+      const targetPage = returnTo || currentPage || 'movies';
       returnTargetRef.current = {
         page: targetPage,
         articleSlug: targetPage === 'blog' ? selectedArticleSlug : null,
@@ -255,6 +268,43 @@ function AppShell() {
     [currentPage, selectedArticleSlug, selectedMovieId]
   );
 
+  // Capture invite ?ref=CODE parameter on entry
+  useEffect(() => {
+    captureReferralCodeFromUrl();
+  }, []);
+
+  // Automatically redeem pending invite referral bonus once authenticated user is verified
+  useEffect(() => {
+    if (!user || !user.emailVerified) return;
+    const pendingCode = getPendingReferralCode();
+    if (!pendingCode) return;
+    const attemptKey = `${user.uid}:${pendingCode}`;
+    if (attemptedReferralRef.current === attemptKey) return;
+    attemptedReferralRef.current = attemptKey;
+
+    let active = true;
+    redeemReferralCodeAsInvitee({ user, rawCode: pendingCode })
+      .then((res) => {
+        if (!active) return;
+        if (res.ok) {
+          setReferralBanner(res.message);
+        } else if (
+          res.status === 'already_referred' ||
+          res.status === 'invalid_code' ||
+          res.status === 'self_referral'
+        ) {
+          clearPendingReferralCode();
+        }
+      })
+      .catch(() => {
+        // Handled silently on background redeem; user can retry inside Dashboard -> Referral Program
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
   // Keep browser URL aligned with authentication transitions
   useEffect(() => {
     if (loading || isAuthActionRoute) return;
@@ -262,17 +312,23 @@ function AppShell() {
     const path = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
 
     if (user) {
+      const isFreshSignIn = !wasSignedInRef.current;
       wasSignedInRef.current = true;
-      if (showAuthPortal || path === '/login' || path === '/register') {
-        const dest = returnTargetRef.current.page
-          ? returnTargetRef.current
-          : { page: currentPage || ('home' as PageRoute), articleSlug: null, movieId: null };
+      if (isFreshSignIn || showAuthPortal || path === '/login' || path === '/register') {
+        const dest =
+          path === '/' || path === '/login' || path === '/register'
+            ? returnTargetRef.current
+            : {
+                page: resolveRouteFromPathname(window.location.pathname),
+                articleSlug: resolveBlogSlugFromPathname(window.location.pathname),
+                movieId: resolveMovieIdFromPathname(window.location.pathname),
+              };
         const targetPath =
           dest.page === 'blog' && dest.articleSlug
             ? `/blog/${dest.articleSlug}`
             : dest.page === 'movies' && dest.movieId
               ? `/movies/${dest.movieId}`
-              : ROUTE_TO_PATH[dest.page] || '/';
+              : ROUTE_TO_PATH[dest.page] || '/movies';
         setShowAuthPortal(false);
         setCurrentPage(dest.page);
         setSelectedArticleSlug(dest.articleSlug);
@@ -286,26 +342,23 @@ function AppShell() {
       return;
     }
 
-    // Signed out
+    // Signed out: reset any prior session back to plain login root
     if (wasSignedInRef.current) {
       wasSignedInRef.current = false;
       setVerifyFeedback(null);
-      if (currentPage === 'dashboard') {
-        setCurrentPage('home');
-        window.history.replaceState({ page: 'home' }, '', '/');
+      returnTargetRef.current = { page: 'movies', articleSlug: null, movieId: null };
+      if (path !== '/' && path !== '/login' && path !== '/register') {
+        window.history.replaceState({ page: 'login' }, '', '/');
       }
     }
-  }, [user, loading, currentPage, isAuthActionRoute, showAuthPortal]);
+  }, [user, loading, isAuthActionRoute, showAuthPortal]);
 
   useEffect(() => {
     let nextTitle = ROUTE_TITLES[currentPage];
     if (isAuthActionRoute) {
       nextTitle = 'Account Verification & Security | 0xDEV';
-    } else if (!user && (showAuthPortal || currentPage === 'dashboard')) {
-      nextTitle =
-        authMode === 'register'
-          ? 'Create Account | 0xDEV Client Portal'
-          : 'Sign In | 0xDEV Client Portal';
+    } else if (!user) {
+      nextTitle = authMode === 'register' ? 'Create Account | 0xDEV' : 'Sign In | 0xDEV';
     } else if (currentPage === 'blog' && selectedArticleSlug) {
       const matched = BLOG_ARTICLES.find((a) => a.slug === selectedArticleSlug);
       nextTitle = matched
@@ -410,20 +463,20 @@ function AppShell() {
         onDone={(target) => {
           setIsAuthActionRoute(false);
           if (target === 'home' && user) {
-            window.history.replaceState({ page: 'home' }, '', '/');
-            setCurrentPage('home');
+            window.history.replaceState({ page: 'movies' }, '', '/movies');
+            setCurrentPage('movies');
           } else {
             setAuthMode('login');
             setShowAuthPortal(true);
-            window.history.replaceState({ authMode: 'login' }, '', '/login');
+            window.history.replaceState({ authMode: 'login' }, '', '/');
           }
         }}
       />
     );
   }
 
-  // Loading state while checking Firebase Auth session (only block if on gated portal/dashboard)
-  if (loading && (showAuthPortal || currentPage === 'dashboard')) {
+  // Loading state while checking Firebase Auth session
+  if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#F6F7FB] dark:bg-[#090D1F] px-4">
         <Logo variant={isDark ? 'dark' : 'light'} showEmblemAbove />
@@ -434,21 +487,17 @@ function AppShell() {
     );
   }
 
-  // Gate only /login, /register, and /dashboard when signed out
-  if (!user && (showAuthPortal || currentPage === 'dashboard')) {
+  // Plain login screen on root entry & all routes when signed out
+  if (!user) {
     return (
       <AuthGatePage
         initialMode={authMode}
         onModeChange={(nextMode) => {
           setAuthMode(nextMode);
-          const nextPath = nextMode === 'register' ? '/register' : '/login';
+          const nextPath = nextMode === 'register' ? '/register' : '/';
           if (window.location.pathname !== nextPath) {
             window.history.pushState({ authMode: nextMode }, '', nextPath);
           }
-        }}
-        onBrowsePublic={() => {
-          setShowAuthPortal(false);
-          navigateTo('home');
         }}
       />
     );
@@ -459,6 +508,8 @@ function AppShell() {
       <Navbar
         currentPage={currentPage}
         onNavigate={navigateTo}
+        onSelectMovie={navigateToMovie}
+        onSelectArticle={navigateToArticle}
         onOpenAuth={(mode) => openAuthPortal(mode, currentPage)}
       />
 
@@ -517,6 +568,41 @@ function AppShell() {
                 className="rounded-lg bg-[#1A1464] dark:bg-[#2E368F] px-3 py-1 text-xs font-semibold text-white hover:bg-[#120D4A] dark:hover:bg-[#3A43A8] disabled:opacity-60"
               >
                 I have verified
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {referralBanner && (
+        <div
+          role="status"
+          className="border-b border-[#10B981]/30 bg-[#ECFDF5] dark:bg-[#0D2A24] px-4 py-2.5 text-xs sm:text-sm text-[#065F46] dark:text-[#A7F3D0] print:hidden"
+        >
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+            <p className="font-semibold">{referralBanner}</p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setReferralBanner(null);
+                  navigateTo('dashboard');
+                  window.setTimeout(() => {
+                    document
+                      .getElementById('referral-program')
+                      ?.scrollIntoView({ behavior: 'smooth' });
+                  }, 180);
+                }}
+                className="font-bold underline hover:opacity-80"
+              >
+                View DevCredits
+              </button>
+              <button
+                type="button"
+                onClick={() => setReferralBanner(null)}
+                className="text-xs font-semibold opacity-80 hover:opacity-100"
+              >
+                Dismiss
               </button>
             </div>
           </div>

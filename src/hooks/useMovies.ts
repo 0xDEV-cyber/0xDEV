@@ -17,6 +17,7 @@ import {
   getCachedExternalFeedSnapshot,
   mergeCatalogWithExternalMovies,
 } from '../utils/externalMovieFeed';
+import { cleanArchiveMovieTitle, isRealMovieTitle } from '../utils/internetArchiveApi';
 
 export type { MovieCategory, MovieGenre, MovieItem, MovieQualityLabel, MovieSchema };
 
@@ -52,9 +53,15 @@ export function useMovies(includeDrafts = false, enableExternalAutoFeed = true) 
             const createdAtMs =
               data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now();
 
+            const rawId = String(data.movieId || d.id);
+            const rawTitle = typeof data.title === 'string' ? data.title : 'Untitled Film';
+            const displayTitle = rawId.startsWith('EXT-')
+              ? cleanArchiveMovieTitle(rawTitle)
+              : rawTitle;
+
             return normalizeMovieRecord({
-              movieId: String(data.movieId || d.id),
-              title: typeof data.title === 'string' ? data.title : 'Untitled Film',
+              movieId: rawId,
+              title: displayTitle,
               category: data.category as MovieCategory | undefined,
               genre: typeof data.genre === 'string' ? data.genre : undefined,
               language: typeof data.language === 'string' ? data.language : undefined,
@@ -93,11 +100,14 @@ export function useMovies(includeDrafts = false, enableExternalAutoFeed = true) 
   }, [includeDrafts]);
 
   const baseCatalog = useMemo<MovieItem[]>(() => {
-    const firestoreIds = new Set(firestoreMovies.map((m) => m.movieId));
+    const cleanFirestore = firestoreMovies.filter(
+      (m) => !m.movieId.startsWith('EXT-') || isRealMovieTitle(m.title, m.movieId)
+    );
+    const firestoreIds = new Set(cleanFirestore.map((m) => m.movieId));
     const remainingBaseline = VERIFIED_ARCHIVE_MOVIES.filter(
       (baseline) => !firestoreIds.has(baseline.movieId)
     );
-    return [...firestoreMovies, ...remainingBaseline];
+    return [...cleanFirestore, ...remainingBaseline];
   }, [firestoreMovies]);
 
   const baseCatalogRef = useRef<MovieItem[]>(baseCatalog);

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { doc, onSnapshot, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import {
@@ -6,31 +6,50 @@ import {
   ArrowRight,
   Bell,
   BellOff,
+  Bookmark,
   Calendar,
   Check,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clapperboard,
   Clock,
   Download,
+  Eye,
   Film,
+  Flame,
   HardDrive,
+  History,
   Languages,
   Laptop,
+  MessageSquarePlus,
   Play,
   Radio,
   RefreshCw,
   Search,
   Share2,
   ShieldCheck,
+  Shuffle,
   Smartphone,
+  Sparkles,
+  Square,
   Subtitles,
   Tag,
+  ThumbsUp,
   Trash2,
+  Volume2,
+  VolumeX,
   X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { PageRoute } from '../data/siteData';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { MovieCategory, MovieItem, useMovies } from '../hooks/useMovies';
+import {
+  formatPlaybackTimestamp,
+  safeFirestoreKey,
+  useMovieEngagement,
+} from '../hooks/useMovieEngagement';
 import {
   DownloadProgressInfo,
   estimateBrowserStorageQuota,
@@ -49,6 +68,7 @@ import {
   Reveal,
   SPRING_SNAPPY,
 } from './MotionPrimitives';
+import { MovieScenePreviewVideo } from './MovieScenePreview';
 import { PageHeader } from './PageHeader';
 import { SharedCtaBanner } from './SharedCtaBanner';
 
@@ -59,7 +79,7 @@ interface MoviesPageProps {
   onRequestAuth?: () => void;
 }
 
-type LibraryViewTab = 'catalog' | 'offline' | 'roadmap';
+type LibraryViewTab = 'catalog' | 'watchlist' | 'requests' | 'offline' | 'roadmap';
 type LanguageFilterScope = 'all' | 'luganda' | 'english';
 type QualityTierId = '480p' | '720p' | '1080p';
 
@@ -149,6 +169,7 @@ const UPCOMING_COLLECTIONS = [
 ];
 
 interface ActivePlayerState {
+  movieId: string;
   title: string;
   meta: string;
   synopsis: string;
@@ -156,6 +177,7 @@ interface ActivePlayerState {
   srcUrl: string;
   isOfflineBlob: boolean;
   isObjectUrl: boolean;
+  initialSeekSeconds?: number;
 }
 
 type DisplayMovie = Pick<
@@ -193,13 +215,44 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
     refreshExternalFeed,
   } = useMovies(false);
 
+  const {
+    watchlist,
+    isInWatchlist,
+    toggleWatchlist,
+    continueWatchingList,
+    completedMovieIds,
+    getProgressForMovie,
+    recordPlaybackProgress,
+    clearWatchProgress,
+    engagement,
+    sessionSeenBaselineMs,
+    markCatalogSeenNow,
+    movieRequests,
+    votedRequestIds,
+    requestsLoading,
+    submitMovieRequest,
+    toggleRequestUpvote,
+    deleteMovieRequest,
+    engagementFeedback,
+    setEngagementFeedback,
+  } = useMovieEngagement();
+
   const [activeTab, setActiveTab] = useState<LibraryViewTab>('catalog');
   const [languageFilter, setLanguageFilter] = useState<LanguageFilterScope>('all');
-  const [releaseFilter, setReleaseFilter] = useState<'all' | '2026' | 'latest'>('all');
+  const [releaseFilter, setReleaseFilter] = useState<'all' | '2026' | 'latest' | 'new'>('all');
   const [selectedGenre, setSelectedGenre] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<QualityTierId>('720p');
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
+  const [tonightPickOffset, setTonightPickOffset] = useState(0);
+
+  // Request board form state
+  const [reqTitle, setReqTitle] = useState('');
+  const [reqVj, setReqVj] = useState('VJ Junior (Luganda)');
+  const [reqYear, setReqYear] = useState('2026');
+  const [reqNotes, setReqNotes] = useState('');
+  const [reqBusy, setReqBusy] = useState(false);
+  const [reqNotice, setReqNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
   // Offline local IndexedDB state
   const [savedMovies, setSavedMovies] = useState<SavedOfflineMovieMeta[]>([]);
@@ -214,14 +267,33 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
   // Theater modal state + detail inline player state
   const [activePlayer, setActivePlayer] = useState<ActivePlayerState | null>(null);
   const [playerError, setPlayerError] = useState<string | null>(null);
+  const modalVideoRef = useRef<HTMLVideoElement | null>(null);
+  const modalSeekAppliedRef = useRef<string | null>(null);
+  const inlineVideoRef = useRef<HTMLVideoElement | null>(null);
+  const inlineSeekAppliedRef = useRef<string | null>(null);
   const [inlinePlayer, setInlinePlayer] = useState<{
     movieId: string;
     srcUrl: string;
     isOfflineBlob: boolean;
     isObjectUrl: boolean;
+    isPreviewMode?: boolean;
+    initialSeekSeconds?: number;
   } | null>(null);
   const [inlinePlayerError, setInlinePlayerError] = useState<string | null>(null);
+  const [detailPreviewRemaining, setDetailPreviewRemaining] = useState<number>(30);
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+
+  // Interactive Movie Previews state (spotlight reel + per-card clip previews)
+  const [spotlightIndex, setSpotlightIndex] = useState(0);
+  const [spotlightPlaying, setSpotlightPlaying] = useState(false);
+  const [spotlightMuted, setSpotlightMuted] = useState(false);
+  const [spotlightRemaining, setSpotlightRemaining] = useState(30);
+  const [spotlightError, setSpotlightError] = useState<string | null>(null);
+
+  const [previewingCardId, setPreviewingCardId] = useState<string | null>(null);
+  const [cardPreviewMuted, setCardPreviewMuted] = useState(true);
+  const [cardPreviewRemaining, setCardPreviewRemaining] = useState(30);
+  const [previewFailedIds, setPreviewFailedIds] = useState<Record<string, boolean>>({});
 
   // Verified Firestore subscription state
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -257,6 +329,8 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
   useEffect(() => {
     setInlinePlayer(null);
     setInlinePlayerError(null);
+    setSpotlightPlaying(false);
+    setPreviewingCardId(null);
   }, [selectedMovieId]);
 
   useEffect(() => {
@@ -353,6 +427,59 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
     [movies]
   );
 
+  const newSinceLastVisitMovies = useMemo(
+    () => movies.filter((m) => m.createdAtMs > sessionSeenBaselineMs),
+    [movies, sessionSeenBaselineMs]
+  );
+
+  const latestCatalogCreatedMs = useMemo(
+    () => movies.reduce((maxMs, m) => Math.max(maxMs, m.createdAtMs || 0), 0),
+    [movies]
+  );
+
+  // Daily deterministic spotlight pick prioritizing unwatched 2026 / Luganda releases
+  const tonightPickPool = useMemo(() => {
+    const unwatched = movies.filter(
+      (m) => !completedMovieIds.has(m.movieId) && !completedMovieIds.has(safeFirestoreKey(m.movieId))
+    );
+    const pool = unwatched.length > 0 ? unwatched : movies;
+    const priority = pool.filter(
+      (m) => m.releaseYear.includes('2026') || m.language.toLowerCase().includes('luganda')
+    );
+    return priority.length > 0 ? priority : pool;
+  }, [movies, completedMovieIds]);
+
+  const tonightsPick = useMemo(() => {
+    if (tonightPickPool.length === 0) return null;
+    const daySeed = Math.floor(Date.now() / 86400000);
+    const idx = (daySeed + tonightPickOffset) % tonightPickPool.length;
+    return tonightPickPool[idx] || tonightPickPool[0];
+  }, [tonightPickPool, tonightPickOffset]);
+
+  const watchlistedCatalogMovies = useMemo(() => {
+    const byId = new Map(movies.map((m) => [safeFirestoreKey(m.movieId), m]));
+    return watchlist
+      .map((item) => {
+        const match = byId.get(item.movieId) || byId.get(safeFirestoreKey(item.rawMovieId));
+        if (match) return match;
+        return null;
+      })
+      .filter((m): m is MovieItem => Boolean(m));
+  }, [movies, watchlist]);
+
+  const upNextForActivePlayer = useMemo(() => {
+    if (!activePlayer) return [];
+    const currentMovie = movies.find((m) => m.movieId === activePlayer.movieId);
+    const others = movies.filter((m) => m.movieId !== activePlayer.movieId);
+    const sameGenre = currentMovie
+      ? others.filter((m) => m.genre === currentMovie.genre)
+      : [];
+    const remaining = currentMovie
+      ? others.filter((m) => m.genre !== currentMovie.genre)
+      : others;
+    return [...sameGenre, ...remaining].slice(0, 3);
+  }, [activePlayer, movies]);
+
   const languageScopedMovies = useMemo(() => {
     let list = movies;
     if (languageFilter === 'luganda') {
@@ -366,9 +493,11 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
       list = list.filter(
         (m) => m.releaseYear.includes('2026') || m.releaseYear.includes('2025')
       );
+    } else if (releaseFilter === 'new') {
+      list = list.filter((m) => m.createdAtMs > sessionSeenBaselineMs);
     }
     return list;
-  }, [movies, languageFilter, releaseFilter]);
+  }, [movies, languageFilter, releaseFilter, sessionSeenBaselineMs]);
 
   const availableGenres = useMemo(() => {
     const genreCounts = new Map<string, number>();
@@ -447,11 +576,21 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
     }
   }, [selectedMovie, selectedMovieId]);
 
+  const previewPool = useMemo(() => {
+    const sourceList = filteredMovies.length > 0 ? filteredMovies : movies;
+    return sourceList.slice(0, 6);
+  }, [filteredMovies, movies]);
+
+  const activeSpotlightMovie =
+    previewPool[spotlightIndex % Math.max(1, previewPool.length)] || previewPool[0] || null;
+
   const activeTier = QUALITY_TIERS.find((t) => t.id === selectedTier) || QUALITY_TIERS[1];
 
   const handleOpenMovieDetail = (movieId: string) => {
     setStorageError(null);
     setStorageNotice(null);
+    setSpotlightPlaying(false);
+    setPreviewingCardId(null);
     if (onSelectMovie) {
       onSelectMovie(movieId);
     }
@@ -526,8 +665,24 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
     }
   };
 
-  const handlePlayInlineDetail = async (movie: DisplayMovie) => {
+  const handlePlayInlineDetail = async (
+    movie: DisplayMovie,
+    isPreviewMode = false,
+    resumeSeconds?: number
+  ) => {
     setInlinePlayerError(null);
+    setDetailPreviewRemaining(30);
+    setPreviewingCardId(null);
+    setSpotlightPlaying(false);
+    inlineSeekAppliedRef.current = null;
+    const savedProgress = !isPreviewMode ? getProgressForMovie(movie.movieId) : undefined;
+    const initialSeek =
+      resumeSeconds !== undefined
+        ? resumeSeconds
+        : savedProgress && !savedProgress.completed && savedProgress.positionSeconds >= 5
+          ? savedProgress.positionSeconds
+          : 0;
+
     try {
       const offlineBlobUrl = await getSavedMovieBlobUrl(movie.movieId);
       if (offlineBlobUrl) {
@@ -536,6 +691,8 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
           srcUrl: offlineBlobUrl,
           isOfflineBlob: true,
           isObjectUrl: true,
+          isPreviewMode,
+          initialSeekSeconds: initialSeek,
         });
         return;
       }
@@ -551,14 +708,48 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
       srcUrl: streamUrl,
       isOfflineBlob: false,
       isObjectUrl: false,
+      isPreviewMode,
+      initialSeekSeconds: initialSeek,
     });
     void coverArt;
   };
 
-  const handleWatchMovieModal = async (movie: DisplayMovie) => {
+  const handleToggleCardPreview = (movie: DisplayMovie) => {
+    setSpotlightPlaying(false);
+    setSpotlightError(null);
+    if (previewingCardId === movie.movieId) {
+      setPreviewingCardId(null);
+      return;
+    }
+    setPreviewFailedIds((prev) => ({ ...prev, [movie.movieId]: false }));
+    setCardPreviewRemaining(30);
+    setCardPreviewMuted(true);
+    setPreviewingCardId(movie.movieId);
+  };
+
+  const handleStartSpotlightPreview = (targetIndex: number) => {
+    setPreviewingCardId(null);
+    setSpotlightError(null);
+    setSpotlightRemaining(30);
+    setSpotlightIndex(targetIndex);
+    setSpotlightPlaying(true);
+  };
+
+  const handleWatchMovieModal = async (movie: DisplayMovie, resumeSeconds?: number) => {
+    setPreviewingCardId(null);
+    setSpotlightPlaying(false);
     setPlayerError(null);
+    modalSeekAppliedRef.current = null;
     const coverArt = movie.coverArtUrl || movie.posterUrl;
     const streamUrl = movie.downloadUrl || movie.videoUrl;
+    const savedProgress = getProgressForMovie(movie.movieId);
+    const initialSeek =
+      resumeSeconds !== undefined
+        ? resumeSeconds
+        : savedProgress && !savedProgress.completed && savedProgress.positionSeconds >= 5
+          ? savedProgress.positionSeconds
+          : 0;
+
     const metaLabel = [
       movie.genre || movie.category,
       movie.releaseYear,
@@ -572,6 +763,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
       const offlineBlobUrl = await getSavedMovieBlobUrl(movie.movieId);
       if (offlineBlobUrl) {
         setActivePlayer({
+          movieId: movie.movieId,
           title: movie.title,
           meta: metaLabel,
           synopsis: movie.synopsis,
@@ -579,6 +771,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
           srcUrl: offlineBlobUrl,
           isOfflineBlob: true,
           isObjectUrl: true,
+          initialSeekSeconds: initialSeek,
         });
         return;
       }
@@ -587,6 +780,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
     }
 
     setActivePlayer({
+      movieId: movie.movieId,
       title: movie.title,
       meta: metaLabel,
       synopsis: movie.synopsis,
@@ -594,7 +788,38 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
       srcUrl: streamUrl,
       isOfflineBlob: false,
       isObjectUrl: false,
+      initialSeekSeconds: initialSeek,
     });
+  };
+
+  const handleSubmitMovieRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setReqNotice(null);
+    if (!user || !user.emailVerified) {
+      onRequestAuth?.();
+      return;
+    }
+    setReqBusy(true);
+    try {
+      const res = await submitMovieRequest({
+        title: reqTitle,
+        vjPreference: reqVj,
+        releaseYear: reqYear,
+        notes: reqNotes,
+      });
+      setReqNotice({ ok: res.ok, text: res.message });
+      if (res.ok) {
+        setReqTitle('');
+        setReqNotes('');
+      }
+    } catch (err) {
+      setReqNotice({
+        ok: false,
+        text: err instanceof Error ? err.message : 'Unable to submit movie request right now.',
+      });
+    } finally {
+      setReqBusy(false);
+    }
   };
 
   const handleExportSavedOfflineMovie = async (movie: SavedOfflineMovieMeta) => {
@@ -710,23 +935,45 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
               </button>
 
               {selectedMovie && (
-                <button
-                  type="button"
-                  onClick={() => void handleCopyMovieLink(selectedMovie.movieId)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-4 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119]"
-                >
-                  {copiedLinkId === selectedMovie.movieId ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 text-[#10B981]" aria-hidden="true" />
-                      <span>Link Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Share2 className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
-                      <span>Copy Movie Link</span>
-                    </>
-                  )}
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void toggleWatchlist(selectedMovie)}
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-2 text-xs font-bold transition-colors ${
+                      isInWatchlist(selectedMovie.movieId)
+                        ? 'border-[#EE1119] bg-[#EE1119]/10 text-[#EE1119]'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119]'
+                    }`}
+                  >
+                    <Bookmark
+                      className={`h-3.5 w-3.5 ${
+                        isInWatchlist(selectedMovie.movieId) ? 'fill-current' : ''
+                      }`}
+                      aria-hidden="true"
+                    />
+                    <span>
+                      {isInWatchlist(selectedMovie.movieId) ? 'In My Watchlist' : 'Add to Watchlist'}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => void handleCopyMovieLink(selectedMovie.movieId)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] px-4 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119]"
+                  >
+                    {copiedLinkId === selectedMovie.movieId ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-[#10B981]" aria-hidden="true" />
+                        <span>Link Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                        <span>Copy Movie Link</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               )}
             </div>
 
@@ -778,42 +1025,104 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                     <div className="relative overflow-hidden rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#090D1F] shadow-[0_20px_50px_rgba(26,20,100,0.14)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                       {isInlineActive && inlinePlayer ? (
                         <div>
-                          <div className="flex items-center justify-between border-b border-white/10 bg-[#101530] px-4 py-2.5 text-xs font-bold text-white">
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-[#101530] px-4 py-2.5 text-xs font-bold text-white">
                             <span className="text-[#EE1119]">
-                              {inlinePlayer.isOfflineBlob
-                                ? 'Playing from Local Browser Storage (Offline)'
-                                : 'Streaming Directly Online'}
+                              {inlinePlayer.isPreviewMode
+                                ? `Scene Preview (${detailPreviewRemaining}s remaining)`
+                                : inlinePlayer.isOfflineBlob
+                                  ? 'Playing from Local Browser Storage (Offline)'
+                                  : 'Streaming Directly Online'}
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => setInlinePlayer(null)}
-                              className="text-white/75 hover:text-white"
-                            >
-                              Show Poster
-                            </button>
+                            <div className="flex items-center gap-3">
+                              {inlinePlayer.isPreviewMode && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void handlePlayInlineDetail(selectedMovie, false)
+                                  }
+                                  className="text-[#A7F3D0] hover:text-white"
+                                >
+                                  Watch Full Movie
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setInlinePlayer(null)}
+                                className="text-white/75 hover:text-white"
+                              >
+                                Show Poster
+                              </button>
+                            </div>
                           </div>
-                          <video
-                            src={inlinePlayer.srcUrl}
-                            poster={
-                              (selectedMovie.coverArtUrl || selectedMovie.posterUrl).startsWith(
-                                'https://'
-                              ) ||
-                              (selectedMovie.coverArtUrl || selectedMovie.posterUrl).startsWith(
-                                '/src/assets/images/'
-                              )
-                                ? selectedMovie.coverArtUrl || selectedMovie.posterUrl
-                                : undefined
-                            }
-                            controls
-                            autoPlay
-                            playsInline
-                            onError={() =>
-                              setInlinePlayerError(
-                                'Direct browser streaming failed for this source. Try Download MP4 to play the file locally.'
-                              )
-                            }
-                            className="aspect-video w-full bg-black"
-                          />
+                          {inlinePlayer.isPreviewMode ? (
+                            <MovieScenePreviewVideo
+                              srcUrl={inlinePlayer.srcUrl}
+                              posterUrl={selectedMovie.coverArtUrl || selectedMovie.posterUrl}
+                              title={selectedMovie.title}
+                              muted={false}
+                              maxSeconds={30}
+                              onProgress={(_, remaining) =>
+                                setDetailPreviewRemaining(remaining)
+                              }
+                              onComplete={() => setInlinePlayer(null)}
+                              onError={() => {
+                                setInlinePlayer(null);
+                                setInlinePlayerError(
+                                  'Preview streaming failed for this source. Try Play Movie Here or Download MP4.'
+                                );
+                              }}
+                              className="aspect-video w-full bg-black"
+                            />
+                          ) : (
+                            <video
+                              ref={inlineVideoRef}
+                              src={inlinePlayer.srcUrl}
+                              poster={
+                                (selectedMovie.coverArtUrl || selectedMovie.posterUrl).startsWith(
+                                  'https://'
+                                ) ||
+                                (selectedMovie.coverArtUrl || selectedMovie.posterUrl).startsWith(
+                                  '/src/assets/images/'
+                                )
+                                  ? selectedMovie.coverArtUrl || selectedMovie.posterUrl
+                                  : undefined
+                              }
+                              controls
+                              autoPlay
+                              playsInline
+                              onLoadedMetadata={(e) => {
+                                const video = e.currentTarget;
+                                const seekTo = inlinePlayer.initialSeekSeconds || 0;
+                                if (
+                                  seekTo >= 5 &&
+                                  inlineSeekAppliedRef.current !== inlinePlayer.movieId &&
+                                  Number.isFinite(video.duration) &&
+                                  seekTo < video.duration - 5
+                                ) {
+                                  inlineSeekAppliedRef.current = inlinePlayer.movieId;
+                                  video.currentTime = seekTo;
+                                }
+                              }}
+                              onTimeUpdate={(e) => {
+                                const v = e.currentTarget;
+                                void recordPlaybackProgress(selectedMovie, v.currentTime, v.duration, false);
+                              }}
+                              onPause={(e) => {
+                                const v = e.currentTarget;
+                                void recordPlaybackProgress(selectedMovie, v.currentTime, v.duration, true);
+                              }}
+                              onEnded={(e) => {
+                                const v = e.currentTarget;
+                                void recordPlaybackProgress(selectedMovie, v.duration || v.currentTime, v.duration || 1, true);
+                              }}
+                              onError={() =>
+                                setInlinePlayerError(
+                                  'Direct browser streaming failed for this source. Try Download MP4 to play the file locally.'
+                                )
+                              }
+                              className="aspect-video w-full bg-black"
+                            />
+                          )}
                         </div>
                       ) : (
                         <div className="relative aspect-video w-full overflow-hidden bg-[#120D4A]">
@@ -853,17 +1162,35 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                                 {selectedMovie.title}
                               </h2>
                             </div>
-                            <motion.button
-                              type="button"
-                              whileHover={{ scale: 1.03 }}
-                              whileTap={{ scale: 0.97 }}
-                              transition={SPRING_SNAPPY}
-                              onClick={() => void handlePlayInlineDetail(selectedMovie)}
-                              className="inline-flex items-center gap-2 rounded-xl bg-[#EE1119] px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-lg hover:bg-[#D00D14] whitespace-nowrap shrink-0"
-                            >
-                              <Play className="h-4 w-4" aria-hidden="true" />
-                              <span>{isSaved ? 'Play Offline Now' : 'Play Movie Here'}</span>
-                            </motion.button>
+                            <div className="flex flex-wrap items-center gap-2.5">
+                              <button
+                                type="button"
+                                onClick={() => void handlePlayInlineDetail(selectedMovie, true)}
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-[#090D1F]/80 backdrop-blur-sm px-4 py-3 text-xs sm:text-sm font-bold text-white hover:border-[#EE1119] hover:text-[#EE1119] whitespace-nowrap shrink-0"
+                              >
+                                <Eye className="h-4 w-4" aria-hidden="true" />
+                                <span>Watch 30s Preview</span>
+                              </button>
+                              <motion.button
+                                type="button"
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.97 }}
+                                transition={SPRING_SNAPPY}
+                                onClick={() => void handlePlayInlineDetail(selectedMovie, false)}
+                                className="inline-flex items-center gap-2 rounded-xl bg-[#EE1119] px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-lg hover:bg-[#D00D14] whitespace-nowrap shrink-0"
+                              >
+                                <Play className="h-4 w-4" aria-hidden="true" />
+                                <span>
+                                  {(() => {
+                                    const p = getProgressForMovie(selectedMovie.movieId);
+                                    if (p && !p.completed && p.positionSeconds >= 5) {
+                                      return `Resume (${formatPlaybackTimestamp(p.positionSeconds)})`;
+                                    }
+                                    return isSaved ? 'Play Offline Now' : 'Play Movie Here';
+                                  })()}
+                                </span>
+                              </motion.button>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -1140,8 +1467,196 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
       />
 
       {/* Section 1: Live Movie Library & Local Offline Vault */}
-      <section className="bg-white dark:bg-[#090D1F] py-14 sm:py-16">
+      <section className="bg-white dark:bg-[#090D1F] py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Return Hub Strip: Daily Streak + New Since Last Visit + Tonight's Pick */}
+          <div className="mb-7 grid grid-cols-1 gap-4 lg:grid-cols-12">
+            <div className="lg:col-span-7 flex flex-col justify-between gap-4 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#120D4A] p-5 sm:p-6 text-white">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#EE1119] text-white shrink-0">
+                    <Flame className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#FF8A8E]">
+                      Daily Cinema Habit
+                    </p>
+                    <p className="font-display text-lg sm:text-xl font-extrabold text-white tabular-nums">
+                      Day {engagement.streakDays} Return Streak
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-white/85">
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-[#10B981]" aria-hidden="true" />
+                    <span className="tabular-nums">{engagement.totalMoviesWatched} Watched</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('watchlist')}
+                    className="inline-flex items-center gap-1.5 hover:text-[#FF8A8E] transition-colors"
+                  >
+                    <Bookmark className="h-3.5 w-3.5 text-[#EE1119]" aria-hidden="true" />
+                    <span className="tabular-nums">{watchlist.length} Watchlist</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('requests')}
+                    className="inline-flex items-center gap-1.5 hover:text-[#FF8A8E] transition-colors"
+                  >
+                    <MessageSquarePlus className="h-3.5 w-3.5 text-[#A7F3D0]" aria-hidden="true" />
+                    <span className="tabular-nums">
+                      {movieRequests.filter((r) => r.status === 'open').length} Requests
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/15 pt-4">
+                <div className="text-xs text-white/85">
+                  {newSinceLastVisitMovies.length > 0 ? (
+                    <span>
+                      <strong className="text-white tabular-nums">
+                        {newSinceLastVisitMovies.length} new release
+                        {newSinceLastVisitMovies.length === 1 ? '' : 's'}
+                      </strong>{' '}
+                      added since your last check-in.
+                    </span>
+                  ) : (
+                    <span>
+                      All current drops checked. New Luganda &amp; 2026 uploads auto-appear here.
+                    </span>
+                  )}
+                  {!user?.emailVerified && user && (
+                    <span className="block mt-1 text-[11px] text-[#FFCFD1]">
+                      Verify your email above to sync Watchlist, Resume &amp; Requests across devices.
+                    </span>
+                  )}
+                </div>
+
+                {newSinceLastVisitMovies.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('catalog');
+                        setReleaseFilter((prev) => (prev === 'new' ? 'all' : 'new'));
+                      }}
+                      className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-colors ${
+                        releaseFilter === 'new'
+                          ? 'bg-[#EE1119] text-white'
+                          : 'bg-white text-[#1A1464] hover:bg-[#EE1119] hover:text-white'
+                      }`}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>
+                        {releaseFilter === 'new'
+                          ? 'Showing New Drops'
+                          : `See ${newSinceLastVisitMovies.length} New`}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void markCatalogSeenNow(latestCatalogCreatedMs)}
+                      className="inline-flex min-h-[38px] items-center rounded-xl border border-white/25 px-3 py-2 text-xs font-bold text-white/90 hover:border-white"
+                    >
+                      Mark Seen
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {tonightsPick && (
+              <div className="lg:col-span-5 flex flex-col justify-between gap-3 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#EE1119]">
+                      Tonight&apos;s Unwatched Pick
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenMovieDetail(tonightsPick.movieId)}
+                      className="mt-1 text-left font-display text-lg font-extrabold text-[#1A1464] dark:text-[#F4F6FC] hover:text-[#EE1119] line-clamp-1"
+                    >
+                      {tonightsPick.title}
+                    </button>
+                    <p className="mt-0.5 text-xs text-[#6B7188] dark:text-[#8E97B8] truncate">
+                      {tonightsPick.genre} · {tonightsPick.releaseYear} · {tonightsPick.vjTranslator}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTonightPickOffset((prev) => prev + 1)}
+                    aria-label="Pick another movie for tonight"
+                    title="Shuffle another unwatched pick"
+                    className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-3 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119] hover:text-[#EE1119] shrink-0"
+                  >
+                    <Shuffle className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Shuffle</span>
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#E5E7F0] dark:border-[#242C54]">
+                  <button
+                    type="button"
+                    onClick={() => void handleWatchMovieModal(tonightsPick)}
+                    className="inline-flex flex-1 min-h-[40px] items-center justify-center gap-1.5 rounded-xl bg-[#EE1119] px-4 py-2 text-xs font-bold text-white hover:bg-[#D00D14] whitespace-nowrap"
+                  >
+                    <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Watch Pick</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenMovieDetail(tonightsPick.movieId)}
+                    className="inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-3.5 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119] whitespace-nowrap"
+                  >
+                    <span>Details</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void toggleWatchlist(tonightsPick)}
+                    aria-label={
+                      isInWatchlist(tonightsPick.movieId)
+                        ? `Remove ${tonightsPick.title} from watchlist`
+                        : `Save ${tonightsPick.title} to watchlist`
+                    }
+                    className={`inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${
+                      isInWatchlist(tonightsPick.movieId)
+                        ? 'border-[#EE1119] bg-[#EE1119]/10 text-[#EE1119]'
+                        : 'border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119]'
+                    }`}
+                  >
+                    <Bookmark
+                      className={`h-4 w-4 ${
+                        isInWatchlist(tonightsPick.movieId) ? 'fill-current' : ''
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {engagementFeedback && (
+            <div
+              role="status"
+              className="mb-5 flex items-center justify-between gap-3 rounded-xl border border-[#10B981]/35 bg-[#ECFDF5]/85 dark:bg-[#0D2A24]/75 px-4 py-3 text-xs sm:text-sm font-semibold text-[#065F46] dark:text-[#A7F3D0]"
+            >
+              <span>{engagementFeedback}</span>
+              <button
+                type="button"
+                onClick={() => setEngagementFeedback(null)}
+                aria-label="Dismiss notification"
+                className="rounded p-1 hover:bg-black/10"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </div>
+          )}
+
           {/* Interactive View Tabs + Language Scope */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-[#E5E7F0] dark:border-[#242C54] pb-6">
             <div
@@ -1152,7 +1667,12 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
               {(
                 [
                   { id: 'catalog', label: `Available Movies (${movies.length})` },
-                  { id: 'offline', label: `Saved in Local Storage (${savedMovies.length})` },
+                  { id: 'watchlist', label: `My Watchlist (${watchlist.length})` },
+                  {
+                    id: 'requests',
+                    label: `Movie Requests (${movieRequests.filter((r) => r.status === 'open').length})`,
+                  },
+                  { id: 'offline', label: `Offline Vault (${savedMovies.length})` },
                   { id: 'roadmap', label: 'Specs & Roadmap' },
                 ] as { id: LibraryViewTab; label: string }[]
               ).map((tab) => {
@@ -1164,7 +1684,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                     role="tab"
                     aria-selected={active}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`relative rounded-lg px-3.5 py-2 text-xs font-bold transition-colors whitespace-nowrap shrink-0 ${
+                    className={`relative min-h-[40px] rounded-lg px-3.5 py-2 text-xs font-bold transition-colors whitespace-nowrap shrink-0 ${
                       active
                         ? 'text-white'
                         : 'text-[#4A4F63] dark:text-[#B8C0DA] hover:text-[#1A1464] dark:hover:text-white'
@@ -1237,6 +1757,22 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                 >
                   2025–2026 Latest ({releaseLatestCount})
                 </button>
+
+                {newSinceLastVisitMovies.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setReleaseFilter((prev) => (prev === 'new' ? 'all' : 'new'))
+                    }
+                    className={`rounded-lg px-3.5 py-2 text-xs font-bold border transition-colors whitespace-nowrap shrink-0 ${
+                      releaseFilter === 'new'
+                        ? 'border-[#10B981] bg-[#10B981] text-white'
+                        : 'border-[#10B981]/40 bg-[#ECFDF5] dark:bg-[#0D2A24] text-[#065F46] dark:text-[#A7F3D0] hover:border-[#10B981]'
+                    }`}
+                  >
+                    New Drops ({newSinceLastVisitMovies.length})
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -1354,6 +1890,330 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
             </div>
           )}
 
+          {/* Continue Watching Shelf */}
+          {activeTab === 'catalog' && continueWatchingList.length > 0 && (
+            <div className="mt-6 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2">
+                  <History className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#EE1119]">
+                      Pick Up Where You Left Off
+                    </p>
+                    <h2 className="font-display text-lg font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
+                      Continue Watching ({continueWatchingList.length})
+                    </h2>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {continueWatchingList.map((item) => {
+                  const catalogMatch = movies.find(
+                    (m) => m.movieId === item.rawMovieId || safeFirestoreKey(m.movieId) === item.movieId
+                  );
+                  return (
+                    <div
+                      key={item.movieId}
+                      className="flex flex-col justify-between overflow-hidden rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38]"
+                    >
+                      <div className="relative aspect-video w-full overflow-hidden bg-[#120D4A]">
+                        <img
+                          src={catalogMatch?.coverArtUrl || catalogMatch?.posterUrl || item.posterUrl}
+                          alt={`${item.title} resume thumbnail`}
+                          referrerPolicy="no-referrer"
+                          className="h-full w-full object-cover"
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void clearWatchProgress(item.rawMovieId || item.movieId)}
+                          aria-label={`Remove ${item.title} from Continue Watching`}
+                          className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-lg bg-black/70 text-white/85 hover:bg-[#EE1119] hover:text-white"
+                        >
+                          <X className="h-3.5 w-3.5" aria-hidden="true" />
+                        </button>
+                        <div className="absolute bottom-2 left-2.5 right-2.5">
+                          <p className="text-[11px] font-bold text-white truncate">{item.title}</p>
+                          <p className="text-[10px] font-semibold text-white/80 tabular-nums">
+                            Stopped at {formatPlaybackTimestamp(item.positionSeconds)} · {item.progressPercent}%
+                          </p>
+                        </div>
+                        <div className="absolute inset-x-0 bottom-0 h-1 bg-white/25">
+                          <div
+                            className="h-full bg-[#EE1119]"
+                            style={{ width: `${Math.max(4, item.progressPercent)}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 flex items-center gap-2">
+                        {catalogMatch ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void handleWatchMovieModal(catalogMatch, item.positionSeconds)
+                            }
+                            className="inline-flex flex-1 min-h-[38px] items-center justify-center gap-1.5 rounded-lg bg-[#EE1119] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#D00D14]"
+                          >
+                            <Play className="h-3 w-3" aria-hidden="true" />
+                            <span>Resume {formatPlaybackTimestamp(item.positionSeconds)}</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenMovieDetail(item.rawMovieId || item.movieId)}
+                            className="inline-flex flex-1 min-h-[38px] items-center justify-center gap-1.5 rounded-lg bg-[#1A1464] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#EE1119]"
+                          >
+                            <span>Open Details</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Featured Movie Previews Spotlight Strip */}
+          {activeTab === 'catalog' && activeSpotlightMovie && (
+            <div className="mt-6 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-4 sm:p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#EE1119]">
+                    Movie Previews Reel
+                  </p>
+                  <h2 className="mt-0.5 font-display text-lg sm:text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
+                    Watch quick 30-second scene previews before downloading
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-[#6B7188] dark:text-[#8E97B8] tabular-nums">
+                    {(spotlightIndex % previewPool.length) + 1} / {previewPool.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSpotlightPlaying(false);
+                      setSpotlightError(null);
+                      setSpotlightIndex(
+                        (prev) => (prev - 1 + previewPool.length) % previewPool.length
+                      );
+                    }}
+                    aria-label="Previous movie preview"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119] hover:text-[#EE1119]"
+                  >
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSpotlightPlaying(false);
+                      setSpotlightError(null);
+                      setSpotlightIndex((prev) => (prev + 1) % previewPool.length);
+                    }}
+                    aria-label="Next movie preview"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119] hover:text-[#EE1119]"
+                  >
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 items-stretch">
+                {/* Main Preview Stage */}
+                <div className="lg:col-span-7 flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#090D1F] text-white">
+                  <div className="relative aspect-video w-full overflow-hidden bg-[#120D4A]">
+                    {spotlightPlaying ? (
+                      <>
+                        <MovieScenePreviewVideo
+                          srcUrl={activeSpotlightMovie.downloadUrl || activeSpotlightMovie.videoUrl}
+                          posterUrl={
+                            activeSpotlightMovie.coverArtUrl || activeSpotlightMovie.posterUrl
+                          }
+                          title={activeSpotlightMovie.title}
+                          muted={spotlightMuted}
+                          maxSeconds={30}
+                          onProgress={(_, remaining) => setSpotlightRemaining(remaining)}
+                          onComplete={() => setSpotlightPlaying(false)}
+                          onError={() => {
+                            setSpotlightPlaying(false);
+                            setSpotlightError(
+                              'Inline preview could not stream from this mirror. Open Watch Full Movie or Download MP4 instead.'
+                            );
+                          }}
+                          className="h-full w-full object-cover bg-black"
+                        />
+                        <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/75 to-transparent px-4 py-3 text-xs font-bold">
+                          <span className="text-white tabular-nums">
+                            Previewing Scene · {spotlightRemaining}s
+                          </span>
+                          <div className="pointer-events-auto flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setSpotlightMuted((m) => !m)}
+                              aria-label={spotlightMuted ? 'Unmute preview' : 'Mute preview'}
+                              className="inline-flex items-center gap-1 rounded-lg bg-[#090D1F]/80 border border-white/20 px-2.5 py-1 text-[11px] font-bold text-white hover:border-[#EE1119]"
+                            >
+                              {spotlightMuted ? (
+                                <VolumeX className="h-3.5 w-3.5" aria-hidden="true" />
+                              ) : (
+                                <Volume2 className="h-3.5 w-3.5" aria-hidden="true" />
+                              )}
+                              <span>{spotlightMuted ? 'Muted' : 'Sound'}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSpotlightPlaying(false)}
+                              className="inline-flex items-center gap-1 rounded-lg bg-[#EE1119] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#D00D14]"
+                            >
+                              <Square className="h-3 w-3" aria-hidden="true" />
+                              <span>Stop</span>
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {!failedImages[activeSpotlightMovie.movieId] ? (
+                          <img
+                            src={
+                              activeSpotlightMovie.coverArtUrl || activeSpotlightMovie.posterUrl
+                            }
+                            alt={`${activeSpotlightMovie.title} preview poster`}
+                            referrerPolicy="no-referrer"
+                            onError={() =>
+                              setFailedImages((prev) => ({
+                                ...prev,
+                                [activeSpotlightMovie.movieId]: true,
+                              }))
+                            }
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#1A1464] to-[#090D1F] p-6 text-center">
+                            <Film className="h-10 w-10 text-[#EE1119]" aria-hidden="true" />
+                            <p className="mt-2 font-display text-base font-bold">
+                              {activeSpotlightMovie.title}
+                            </p>
+                          </div>
+                        )}
+                        <div
+                          aria-hidden="true"
+                          className="absolute inset-0 bg-gradient-to-t from-[#090D1F]/90 via-[#090D1F]/30 to-transparent"
+                        />
+                        <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-end justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-[#EE1119]">
+                              {activeSpotlightMovie.genre} · {activeSpotlightMovie.releaseYear} ·{' '}
+                              {activeSpotlightMovie.vjTranslator}
+                            </p>
+                            <h3 className="mt-0.5 font-display text-lg sm:text-xl font-extrabold text-white truncate">
+                              {activeSpotlightMovie.title}
+                            </h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleStartSpotlightPreview(spotlightIndex % previewPool.length)
+                            }
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-[#EE1119] px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#D00D14] whitespace-nowrap shrink-0"
+                          >
+                            <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                            <span>Play 30s Preview</span>
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-[#101530] px-4 py-3 text-xs">
+                    <span className="text-white/75 line-clamp-1 max-w-md">
+                      {spotlightError || activeSpotlightMovie.synopsis}
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenMovieDetail(activeSpotlightMovie.movieId)}
+                        className="rounded-lg border border-white/20 px-3 py-1.5 font-bold text-white hover:border-[#EE1119] whitespace-nowrap"
+                      >
+                        Movie Details
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleWatchMovieModal(activeSpotlightMovie)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-[#EE1119] px-3 py-1.5 font-bold text-white hover:bg-[#D00D14] whitespace-nowrap"
+                      >
+                        <Play className="h-3 w-3" aria-hidden="true" />
+                        <span>Watch Full Movie</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Preview Queue Selector */}
+                <div className="lg:col-span-5 flex flex-col justify-between gap-2.5">
+                  {previewPool.slice(0, 4).map((item, qIdx) => {
+                    const isSelected = item.movieId === activeSpotlightMovie.movieId;
+                    const itemCover = item.coverArtUrl || item.posterUrl;
+                    return (
+                      <button
+                        key={item.movieId}
+                        type="button"
+                        onClick={() => handleStartSpotlightPreview(qIdx)}
+                        className={`flex items-center gap-3 rounded-xl border p-2.5 text-left transition-colors ${
+                          isSelected
+                            ? 'border-[#EE1119] bg-white dark:bg-[#141A38] shadow-sm'
+                            : 'border-[#E5E7F0] dark:border-[#242C54] bg-white/70 dark:bg-[#141A38]/70 hover:border-[#1A1464]/40'
+                        }`}
+                      >
+                        <div className="relative h-16 w-28 shrink-0 overflow-hidden rounded-lg bg-[#120D4A]">
+                          {!failedImages[item.movieId] ? (
+                            <img
+                              src={itemCover}
+                              alt={`${item.title} preview`}
+                              referrerPolicy="no-referrer"
+                              onError={() =>
+                                setFailedImages((prev) => ({
+                                  ...prev,
+                                  [item.movieId]: true,
+                                }))
+                              }
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-[#1A1464] text-white">
+                              <Film className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
+                            </div>
+                          )}
+                          <span className="absolute bottom-1 right-1 inline-flex items-center gap-1 rounded bg-black/75 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            <Play className="h-2.5 w-2.5 text-[#EE1119]" aria-hidden="true" />
+                            Preview
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-bold text-[#EE1119] truncate">
+                            {item.releaseYear} · {item.vjTranslator}
+                          </p>
+                          <p className="mt-0.5 font-display text-sm font-extrabold text-[#1A1464] dark:text-[#F4F6FC] truncate">
+                            {item.title}
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-[#6B7188] dark:text-[#8E97B8] truncate">
+                            {item.genre} · {item.durationLabel} · {item.fileSizeLabel}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: Structured Movie Grid */}
           {activeTab === 'catalog' && (
             <div className="mt-6">
@@ -1398,10 +2258,22 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {filteredMovies.map((movie, idx) => {
                     const isSaved = savedById.has(movie.movieId);
+                    const isBookmarked = isInWatchlist(movie.movieId);
+                    const movieProgress = getProgressForMovie(movie.movieId);
+                    const hasResume =
+                      Boolean(movieProgress) &&
+                      !movieProgress?.completed &&
+                      (movieProgress?.positionSeconds || 0) >= 5;
+                    const isCompleted =
+                      completedMovieIds.has(movie.movieId) ||
+                      completedMovieIds.has(safeFirestoreKey(movie.movieId));
+                    const isNewDrop = movie.createdAtMs > sessionSeenBaselineMs;
                     const activeProgress = downloadProgress[movie.movieId];
                     const imgFailed = Boolean(failedImages[movie.movieId]);
                     const coverArt = movie.coverArtUrl || movie.posterUrl;
                     const downloadHref = movie.downloadUrl || movie.videoUrl;
+                    const isCardPreviewing = previewingCardId === movie.movieId;
+                    const cardPreviewFailed = Boolean(previewFailedIds[movie.movieId]);
 
                     return (
                       <motion.div
@@ -1422,61 +2294,167 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                         >
                           <div>
                             <div className="relative aspect-video w-full overflow-hidden bg-[#120D4A]">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenMovieDetail(movie.movieId)}
-                                aria-label={`View details for ${movie.title}`}
-                                className="block h-full w-full text-left"
-                              >
-                                {!imgFailed ? (
-                                  <img
-                                    src={coverArt}
-                                    alt={`${movie.title} cover art`}
-                                    loading="lazy"
-                                    referrerPolicy="no-referrer"
-                                    onError={() =>
-                                      setFailedImages((prev) => ({
+                              {isCardPreviewing ? (
+                                <>
+                                  <MovieScenePreviewVideo
+                                    srcUrl={downloadHref}
+                                    posterUrl={coverArt}
+                                    title={movie.title}
+                                    muted={cardPreviewMuted}
+                                    maxSeconds={30}
+                                    onProgress={(_, remaining) =>
+                                      setCardPreviewRemaining(remaining)
+                                    }
+                                    onComplete={() => setPreviewingCardId(null)}
+                                    onError={() => {
+                                      setPreviewingCardId(null);
+                                      setPreviewFailedIds((prev) => ({
                                         ...prev,
                                         [movie.movieId]: true,
-                                      }))
-                                    }
-                                    className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                                      }));
+                                    }}
+                                    className="h-full w-full object-cover bg-black"
                                   />
-                                ) : (
-                                  <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#1A1464] to-[#090D1F] p-6 text-center text-white">
-                                    <Film className="h-10 w-10 text-[#EE1119]" aria-hidden="true" />
-                                    <p className="mt-2 font-display text-sm font-bold line-clamp-2">
-                                      {movie.title}
-                                    </p>
-                                    <p className="mt-1 text-[11px] font-semibold text-white/75">
-                                      {movie.vjTranslator}
-                                    </p>
+                                  <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent px-3 py-2 text-[11px] font-bold text-white">
+                                    <span className="tabular-nums">
+                                      Preview · {cardPreviewRemaining}s
+                                    </span>
+                                    <div className="pointer-events-auto flex items-center gap-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => setCardPreviewMuted((m) => !m)}
+                                        aria-label={
+                                          cardPreviewMuted
+                                            ? `Unmute preview for ${movie.title}`
+                                            : `Mute preview for ${movie.title}`
+                                        }
+                                        className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-black/75 border border-white/20 text-white hover:border-[#EE1119]"
+                                      >
+                                        {cardPreviewMuted ? (
+                                          <VolumeX className="h-3.5 w-3.5" aria-hidden="true" />
+                                        ) : (
+                                          <Volume2 className="h-3.5 w-3.5" aria-hidden="true" />
+                                        )}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setPreviewingCardId(null)}
+                                        aria-label={`Stop preview for ${movie.title}`}
+                                        className="inline-flex items-center gap-1 rounded-lg bg-[#EE1119] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#D00D14]"
+                                      >
+                                        <Square className="h-2.5 w-2.5" aria-hidden="true" />
+                                        <span>Stop</span>
+                                      </button>
+                                    </div>
                                   </div>
-                                )}
-                              </button>
-                              <div
-                                aria-hidden="true"
-                                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#090D1F]/80 via-transparent to-transparent"
-                              />
-                              {externalIdSet.has(movie.movieId) && (
-                                <span className="absolute top-3 right-3 rounded-lg bg-[#090D1F]/85 border border-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#A7F3D0] backdrop-blur-sm">
-                                  Auto-Synced
-                                </span>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenMovieDetail(movie.movieId)}
+                                    aria-label={`View details for ${movie.title}`}
+                                    className="block h-full w-full text-left"
+                                  >
+                                    {!imgFailed ? (
+                                      <img
+                                        src={coverArt}
+                                        alt={`${movie.title} cover art`}
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer"
+                                        onError={() =>
+                                          setFailedImages((prev) => ({
+                                            ...prev,
+                                            [movie.movieId]: true,
+                                          }))
+                                        }
+                                        className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                                      />
+                                    ) : (
+                                      <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#1A1464] to-[#090D1F] p-6 text-center text-white">
+                                        <Film className="h-10 w-10 text-[#EE1119]" aria-hidden="true" />
+                                        <p className="mt-2 font-display text-sm font-bold line-clamp-2">
+                                          {movie.title}
+                                        </p>
+                                        <p className="mt-1 text-[11px] font-semibold text-white/75">
+                                          {movie.vjTranslator}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </button>
+                                  <div
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#090D1F]/80 via-transparent to-transparent"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => void toggleWatchlist(movie)}
+                                    aria-label={
+                                      isBookmarked
+                                        ? `Remove ${movie.title} from watchlist`
+                                        : `Save ${movie.title} to watchlist`
+                                    }
+                                    title={isBookmarked ? 'Saved in My Watchlist' : 'Add to My Watchlist'}
+                                    className={`absolute top-3 left-3 inline-flex h-9 w-9 items-center justify-center rounded-xl border backdrop-blur-sm transition-colors ${
+                                      isBookmarked
+                                        ? 'border-[#EE1119] bg-[#EE1119] text-white shadow-md'
+                                        : 'border-white/25 bg-[#090D1F]/80 text-white hover:border-[#EE1119] hover:text-[#FF8A8E]'
+                                    }`}
+                                  >
+                                    <Bookmark
+                                      className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`}
+                                      aria-hidden="true"
+                                    />
+                                  </button>
+                                  {(externalIdSet.has(movie.movieId) || isNewDrop) && (
+                                    <span className="absolute top-3 right-3 rounded-lg bg-[#090D1F]/85 border border-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#A7F3D0] backdrop-blur-sm">
+                                      {isNewDrop ? 'New Drop' : 'Auto-Synced'}
+                                    </span>
+                                  )}
+                                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => void handleWatchMovieModal(movie)}
+                                      aria-label={`Watch ${movie.title}`}
+                                      className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl bg-[#EE1119] px-3.5 py-2 text-xs font-bold text-white shadow-md hover:bg-[#D00D14] whitespace-nowrap"
+                                    >
+                                      <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                                      <span>
+                                        {hasResume && movieProgress
+                                          ? `Resume · ${formatPlaybackTimestamp(movieProgress.positionSeconds)}`
+                                          : isSaved
+                                            ? 'Watch Offline'
+                                            : 'Watch Now'}
+                                      </span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleCardPreview(movie)}
+                                      aria-label={`Preview ${movie.title}`}
+                                      className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-white/25 bg-[#090D1F]/85 backdrop-blur-sm px-3 py-2 text-xs font-bold text-white hover:border-[#EE1119] hover:text-[#EE1119] whitespace-nowrap"
+                                    >
+                                      <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                                      <span>
+                                        {cardPreviewFailed ? 'Unavailable' : 'Preview'}
+                                      </span>
+                                    </button>
+                                  </div>
+                                  {hasResume && movieProgress && (
+                                    <div className="absolute inset-x-0 bottom-0 h-1 bg-white/25">
+                                      <div
+                                        className="h-full bg-[#EE1119]"
+                                        style={{ width: `${Math.max(4, movieProgress.progressPercent)}%` }}
+                                      />
+                                    </div>
+                                  )}
+                                </>
                               )}
-                              <button
-                                type="button"
-                                onClick={() => void handleWatchMovieModal(movie)}
-                                aria-label={`Watch ${movie.title}`}
-                                className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-xl bg-[#EE1119] px-3.5 py-2 text-xs font-bold text-white shadow-md hover:bg-[#D00D14]"
-                              >
-                                <Play className="h-3.5 w-3.5" aria-hidden="true" />
-                                <span>{isSaved ? 'Watch Offline' : 'Watch Now'}</span>
-                              </button>
                             </div>
 
                             <div className="p-5 sm:p-6">
                               <p className="text-[11px] font-bold uppercase tracking-wider text-[#EE1119]">
                                 {movie.genre} · {movie.releaseYear} · {movie.language}
+                                {isCompleted ? ' · Watched' : ''}
                               </p>
                               <button
                                 type="button"
@@ -1606,6 +2584,371 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB: Personal Watchlist */}
+          {activeTab === 'watchlist' && (
+            <div className="mt-8 space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-5 sm:p-6">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
+                    Personal Watch Queue
+                  </p>
+                  <h2 className="mt-1 font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
+                    My Watchlist ({watchlist.length} Saved Title{watchlist.length === 1 ? '' : 's'})
+                  </h2>
+                  <p className="mt-1 text-xs sm:text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
+                    Bookmark Luganda and 2026 films you want to come back to later — synced to your verified account.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('catalog')}
+                  className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl bg-[#1A1464] dark:bg-[#2E368F] px-4 py-2 text-xs font-bold text-white hover:bg-[#EE1119]"
+                >
+                  <span>Browse More Movies</span>
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </div>
+
+              {watchlist.length === 0 ? (
+                <div className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-8 sm:p-10 text-center">
+                  <Bookmark className="mx-auto h-10 w-10 text-[#EE1119]" aria-hidden="true" />
+                  <p className="mt-3 font-display text-lg font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
+                    Your watchlist is empty.
+                  </p>
+                  <p className="mt-1 text-sm text-[#4A4F63] dark:text-[#C2C9E0]">
+                    Tap the Bookmark icon on any movie card to queue it up for your next visit.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                  {watchlist.map((entry) => {
+                    const liveMovie = watchlistedCatalogMovies.find(
+                      (m) =>
+                        m.movieId === entry.rawMovieId ||
+                        safeFirestoreKey(m.movieId) === entry.movieId
+                    );
+                    const prog = getProgressForMovie(entry.rawMovieId || entry.movieId);
+                    return (
+                      <div
+                        key={entry.movieId}
+                        className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38]"
+                      >
+                        <div className="relative aspect-video w-full overflow-hidden bg-[#120D4A]">
+                          <img
+                            src={liveMovie?.coverArtUrl || liveMovie?.posterUrl || entry.posterUrl}
+                            alt={`${entry.title} cover art`}
+                            referrerPolicy="no-referrer"
+                            className="h-full w-full object-cover"
+                          />
+                          {prog && !prog.completed && prog.positionSeconds >= 5 && (
+                            <div className="absolute inset-x-0 bottom-0 h-1 bg-white/25">
+                              <div
+                                className="h-full bg-[#EE1119]"
+                                style={{ width: `${Math.max(4, prog.progressPercent)}%` }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+                          <div>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-[#EE1119]">
+                              {entry.genre} · {entry.releaseYear} · {entry.vjTranslator}
+                            </p>
+                            <h3 className="mt-1 font-display text-lg font-extrabold text-[#1A1464] dark:text-[#F4F6FC] line-clamp-2">
+                              {liveMovie?.title || entry.title}
+                            </h3>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-[#E5E7F0] dark:border-[#242C54]">
+                            {liveMovie && (
+                              <button
+                                type="button"
+                                onClick={() => void handleWatchMovieModal(liveMovie)}
+                                className="inline-flex flex-1 min-h-[40px] items-center justify-center gap-1.5 rounded-xl bg-[#EE1119] px-3 py-2 text-xs font-bold text-white hover:bg-[#D00D14]"
+                              >
+                                <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                                <span>
+                                  {prog && !prog.completed && prog.positionSeconds >= 5
+                                    ? `Resume ${formatPlaybackTimestamp(prog.positionSeconds)}`
+                                    : 'Watch Now'}
+                                </span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenMovieDetail(entry.rawMovieId || entry.movieId)}
+                              className="inline-flex min-h-[40px] items-center justify-center rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] px-3 py-2 text-xs font-bold text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119]"
+                            >
+                              Details
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void toggleWatchlist(
+                                  liveMovie || {
+                                    movieId: entry.rawMovieId || entry.movieId,
+                                    title: entry.title,
+                                    posterUrl: entry.posterUrl,
+                                    coverArtUrl: entry.posterUrl,
+                                    genre: entry.genre,
+                                    releaseYear: entry.releaseYear,
+                                    vjTranslator: entry.vjTranslator,
+                                  }
+                                )
+                              }
+                              aria-label={`Remove ${entry.title} from watchlist`}
+                              className="inline-flex min-h-[40px] items-center justify-center rounded-xl border border-[#E5E7F0] dark:border-[#242C54] px-3 py-2 text-xs font-bold text-[#6B7188] hover:border-[#EE1119] hover:text-[#EE1119]"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: Community Movie Requests & Upvoting Board */}
+          {activeTab === 'requests' && (
+            <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-12 items-start">
+              {/* Left: Submit Request Form */}
+              <form
+                onSubmit={(e) => void handleSubmitMovieRequest(e)}
+                className="lg:col-span-5 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-6 space-y-4"
+              >
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
+                    Request Next Upload
+                  </p>
+                  <h2 className="mt-1 font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
+                    Ask for a Movie or Luganda VJ
+                  </h2>
+                  <p className="mt-1 text-xs text-[#4A4F63] dark:text-[#C2C9E0] leading-relaxed">
+                    Missing a 2026 release or a specific VJ translation? Post it here so others can upvote it and our admin prioritizes uploading it.
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="req-movie-title"
+                    className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]"
+                  >
+                    Movie Title *
+                  </label>
+                  <input
+                    id="req-movie-title"
+                    type="text"
+                    required
+                    minLength={2}
+                    maxLength={140}
+                    value={reqTitle}
+                    onChange={(e) => setReqTitle(e.target.value)}
+                    placeholder="e.g. Captain America: Brave New World"
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-3.5 py-2.5 text-sm text-[#1A1464] dark:text-white focus:border-[#EE1119] focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="req-movie-vj"
+                      className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]"
+                    >
+                      Preferred VJ / Audio
+                    </label>
+                    <input
+                      id="req-movie-vj"
+                      type="text"
+                      list="request-vj-list"
+                      value={reqVj}
+                      onChange={(e) => setReqVj(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-3 py-2 text-xs text-[#1A1464] dark:text-white focus:border-[#EE1119] focus:outline-none"
+                    />
+                    <datalist id="request-vj-list">
+                      <option value="VJ Junior (Luganda)" />
+                      <option value="VJ Mark (Luganda)" />
+                      <option value="VJ Ice P (Luganda)" />
+                      <option value="VJ Jingo (Luganda)" />
+                      <option value="VJ Emmy (Luganda)" />
+                      <option value="Any Luganda VJ" />
+                      <option value="Original English Audio" />
+                    </datalist>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="req-movie-year"
+                      className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]"
+                    >
+                      Release Year
+                    </label>
+                    <input
+                      id="req-movie-year"
+                      type="text"
+                      maxLength={12}
+                      value={reqYear}
+                      onChange={(e) => setReqYear(e.target.value)}
+                      placeholder="2026"
+                      className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-3 py-2 text-xs text-[#1A1464] dark:text-white focus:border-[#EE1119] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="req-movie-notes"
+                    className="block text-xs font-bold uppercase text-[#1A1464] dark:text-[#F4F6FC]"
+                  >
+                    Notes (Optional)
+                  </label>
+                  <textarea
+                    id="req-movie-notes"
+                    rows={2}
+                    maxLength={300}
+                    value={reqNotes}
+                    onChange={(e) => setReqNotes(e.target.value)}
+                    placeholder="Preferred quality (480p Lite / 720p HD) or actor details..."
+                    className="mt-1 w-full rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#101530] px-3.5 py-2 text-xs text-[#1A1464] dark:text-white focus:border-[#EE1119] focus:outline-none"
+                  />
+                </div>
+
+                {reqNotice && (
+                  <p
+                    role="status"
+                    className={`rounded-xl border px-3.5 py-2.5 text-xs font-semibold ${
+                      reqNotice.ok
+                        ? 'border-[#10B981]/35 bg-[#ECFDF5] dark:bg-[#0D2A24] text-[#065F46] dark:text-[#A7F3D0]'
+                        : 'border-[#EE1119]/35 bg-[#EE1119]/10 text-[#EE1119]'
+                    }`}
+                  >
+                    {reqNotice.text}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={reqBusy}
+                  className="inline-flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl bg-[#EE1119] px-5 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-[#D00D14] disabled:opacity-60"
+                >
+                  <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
+                  <span>{reqBusy ? 'Submitting Request...' : 'Submit Movie Request'}</span>
+                </button>
+              </form>
+
+              {/* Right: Live Upvote Board */}
+              <div className="lg:col-span-7 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="font-display text-lg sm:text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
+                      Top Requested Movies ({movieRequests.length})
+                    </h3>
+                    <p className="text-xs text-[#6B7188] dark:text-[#8E97B8]">
+                      Upvote the films you want uploaded next — fulfilled requests link straight to playback.
+                    </p>
+                  </div>
+                </div>
+
+                {requestsLoading ? (
+                  <div className="space-y-3">
+                    {[0, 1].map((n) => (
+                      <div
+                        key={n}
+                        className="h-24 animate-pulse rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38]"
+                      />
+                    ))}
+                  </div>
+                ) : movieRequests.length === 0 ? (
+                  <div className="rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] p-8 text-center">
+                    <MessageSquarePlus
+                      className="mx-auto h-9 w-9 text-[#EE1119]"
+                      aria-hidden="true"
+                    />
+                    <p className="mt-3 font-display text-lg font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
+                      No movie requests yet — be the first!
+                    </p>
+                    <p className="mt-1 text-xs text-[#6B7188] dark:text-[#8E97B8]">
+                      Submit any Luganda VJ film or 2026 movie on the left and members can vote on it.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {movieRequests.map((req) => {
+                      const hasVoted = votedRequestIds.has(req.requestId);
+                      const isOwner = Boolean(user && user.uid === req.authorId);
+                      const isFulfilled = req.status === 'fulfilled';
+                      const fulfilledCatalogMatch = req.fulfilledMovieId
+                        ? movies.find((m) => m.movieId === req.fulfilledMovieId)
+                        : undefined;
+
+                      return (
+                        <div
+                          key={req.requestId}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-4 sm:p-5"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-[#EE1119]">
+                              {req.vjPreference} · {req.releaseYear || 'Latest'} · By {req.authorName}
+                              {isFulfilled ? ' · Fulfilled' : ''}
+                            </p>
+                            <h4 className="mt-1 font-display text-base sm:text-lg font-extrabold text-[#1A1464] dark:text-[#F4F6FC] break-words">
+                              {req.title}
+                            </h4>
+                            {req.notes && (
+                              <p className="mt-1 text-xs text-[#4A4F63] dark:text-[#C2C9E0]">
+                                {req.notes}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2 shrink-0">
+                            {isFulfilled && fulfilledCatalogMatch && (
+                              <button
+                                type="button"
+                                onClick={() => void handleWatchMovieModal(fulfilledCatalogMatch)}
+                                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl bg-[#10B981] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#059669]"
+                              >
+                                <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                                <span>Watch Now</span>
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => void toggleRequestUpvote(req)}
+                              aria-pressed={hasVoted}
+                              className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-colors ${
+                                hasVoted
+                                  ? 'border-[#EE1119] bg-[#EE1119] text-white'
+                                  : 'border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] text-[#1A1464] dark:text-[#F4F6FC] hover:border-[#EE1119]'
+                              }`}
+                            >
+                              <ThumbsUp className="h-3.5 w-3.5" aria-hidden="true" />
+                              <span className="tabular-nums">{req.upvoteCount}</span>
+                            </button>
+
+                            {isOwner && !isFulfilled && (
+                              <button
+                                type="button"
+                                onClick={() => void deleteMovieRequest(req.requestId)}
+                                aria-label={`Delete request for ${req.title}`}
+                                className="inline-flex min-h-[40px] items-center justify-center rounded-xl border border-[#E5E7F0] dark:border-[#242C54] px-3 py-2 text-xs font-bold text-[#6B7188] hover:border-[#EE1119] hover:text-[#EE1119]"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -2074,6 +3417,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
 
               <div className="bg-black">
                 <video
+                  ref={modalVideoRef}
                   src={activePlayer.srcUrl}
                   poster={
                     activePlayer.posterUrl.startsWith('https://') ||
@@ -2084,6 +3428,64 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                   controls
                   autoPlay
                   playsInline
+                  onLoadedMetadata={(e) => {
+                    const video = e.currentTarget;
+                    const seekTo = activePlayer.initialSeekSeconds || 0;
+                    if (
+                      seekTo >= 5 &&
+                      modalSeekAppliedRef.current !== activePlayer.movieId &&
+                      Number.isFinite(video.duration) &&
+                      seekTo < video.duration - 5
+                    ) {
+                      modalSeekAppliedRef.current = activePlayer.movieId;
+                      video.currentTime = seekTo;
+                    }
+                  }}
+                  onTimeUpdate={(e) => {
+                    const v = e.currentTarget;
+                    const movieObj = movies.find((m) => m.movieId === activePlayer.movieId);
+                    void recordPlaybackProgress(
+                      movieObj || {
+                        movieId: activePlayer.movieId,
+                        title: activePlayer.title,
+                        posterUrl: activePlayer.posterUrl,
+                        coverArtUrl: activePlayer.posterUrl,
+                      },
+                      v.currentTime,
+                      v.duration,
+                      false
+                    );
+                  }}
+                  onPause={(e) => {
+                    const v = e.currentTarget;
+                    const movieObj = movies.find((m) => m.movieId === activePlayer.movieId);
+                    void recordPlaybackProgress(
+                      movieObj || {
+                        movieId: activePlayer.movieId,
+                        title: activePlayer.title,
+                        posterUrl: activePlayer.posterUrl,
+                        coverArtUrl: activePlayer.posterUrl,
+                      },
+                      v.currentTime,
+                      v.duration,
+                      true
+                    );
+                  }}
+                  onEnded={(e) => {
+                    const v = e.currentTarget;
+                    const movieObj = movies.find((m) => m.movieId === activePlayer.movieId);
+                    void recordPlaybackProgress(
+                      movieObj || {
+                        movieId: activePlayer.movieId,
+                        title: activePlayer.title,
+                        posterUrl: activePlayer.posterUrl,
+                        coverArtUrl: activePlayer.posterUrl,
+                      },
+                      v.duration || v.currentTime,
+                      v.duration || 1,
+                      true
+                    );
+                  }}
                   onError={() =>
                     setPlayerError(
                       'This video file could not be streamed directly in the browser player. Try Download MP4 to play it in your system media player.'
@@ -2093,7 +3495,7 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                 />
               </div>
 
-              <div className="px-5 py-4 space-y-2">
+              <div className="px-5 py-4 space-y-4">
                 {playerError && (
                   <p className="rounded-lg border border-[#EE1119]/40 bg-[#EE1119]/15 px-3 py-2 text-xs font-semibold text-white">
                     {playerError}
@@ -2102,6 +3504,39 @@ export const MoviesPage: React.FC<MoviesPageProps> = ({
                 <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
                   {activePlayer.synopsis}
                 </p>
+
+                {upNextForActivePlayer.length > 0 && (
+                  <div className="border-t border-[#242C54] pt-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#EE1119] mb-2.5">
+                      Up Next — Keep Watching
+                    </p>
+                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                      {upNextForActivePlayer.map((nextMovie) => (
+                        <button
+                          key={nextMovie.movieId}
+                          type="button"
+                          onClick={() => void handleWatchMovieModal(nextMovie)}
+                          className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#141A38] p-2.5 text-left hover:border-[#EE1119] transition-colors"
+                        >
+                          <img
+                            src={nextMovie.coverArtUrl || nextMovie.posterUrl}
+                            alt={`${nextMovie.title} thumbnail`}
+                            referrerPolicy="no-referrer"
+                            className="h-12 w-16 shrink-0 rounded-lg object-cover bg-black"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-bold text-[#FF8A8E] truncate">
+                              {nextMovie.genre} · {nextMovie.releaseYear}
+                            </p>
+                            <p className="text-xs font-bold text-white truncate">
+                              {nextMovie.title}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>

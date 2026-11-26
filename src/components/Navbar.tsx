@@ -1,22 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { LogIn, LogOut, Menu, Moon, Sun, X } from 'lucide-react';
+import { LogIn, LogOut, Menu, X } from 'lucide-react';
 import { AnimatePresence, motion, useScroll, useSpring } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { NAV_LINKS, PageRoute } from '../data/siteData';
 import { Logo } from './Logo';
+import { NotificationBell } from './NotificationBell';
 import { PWAInstallButton } from './PWAControls';
+import { ThemePicker } from './ThemePicker';
 import { UserAvatar } from './UserAvatar';
 
 interface NavbarProps {
   currentPage: PageRoute;
   onNavigate: (page: PageRoute) => void;
+  onSelectMovie?: (movieId: string | null) => void;
+  onSelectArticle?: (slug: string | null) => void;
   onOpenAuth?: (mode: 'login' | 'register') => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenAuth }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  currentPage,
+  onNavigate,
+  onSelectMovie,
+  onSelectArticle,
+  onOpenAuth,
+}) => {
   const { user, profilePhotoUrl, signOutUser } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { scrollYProgress } = useScroll();
@@ -105,23 +115,22 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
           })}
         </nav>
 
-        {/* Zone 3: Theme Toggle + Consultation CTA + PWA Install + Auth + Mobile Menu */}
+        {/* Zone 3: Theme Picker + Notification Bell + Consultation CTA + PWA Install + Auth + Mobile Menu */}
         <div className="flex items-center gap-2 shrink-0">
-          <motion.button
-            type="button"
-            onClick={toggleTheme}
-            whileTap={{ scale: 0.94 }}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            aria-pressed={isDark}
-            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] text-[#1A1464] dark:text-[#F4F6FC] transition-colors hover:border-[#1A1464]/40 dark:hover:border-white/30 hover:bg-white dark:hover:bg-[#1C234B] shrink-0"
-          >
-            {isDark ? (
-              <Sun className="h-4 w-4 text-amber-400" aria-hidden="true" />
-            ) : (
-              <Moon className="h-4 w-4 text-[#1A1464]" aria-hidden="true" />
-            )}
-          </motion.button>
+          <ThemePicker variant="compact" />
+
+          {user && (
+            <NotificationBell
+              onNavigate={onNavigate}
+              onSelectMovie={(movieId) =>
+                onSelectMovie ? onSelectMovie(movieId) : onNavigate('movies')
+              }
+              onSelectArticle={(slug) =>
+                onSelectArticle ? onSelectArticle(slug) : onNavigate('blog')
+              }
+              onBeforeOpen={() => setMobileOpen(false)}
+            />
+          )}
 
           <div className="hidden xl:block">
             <PWAInstallButton compact />
@@ -259,23 +268,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate, onOpenA
                 );
               })}
               <div className="mt-3 pt-3 border-t border-[#E5E7F0] dark:border-[#242C54] space-y-2">
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="flex w-full items-center justify-between rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#141A38] px-4 py-3 text-sm font-semibold text-[#1A1464] dark:text-[#F4F6FC]"
-                >
-                  <span className="flex items-center gap-2">
-                    {isDark ? (
-                      <Sun className="h-4 w-4 text-amber-400" aria-hidden="true" />
-                    ) : (
-                      <Moon className="h-4 w-4 text-[#1A1464]" aria-hidden="true" />
-                    )}
-                    <span>Appearance</span>
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#6B7188] dark:text-[#8E97B8]">
-                    {isDark ? 'Dark' : 'Light'}
-                  </span>
-                </button>
+                <ThemePicker
+                  variant="drawer"
+                  onOpenChange={(isOpen) => {
+                    if (isOpen) setMobileOpen(false);
+                  }}
+                />
                 <a
                   href="/contact"
                   onClick={(e) => handleLinkClick(e, 'contact')}

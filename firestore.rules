@@ -47,6 +47,26 @@ service cloud.firestore {
       return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
+    function isValidReferralCodeFormat(code) {
+      return code is string && code.size() >= 6 && code.size() <= 24 && code.matches('^[A-Z0-9\\-]+$');
+    }
+
+    function existingReferralsCount() {
+      return ('referralsCount' in existing()) ? existing().referralsCount : 0;
+    }
+
+    function existingReferralCreditsEarned() {
+      return ('referralCreditsEarned' in existing()) ? existing().referralCreditsEarned : 0;
+    }
+
+    function existingInviteeBonusApplied() {
+      return ('inviteeBonusApplied' in existing()) ? existing().inviteeBonusApplied : false;
+    }
+
+    function existingLastClaimedReferralId() {
+      return ('lastClaimedReferralId' in existing()) ? existing().lastClaimedReferralId : '';
+    }
+
     // -------------------------------------------------------------------------
     // Entity Validation Blueprints
     // -------------------------------------------------------------------------
@@ -127,7 +147,8 @@ service cloud.firestore {
         ])
         && data.keys().hasOnly([
           'notificationId', 'recipientId', 'senderEmail', 'type',
-          'title', 'body', 'inquiryId', 'projectStatus', 'isRead', 'createdAt', 'updatedAt'
+          'title', 'body', 'inquiryId', 'projectStatus', 'linkRoute', 'targetId',
+          'isRead', 'createdAt', 'updatedAt'
         ])
         && data.notificationId is string
         && isValidId(data.notificationId)
@@ -135,11 +156,13 @@ service cloud.firestore {
         && data.recipientId is string
         && isValidId(data.recipientId)
         && data.senderEmail is string && data.senderEmail.size() >= 3 && data.senderEmail.size() <= 200
-        && data.type in ['status_update', 'admin_message']
+        && data.type in ['status_update', 'admin_message', 'movie_release', 'blog_upcoming']
         && data.title is string && data.title.size() >= 2 && data.title.size() <= 140
         && data.body is string && data.body.size() >= 2 && data.body.size() <= 2000
         && (!('inquiryId' in data) || (data.inquiryId is string && data.inquiryId.size() <= 128))
         && (!('projectStatus' in data) || (data.projectStatus is string && data.projectStatus.size() <= 40))
+        && (!('linkRoute' in data) || data.linkRoute in ['dashboard', 'movies', 'blog'])
+        && (!('targetId' in data) || (data.targetId is string && data.targetId.size() <= 128))
         && data.isRead is bool
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
@@ -314,7 +337,7 @@ service cloud.firestore {
           'coverImage', 'stackTags', 'keyTakeaways', 'section1Heading',
           'section1Body', 'section2Heading', 'section2Body', 'section3Heading',
           'section3Body', 'calloutQuote', 'codeFilename', 'codeLanguage',
-          'codeSnippet', 'createdAt', 'updatedAt'
+          'codeSnippet', 'publishStatus', 'scheduledDate', 'createdAt', 'updatedAt'
         ])
         && data.postId is string && isValidId(data.postId) && data.postId == postId
         && data.slug is string && data.slug.size() >= 3 && data.slug.size() <= 120 && data.slug.matches('^[a-z0-9\\-]+$')
@@ -339,6 +362,8 @@ service cloud.firestore {
         && (!('codeFilename' in data) || (data.codeFilename is string && data.codeFilename.size() <= 80))
         && (!('codeLanguage' in data) || (data.codeLanguage is string && data.codeLanguage.size() <= 40))
         && (!('codeSnippet' in data) || (data.codeSnippet is string && data.codeSnippet.size() <= 4000))
+        && (!('publishStatus' in data) || data.publishStatus in ['published', 'upcoming'])
+        && (!('scheduledDate' in data) || (data.scheduledDate is string && data.scheduledDate.size() <= 40))
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -404,6 +429,200 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    function isValidWatchlistItem(data, userId, movieId) {
+      return data.keys().hasAll([
+          'movieId', 'userId', 'title', 'posterUrl', 'genre', 'releaseYear', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'movieId', 'userId', 'title', 'posterUrl', 'genre', 'releaseYear', 'vjTranslator', 'createdAt', 'updatedAt'
+        ])
+        && data.movieId is string && isValidId(data.movieId) && data.movieId == movieId
+        && data.userId is string && isValidId(data.userId) && data.userId == userId
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 140
+        && data.posterUrl is string && data.posterUrl.size() >= 4 && data.posterUrl.size() <= 500
+        && data.genre is string && data.genre.size() >= 1 && data.genre.size() <= 60
+        && data.releaseYear is string && data.releaseYear.size() >= 4 && data.releaseYear.size() <= 12
+        && (!('vjTranslator' in data) || (data.vjTranslator is string && data.vjTranslator.size() <= 80))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidWatchProgress(data, userId, movieId) {
+      return data.keys().hasAll([
+          'movieId', 'userId', 'title', 'posterUrl', 'positionSeconds',
+          'durationSeconds', 'progressPercent', 'completed', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'movieId', 'userId', 'title', 'posterUrl', 'positionSeconds',
+          'durationSeconds', 'progressPercent', 'completed', 'createdAt', 'updatedAt'
+        ])
+        && data.movieId is string && isValidId(data.movieId) && data.movieId == movieId
+        && data.userId is string && isValidId(data.userId) && data.userId == userId
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 140
+        && data.posterUrl is string && data.posterUrl.size() >= 4 && data.posterUrl.size() <= 500
+        && data.positionSeconds is int && data.positionSeconds >= 0 && data.positionSeconds <= 86400
+        && data.durationSeconds is int && data.durationSeconds >= 0 && data.durationSeconds <= 86400
+        && data.progressPercent is int && data.progressPercent >= 0 && data.progressPercent <= 100
+        && data.completed is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserEngagement(data, userId) {
+      return data.keys().hasAll([
+          'uid', 'streakDays', 'lastActiveDay', 'lastSeenCatalogMs', 'totalMoviesWatched', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'streakDays', 'lastActiveDay', 'lastSeenCatalogMs', 'totalMoviesWatched', 'createdAt', 'updatedAt'
+        ])
+        && data.uid is string && isValidId(data.uid) && data.uid == userId
+        && data.streakDays is int && data.streakDays >= 1 && data.streakDays <= 36500
+        && data.lastActiveDay is string && data.lastActiveDay.size() == 10
+        && data.lastActiveDay.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.lastSeenCatalogMs is int && data.lastSeenCatalogMs >= 0 && data.lastSeenCatalogMs <= 9999999999999
+        && data.totalMoviesWatched is int && data.totalMoviesWatched >= 0 && data.totalMoviesWatched <= 100000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMovieRequest(data, requestId) {
+      return data.keys().hasAll([
+          'requestId', 'authorId', 'authorName', 'title', 'vjPreference',
+          'status', 'upvoteCount', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'requestId', 'authorId', 'authorName', 'title', 'vjPreference',
+          'releaseYear', 'notes', 'status', 'fulfilledMovieId', 'upvoteCount', 'createdAt', 'updatedAt'
+        ])
+        && data.requestId is string && isValidId(data.requestId) && data.requestId == requestId
+        && data.authorId is string && isValidId(data.authorId)
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 100
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 140
+        && data.vjPreference is string && data.vjPreference.size() >= 1 && data.vjPreference.size() <= 80
+        && (!('releaseYear' in data) || (data.releaseYear is string && data.releaseYear.size() <= 12))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 300))
+        && data.status in ['open', 'fulfilled']
+        && (!('fulfilledMovieId' in data) || (data.fulfilledMovieId is string && data.fulfilledMovieId.size() <= 128))
+        && data.upvoteCount is int && data.upvoteCount >= 0 && data.upvoteCount <= 1000000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMovieRequestVote(data, voteId) {
+      return data.keys().hasAll([
+          'voteId', 'requestId', 'userId', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'voteId', 'requestId', 'userId', 'createdAt', 'updatedAt'
+        ])
+        && data.voteId is string && isValidId(data.voteId) && data.voteId == voteId
+        && data.requestId is string && isValidId(data.requestId)
+        && data.userId is string && isValidId(data.userId)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserRewards(data, userId) {
+      return data.keys().hasAll([
+          'uid', 'devCredits', 'lifetimeCredits', 'streakDays', 'longestStreak',
+          'lastClaimDay', 'totalClaims', 'unlockedResourceIds', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'devCredits', 'lifetimeCredits', 'streakDays', 'longestStreak',
+          'lastClaimDay', 'totalClaims', 'unlockedResourceIds',
+          'referralsCount', 'referralCreditsEarned', 'inviteeBonusApplied', 'lastClaimedReferralId',
+          'createdAt', 'updatedAt'
+        ])
+        && data.uid is string && isValidId(data.uid) && data.uid == userId && data.uid == request.auth.uid
+        && data.devCredits is int && data.devCredits >= 0 && data.devCredits <= 1000000
+        && data.lifetimeCredits is int && data.lifetimeCredits >= 0 && data.lifetimeCredits <= 1000000
+        && data.streakDays is int && data.streakDays >= 0 && data.streakDays <= 36500
+        && data.longestStreak is int && data.longestStreak >= 0 && data.longestStreak <= 36500
+        && data.lastClaimDay is string && data.lastClaimDay.size() == 10
+        && data.lastClaimDay.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.totalClaims is int && data.totalClaims >= 0 && data.totalClaims <= 36500
+        && data.unlockedResourceIds is list
+        && data.unlockedResourceIds.size() <= 30
+        && (data.unlockedResourceIds.size() == 0 || (
+          data.unlockedResourceIds[0] is string && data.unlockedResourceIds[0].size() <= 64
+        ))
+        && (!('referralsCount' in data) || (
+          data.referralsCount is int && data.referralsCount >= 0 && data.referralsCount <= 10000
+        ))
+        && (!('referralCreditsEarned' in data) || (
+          data.referralCreditsEarned is int && data.referralCreditsEarned >= 0 && data.referralCreditsEarned <= 1000000
+        ))
+        && (!('inviteeBonusApplied' in data) || data.inviteeBonusApplied is bool)
+        && (!('lastClaimedReferralId' in data) || (
+          data.lastClaimedReferralId is string && data.lastClaimedReferralId.size() <= 128
+        ))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserNotificationState(data, userId) {
+      return data.keys().hasAll([
+          'uid', 'readIds', 'lastCheckedMs', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'readIds', 'lastCheckedMs', 'createdAt', 'updatedAt'
+        ])
+        && data.uid is string && isValidId(data.uid) && data.uid == userId && data.uid == request.auth.uid
+        && data.readIds is list
+        && data.readIds.size() <= 200
+        && (data.readIds.size() == 0 || (
+          data.readIds[0] is string && data.readIds[0].size() <= 160
+        ))
+        && data.lastCheckedMs is int && data.lastCheckedMs >= 0 && data.lastCheckedMs <= 9999999999999
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidReferralCode(data, code) {
+      return data.keys().hasAll([
+          'code', 'ownerUid', 'ownerDisplayName', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'code', 'ownerUid', 'ownerDisplayName', 'createdAt', 'updatedAt'
+        ])
+        && isValidReferralCodeFormat(data.code)
+        && data.code == code
+        && data.ownerUid is string && isValidId(data.ownerUid)
+        && data.ownerDisplayName is string
+        && data.ownerDisplayName.size() >= 1 && data.ownerDisplayName.size() <= 100
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidReferralRecord(data, referralId) {
+      return data.keys().hasAll([
+          'referralId', 'referralCode', 'referrerUid', 'referrerName',
+          'inviteeUid', 'inviteeName', 'inviteeBonusCredits', 'referrerBonusCredits',
+          'inviteeBonusClaimed', 'referrerBonusClaimed', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'referralId', 'referralCode', 'referrerUid', 'referrerName',
+          'inviteeUid', 'inviteeName', 'inviteeBonusCredits', 'referrerBonusCredits',
+          'inviteeBonusClaimed', 'referrerBonusClaimed', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.referralId is string && isValidId(data.referralId) && data.referralId == referralId
+        && isValidReferralCodeFormat(data.referralCode)
+        && data.referrerUid is string && isValidId(data.referrerUid)
+        && data.referrerName is string
+        && data.referrerName.size() >= 1 && data.referrerName.size() <= 100
+        && data.inviteeUid is string && isValidId(data.inviteeUid)
+        && data.inviteeName is string
+        && data.inviteeName.size() >= 1 && data.inviteeName.size() <= 100
+        && data.referrerUid != data.inviteeUid
+        && data.inviteeBonusCredits == 50
+        && data.referrerBonusCredits == 100
+        && data.inviteeBonusClaimed is bool
+        && data.referrerBonusClaimed is bool
+        && data.status in ['verified', 'rewarded']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
     // -------------------------------------------------------------------------
     // Collection Rules
     // -------------------------------------------------------------------------
@@ -453,6 +672,260 @@ service cloud.firestore {
           ])
           && incoming().createdAt == existing().createdAt
           && incoming().updatedAt == request.time;
+
+        allow delete: if false;
+      }
+
+      match /watchlist/{movieId} {
+        allow get: if isValidId(userId) && isValidId(movieId) && isOwner(userId);
+        allow list: if isValidId(userId) && isOwner(userId) && resource.data.userId == request.auth.uid;
+
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(movieId)
+          && isOwner(userId)
+          && isValidWatchlistItem(incoming(), userId, movieId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+
+        allow update: if false;
+
+        allow delete: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(movieId)
+          && isOwner(userId);
+      }
+
+      match /watchProgress/{movieId} {
+        allow get: if isValidId(userId) && isValidId(movieId) && isOwner(userId);
+        allow list: if isValidId(userId) && isOwner(userId) && resource.data.userId == request.auth.uid;
+
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(movieId)
+          && isOwner(userId)
+          && isValidWatchProgress(incoming(), userId, movieId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+
+        allow update: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(movieId)
+          && isOwner(userId)
+          && isValidWatchProgress(incoming(), userId, movieId)
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'title', 'posterUrl', 'positionSeconds', 'durationSeconds', 'progressPercent', 'completed', 'updatedAt'
+          ]);
+
+        allow delete: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(movieId)
+          && isOwner(userId);
+      }
+
+      match /preferences/engagement {
+        allow get: if isValidId(userId) && isOwner(userId);
+        allow list: if false;
+
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isOwner(userId)
+          && isValidUserEngagement(incoming(), userId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+
+        allow update: if isVerifiedUser()
+          && isValidId(userId)
+          && isOwner(userId)
+          && isValidUserEngagement(incoming(), userId)
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'streakDays', 'lastActiveDay', 'lastSeenCatalogMs', 'totalMoviesWatched', 'updatedAt'
+          ]);
+
+        allow delete: if false;
+      }
+
+      match /preferences/rewards {
+        allow get: if isValidId(userId) && isOwner(userId);
+        allow list: if false;
+
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isOwner(userId)
+          && isValidUserRewards(incoming(), userId)
+          && incoming().unlockedResourceIds.size() == 0
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && (
+            // Mode 1: Day 1 daily check-in creation
+            (
+              incoming().streakDays == 1
+              && incoming().longestStreak == 1
+              && incoming().totalClaims == 1
+              && incoming().lastClaimDay != '1970-01-01'
+              && incoming().devCredits == 25
+              && incoming().lifetimeCredits == 25
+              && (!('referralsCount' in incoming()) || incoming().referralsCount == 0)
+              && (!('referralCreditsEarned' in incoming()) || incoming().referralCreditsEarned == 0)
+              && (!('inviteeBonusApplied' in incoming()) || incoming().inviteeBonusApplied == false)
+              && (!('lastClaimedReferralId' in incoming()) || incoming().lastClaimedReferralId == '')
+            ) ||
+            // Mode 2: Invitee +50 DevCredits referral welcome bonus on fresh account
+            (
+              incoming().streakDays == 0
+              && incoming().longestStreak == 0
+              && incoming().totalClaims == 0
+              && incoming().lastClaimDay == '1970-01-01'
+              && incoming().devCredits == 50
+              && incoming().lifetimeCredits == 50
+              && (!('referralsCount' in incoming()) || incoming().referralsCount == 0)
+              && (!('referralCreditsEarned' in incoming()) || incoming().referralCreditsEarned == 0)
+              && incoming().inviteeBonusApplied == true
+              && (!('lastClaimedReferralId' in incoming()) || incoming().lastClaimedReferralId == '')
+              && !exists(/databases/$(database)/documents/referrals/$(request.auth.uid))
+              && existsAfter(/databases/$(database)/documents/referrals/$(request.auth.uid))
+              && getAfter(/databases/$(database)/documents/referrals/$(request.auth.uid)).data.inviteeUid == request.auth.uid
+              && getAfter(/databases/$(database)/documents/referrals/$(request.auth.uid)).data.updatedAt == request.time
+            ) ||
+            // Mode 3: Referrer +100 DevCredits first verified referral payout
+            (
+              incoming().streakDays == 0
+              && incoming().longestStreak == 0
+              && incoming().totalClaims == 0
+              && incoming().lastClaimDay == '1970-01-01'
+              && incoming().devCredits == 100
+              && incoming().lifetimeCredits == 100
+              && incoming().referralsCount == 1
+              && incoming().referralCreditsEarned == 100
+              && (!('inviteeBonusApplied' in incoming()) || incoming().inviteeBonusApplied == false)
+              && ('lastClaimedReferralId' in incoming())
+              && incoming().lastClaimedReferralId is string
+              && incoming().lastClaimedReferralId.size() >= 1
+              && exists(/databases/$(database)/documents/referrals/$(incoming().lastClaimedReferralId))
+              && get(/databases/$(database)/documents/referrals/$(incoming().lastClaimedReferralId)).data.referrerUid == request.auth.uid
+              && get(/databases/$(database)/documents/referrals/$(incoming().lastClaimedReferralId)).data.referrerBonusClaimed == false
+              && getAfter(/databases/$(database)/documents/referrals/$(incoming().lastClaimedReferralId)).data.referrerBonusClaimed == true
+              && getAfter(/databases/$(database)/documents/referrals/$(incoming().lastClaimedReferralId)).data.updatedAt == request.time
+            )
+          );
+
+        allow update: if isVerifiedUser()
+          && isValidId(userId)
+          && isOwner(userId)
+          && isValidUserRewards(incoming(), userId)
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'devCredits', 'lifetimeCredits', 'streakDays', 'longestStreak',
+            'lastClaimDay', 'totalClaims', 'unlockedResourceIds',
+            'referralsCount', 'referralCreditsEarned', 'inviteeBonusApplied',
+            'lastClaimedReferralId', 'updatedAt'
+          ])
+          && (
+            // Action A: Daily consecutive / return check-in claim
+            (
+              incoming().lastClaimDay != existing().lastClaimDay
+              && incoming().lastClaimDay != '1970-01-01'
+              && incoming().totalClaims == existing().totalClaims + 1
+              && (incoming().streakDays == 1 || incoming().streakDays == existing().streakDays + 1)
+              && incoming().longestStreak >= existing().longestStreak
+              && incoming().longestStreak <= existing().longestStreak + 1
+              && incoming().longestStreak >= incoming().streakDays
+              && incoming().lifetimeCredits > existing().lifetimeCredits
+              && incoming().lifetimeCredits <= existing().lifetimeCredits + 200
+              && (incoming().devCredits - existing().devCredits) == (incoming().lifetimeCredits - existing().lifetimeCredits)
+              && incoming().unlockedResourceIds.size() >= existing().unlockedResourceIds.size()
+              && incoming().unlockedResourceIds.size() <= existing().unlockedResourceIds.size() + 1
+              && (!('referralsCount' in incoming()) || incoming().referralsCount == existingReferralsCount())
+              && (!('referralCreditsEarned' in incoming()) || incoming().referralCreditsEarned == existingReferralCreditsEarned())
+              && (!('inviteeBonusApplied' in incoming()) || incoming().inviteeBonusApplied == existingInviteeBonusApplied())
+              && (!('lastClaimedReferralId' in incoming()) || incoming().lastClaimedReferralId == existingLastClaimedReferralId())
+            ) ||
+            // Action B: Redeem earned DevCredits for an exclusive technical resource
+            (
+              incoming().lastClaimDay == existing().lastClaimDay
+              && incoming().totalClaims == existing().totalClaims
+              && incoming().streakDays == existing().streakDays
+              && incoming().longestStreak == existing().longestStreak
+              && incoming().lifetimeCredits == existing().lifetimeCredits
+              && incoming().devCredits < existing().devCredits
+              && incoming().unlockedResourceIds.size() == existing().unlockedResourceIds.size() + 1
+              && (!('referralsCount' in incoming()) || incoming().referralsCount == existingReferralsCount())
+              && (!('referralCreditsEarned' in incoming()) || incoming().referralCreditsEarned == existingReferralCreditsEarned())
+              && (!('inviteeBonusApplied' in incoming()) || incoming().inviteeBonusApplied == existingInviteeBonusApplied())
+              && (!('lastClaimedReferralId' in incoming()) || incoming().lastClaimedReferralId == existingLastClaimedReferralId())
+            ) ||
+            // Action C: Apply one-time +50 DevCredits invitee welcome referral bonus
+            (
+              existingInviteeBonusApplied() == false
+              && incoming().inviteeBonusApplied == true
+              && incoming().lastClaimDay == existing().lastClaimDay
+              && incoming().totalClaims == existing().totalClaims
+              && incoming().streakDays == existing().streakDays
+              && incoming().longestStreak == existing().longestStreak
+              && incoming().unlockedResourceIds == existing().unlockedResourceIds
+              && incoming().devCredits == existing().devCredits + 50
+              && incoming().lifetimeCredits == existing().lifetimeCredits + 50
+              && (!('referralsCount' in incoming()) || incoming().referralsCount == existingReferralsCount())
+              && (!('referralCreditsEarned' in incoming()) || incoming().referralCreditsEarned == existingReferralCreditsEarned())
+              && (!('lastClaimedReferralId' in incoming()) || incoming().lastClaimedReferralId == existingLastClaimedReferralId())
+              && !exists(/databases/$(database)/documents/referrals/$(request.auth.uid))
+              && existsAfter(/databases/$(database)/documents/referrals/$(request.auth.uid))
+              && getAfter(/databases/$(database)/documents/referrals/$(request.auth.uid)).data.inviteeUid == request.auth.uid
+              && getAfter(/databases/$(database)/documents/referrals/$(request.auth.uid)).data.updatedAt == request.time
+            ) ||
+            // Action D: Claim +100 DevCredits verified referrer payout atomically with /referrals/{id}
+            (
+              incoming().lastClaimDay == existing().lastClaimDay
+              && incoming().totalClaims == existing().totalClaims
+              && incoming().streakDays == existing().streakDays
+              && incoming().longestStreak == existing().longestStreak
+              && incoming().unlockedResourceIds == existing().unlockedResourceIds
+              && (!('inviteeBonusApplied' in incoming()) || incoming().inviteeBonusApplied == existingInviteeBonusApplied())
+              && incoming().devCredits == existing().devCredits + 100
+              && incoming().lifetimeCredits == existing().lifetimeCredits + 100
+              && incoming().referralsCount == existingReferralsCount() + 1
+              && incoming().referralCreditsEarned == existingReferralCreditsEarned() + 100
+              && ('lastClaimedReferralId' in incoming())
+              && incoming().lastClaimedReferralId is string
+              && incoming().lastClaimedReferralId.size() >= 1
+              && exists(/databases/$(database)/documents/referrals/$(incoming().lastClaimedReferralId))
+              && get(/databases/$(database)/documents/referrals/$(incoming().lastClaimedReferralId)).data.referrerUid == request.auth.uid
+              && get(/databases/$(database)/documents/referrals/$(incoming().lastClaimedReferralId)).data.referrerBonusClaimed == false
+              && getAfter(/databases/$(database)/documents/referrals/$(incoming().lastClaimedReferralId)).data.referrerBonusClaimed == true
+              && getAfter(/databases/$(database)/documents/referrals/$(incoming().lastClaimedReferralId)).data.updatedAt == request.time
+            )
+          );
+
+        allow delete: if false;
+      }
+
+      match /preferences/notificationState {
+        allow get: if isValidId(userId) && isOwner(userId);
+        allow list: if false;
+
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isOwner(userId)
+          && isValidUserNotificationState(incoming(), userId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+
+        allow update: if isVerifiedUser()
+          && isValidId(userId)
+          && isOwner(userId)
+          && isValidUserNotificationState(incoming(), userId)
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'readIds', 'lastCheckedMs', 'updatedAt'
+          ]);
 
         allow delete: if false;
       }
@@ -725,7 +1198,8 @@ service cloud.firestore {
           'publishedDate', 'readTimeMinutes', 'featured', 'coverImage',
           'stackTags', 'keyTakeaways', 'section1Heading', 'section1Body',
           'section2Heading', 'section2Body', 'section3Heading', 'section3Body',
-          'calloutQuote', 'codeFilename', 'codeLanguage', 'codeSnippet', 'updatedAt'
+          'calloutQuote', 'codeFilename', 'codeLanguage', 'codeSnippet',
+          'publishStatus', 'scheduledDate', 'updatedAt'
         ]);
 
       allow delete: if isAdmin() && isValidId(postId);
@@ -816,6 +1290,164 @@ service cloud.firestore {
       allow delete: if isValidId(subscriberId) && (
         (isVerifiedUser() && isOwner(subscriberId)) || isAdmin()
       );
+    }
+
+    match /movieRequests/{requestId} {
+      allow get: if isValidId(requestId) && isSignedIn();
+      allow list: if isSignedIn() && resource.data.status in ['open', 'fulfilled'];
+
+      allow create: if isVerifiedUser()
+        && isValidId(requestId)
+        && isValidMovieRequest(incoming(), requestId)
+        && incoming().authorId == request.auth.uid
+        && incoming().status == 'open'
+        && incoming().upvoteCount == 1
+        && existsAfter(/databases/$(database)/documents/movieRequestVotes/$(requestId + '_' + request.auth.uid))
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(requestId)
+        && isValidMovieRequest(incoming(), requestId)
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (
+            isAdmin()
+            && incoming().upvoteCount == existing().upvoteCount
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'fulfilledMovieId', 'notes', 'updatedAt'
+            ])
+          ) ||
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['upvoteCount', 'updatedAt'])
+            && (
+              (
+                incoming().upvoteCount == existing().upvoteCount + 1
+                && !exists(/databases/$(database)/documents/movieRequestVotes/$(requestId + '_' + request.auth.uid))
+                && existsAfter(/databases/$(database)/documents/movieRequestVotes/$(requestId + '_' + request.auth.uid))
+              ) ||
+              (
+                incoming().upvoteCount == existing().upvoteCount - 1
+                && incoming().upvoteCount >= 0
+                && exists(/databases/$(database)/documents/movieRequestVotes/$(requestId + '_' + request.auth.uid))
+                && !existsAfter(/databases/$(database)/documents/movieRequestVotes/$(requestId + '_' + request.auth.uid))
+              )
+            )
+          )
+        );
+
+      allow delete: if isValidId(requestId) && (
+        isAdmin() ||
+        (isVerifiedUser() && existing().authorId == request.auth.uid && existing().status == 'open')
+      );
+    }
+
+    match /movieRequestVotes/{voteId} {
+      allow get: if isValidId(voteId) && isSignedIn() && (
+        existing().userId == request.auth.uid || isAdmin()
+      );
+      allow list: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isPrimaryAdmin()
+      );
+
+      allow create: if isVerifiedUser()
+        && isValidId(voteId)
+        && isValidMovieRequestVote(incoming(), voteId)
+        && incoming().userId == request.auth.uid
+        && voteId == (incoming().requestId + '_' + request.auth.uid)
+        && existsAfter(/databases/$(database)/documents/movieRequests/$(incoming().requestId))
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if false;
+
+      allow delete: if isVerifiedUser()
+        && isValidId(voteId)
+        && existing().userId == request.auth.uid;
+    }
+
+    match /referralCodes/{code} {
+      allow get: if isSignedIn() && isValidReferralCodeFormat(code);
+      allow list: if isSignedIn() && (
+        resource.data.ownerUid == request.auth.uid || isPrimaryAdmin()
+      );
+
+      allow create: if isVerifiedUser()
+        && isValidReferralCodeFormat(code)
+        && isValidReferralCode(incoming(), code)
+        && incoming().ownerUid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidReferralCodeFormat(code)
+        && existing().ownerUid == request.auth.uid
+        && isValidReferralCode(incoming(), code)
+        && incoming().code == existing().code
+        && incoming().ownerUid == existing().ownerUid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['ownerDisplayName', 'updatedAt']);
+
+      allow delete: if false;
+    }
+
+    match /referrals/{referralId} {
+      allow get: if isValidId(referralId) && isSignedIn() && (
+        existing().referrerUid == request.auth.uid ||
+        existing().inviteeUid == request.auth.uid ||
+        isAdmin()
+      );
+      allow list: if isSignedIn() && (
+        resource.data.referrerUid == request.auth.uid ||
+        resource.data.inviteeUid == request.auth.uid ||
+        isPrimaryAdmin()
+      );
+
+      allow create: if isVerifiedUser()
+        && isValidId(referralId)
+        && referralId == request.auth.uid
+        && isValidReferralRecord(incoming(), referralId)
+        && incoming().inviteeUid == request.auth.uid
+        && incoming().referrerUid != request.auth.uid
+        && incoming().inviteeBonusClaimed == true
+        && incoming().referrerBonusClaimed == false
+        && incoming().status == 'verified'
+        && exists(/databases/$(database)/documents/referralCodes/$(incoming().referralCode))
+        && get(/databases/$(database)/documents/referralCodes/$(incoming().referralCode)).data.ownerUid == incoming().referrerUid
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)/preferences/rewards).data.inviteeBonusApplied == true
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)/preferences/rewards).data.updatedAt == request.time
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(referralId)
+        && existing().referrerUid == request.auth.uid
+        && existing().referrerBonusClaimed == false
+        && existing().status == 'verified'
+        && isValidReferralRecord(incoming(), referralId)
+        && incoming().referralId == existing().referralId
+        && incoming().referralCode == existing().referralCode
+        && incoming().referrerUid == existing().referrerUid
+        && incoming().referrerName == existing().referrerName
+        && incoming().inviteeUid == existing().inviteeUid
+        && incoming().inviteeName == existing().inviteeName
+        && incoming().inviteeBonusCredits == existing().inviteeBonusCredits
+        && incoming().referrerBonusCredits == existing().referrerBonusCredits
+        && incoming().inviteeBonusClaimed == existing().inviteeBonusClaimed
+        && incoming().referrerBonusClaimed == true
+        && incoming().status == 'rewarded'
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'referrerBonusClaimed', 'status', 'updatedAt'
+        ])
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)/preferences/rewards).data.lastClaimedReferralId == referralId
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)/preferences/rewards).data.updatedAt == request.time;
+
+      allow delete: if false;
     }
   }
 }

@@ -16,8 +16,8 @@ export const Logo: React.FC<LogoProps> = ({
   showEmblemAbove = false,
   className = '',
 }) => {
-  const primaryColor = variant === 'dark' ? '#FFFFFF' : '#1A1464';
-  const redColor = '#EE1119';
+  const primaryColor = variant === 'dark' ? '#FFFFFF' : 'var(--brand-text-heading, #1A1464)';
+  const redColor = 'var(--brand-red, #EE1119)';
 
   if (showEmblemAbove) {
     return (

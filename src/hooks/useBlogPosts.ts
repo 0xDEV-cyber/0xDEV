@@ -5,6 +5,7 @@ import {
   BlogArticle,
   BlogCategory,
   BlogSection,
+  UPCOMING_BLOG_DISPATCHES,
 } from '../data/blogData';
 import { db } from '../firebase';
 
@@ -47,6 +48,8 @@ export function useBlogPosts() {
             const category = VALID_CATEGORIES.includes(rawCat) ? rawCat : 'Architecture';
             const createdAtMs =
               data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now();
+            const publishStatus: 'published' | 'upcoming' =
+              data.publishStatus === 'upcoming' ? 'upcoming' : 'published';
 
             const sections: BlogSection[] = [];
             if (data.section1Heading && data.section1Body) {
@@ -112,6 +115,8 @@ export function useBlogPosts() {
                   }
                 : undefined,
               isCustom: true,
+              publishStatus,
+              scheduledDate: data.scheduledDate ? String(data.scheduledDate) : undefined,
               createdAtMs,
             };
           })
@@ -130,10 +135,20 @@ export function useBlogPosts() {
   }, []);
 
   const articles = useMemo<BlogArticle[]>(() => {
-    const customSlugs = new Set(customPosts.map((p) => p.slug));
+    const publishedCustom = customPosts.filter((p) => p.publishStatus !== 'upcoming');
+    const customSlugs = new Set(publishedCustom.map((p) => p.slug));
     const remainingBaseline = BLOG_ARTICLES.filter((a) => !customSlugs.has(a.slug));
-    return [...customPosts, ...remainingBaseline];
+    return [...publishedCustom, ...remainingBaseline];
   }, [customPosts]);
 
-  return { articles, customPosts, loading };
+  const upcomingPosts = useMemo<BlogArticle[]>(() => {
+    const upcomingCustom = customPosts.filter((p) => p.publishStatus === 'upcoming');
+    const customSlugs = new Set(customPosts.map((p) => p.slug));
+    const remainingDispatches = UPCOMING_BLOG_DISPATCHES.filter(
+      (a) => !customSlugs.has(a.slug)
+    );
+    return [...upcomingCustom, ...remainingDispatches];
+  }, [customPosts]);
+
+  return { articles, customPosts, upcomingPosts, loading };
 }

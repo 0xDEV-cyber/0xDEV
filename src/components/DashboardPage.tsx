@@ -25,6 +25,7 @@ import {
 import { AdminBlogManager } from './AdminBlogManager';
 import { AdminMoviesManager } from './AdminMoviesManager';
 import { AdminPortfolioManager } from './AdminPortfolioManager';
+import { DailyRewardsPanel } from './DailyRewardsPanel';
 import { EditProfileModal } from './EditProfileModal';
 import { EASE_OUT_EXPO, Reveal, SPRING_SNAPPY } from './MotionPrimitives';
 import { NotificationCenter } from './NotificationCenter';
@@ -35,6 +36,7 @@ import {
   TrackedInquiry,
 } from './ProjectTimeline';
 import { ProjectWorkspace } from './ProjectWorkspace';
+import { ReferralProgramPanel } from './ReferralProgramPanel';
 import { UserAvatar } from './UserAvatar';
 
 const CHANNEL_LABELS: Record<PreferredContactChannel, string> = {
@@ -758,6 +760,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           />
 
           <div className="print:hidden">
+            <DailyRewardsPanel />
+            <ReferralProgramPanel />
             <ProjectTimeline
               onNavigate={onNavigate}
               onActiveStateChange={handleTimelineStateChange}

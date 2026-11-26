@@ -13,9 +13,11 @@ import {
 } from 'firebase/firestore';
 import {
   Bell,
+  BookOpen,
   Check,
   CheckCheck,
   Copy,
+  Film,
   Mail,
   MessageSquare,
   RefreshCw,
@@ -30,11 +32,13 @@ export interface NotificationRecord {
   notificationId: string;
   recipientId: string;
   senderEmail: string;
-  type: 'status_update' | 'admin_message';
+  type: 'status_update' | 'admin_message' | 'movie_release' | 'blog_upcoming';
   title: string;
   body: string;
   inquiryId?: string;
   projectStatus?: string;
+  linkRoute?: 'dashboard' | 'movies' | 'blog';
+  targetId?: string;
   isRead: boolean;
   createdAtMs: number;
   createdAtLabel: string;
@@ -122,17 +126,29 @@ export const NotificationCenter: React.FC = () => {
           .map((d) => {
             const data = d.data();
             const ts = formatTimestamp(data.createdAt);
+            const rawType = String(data.type || 'status_update');
+            const normalizedType: NotificationRecord['type'] =
+              rawType === 'admin_message' ||
+              rawType === 'movie_release' ||
+              rawType === 'blog_upcoming'
+                ? rawType
+                : 'status_update';
             return {
               notificationId: String(data.notificationId || d.id),
               recipientId: String(data.recipientId || ''),
               senderEmail: String(data.senderEmail || ''),
-              type: (data.type === 'admin_message'
-                ? 'admin_message'
-                : 'status_update') as NotificationRecord['type'],
+              type: normalizedType,
               title: String(data.title || ''),
               body: String(data.body || ''),
               inquiryId: data.inquiryId ? String(data.inquiryId) : undefined,
               projectStatus: data.projectStatus ? String(data.projectStatus) : undefined,
+              linkRoute:
+                data.linkRoute === 'movies' ||
+                data.linkRoute === 'blog' ||
+                data.linkRoute === 'dashboard'
+                  ? data.linkRoute
+                  : undefined,
+              targetId: data.targetId ? String(data.targetId) : undefined,
               isRead: Boolean(data.isRead),
               createdAtMs: ts.ms,
               createdAtLabel: ts.label,
@@ -219,7 +235,7 @@ export const NotificationCenter: React.FC = () => {
       case 'status_update':
         return notifications.filter((n) => n.type === 'status_update');
       case 'admin_message':
-        return notifications.filter((n) => n.type === 'admin_message');
+        return notifications.filter((n) => n.type !== 'status_update');
       default:
         return notifications;
     }
@@ -380,7 +396,7 @@ export const NotificationCenter: React.FC = () => {
   }, [uniqueRecipients]);
 
   return (
-    <div className="mt-10 space-y-8">
+    <div id="notification-center" className="mt-10 space-y-8 scroll-mt-24">
       {/* Main Notification Center Card */}
       <div className="relative rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-6 sm:p-8 shadow-[0_18px_45px_rgba(26,20,100,0.05)] dark:shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
         <div
@@ -491,6 +507,15 @@ export const NotificationCenter: React.FC = () => {
               <AnimatePresence mode="popLayout">
                 {filteredNotifications.map((item) => {
                   const isStatus = item.type === 'status_update';
+                  const isMovie = item.type === 'movie_release';
+                  const isBlog = item.type === 'blog_upcoming';
+                  const typeLabel = isStatus
+                    ? 'Project Status Update'
+                    : isMovie
+                      ? 'New Movie Release'
+                      : isBlog
+                        ? 'Upcoming Blog Post'
+                        : 'Admin Message';
                   return (
                     <motion.li
                       key={item.notificationId}
@@ -509,13 +534,17 @@ export const NotificationCenter: React.FC = () => {
                       <div className="flex items-start gap-3.5 min-w-0">
                         <div
                           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                            isStatus
+                            isStatus || isBlog
                               ? 'bg-[#1A1464] dark:bg-[#232B6E] text-white'
                               : 'bg-[#EE1119] text-white'
                           }`}
                         >
                           {isStatus ? (
                             <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                          ) : isMovie ? (
+                            <Film className="h-4 w-4" aria-hidden="true" />
+                          ) : isBlog ? (
+                            <BookOpen className="h-4 w-4" aria-hidden="true" />
                           ) : (
                             <MessageSquare className="h-4 w-4" aria-hidden="true" />
                           )}
@@ -523,8 +552,8 @@ export const NotificationCenter: React.FC = () => {
 
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8]">
-                            <span className={isStatus ? 'text-[#1A1464] dark:text-[#9FA8FF]' : 'text-[#EE1119]'}>
-                              {isStatus ? 'Project Status Update' : 'Admin Message'}
+                            <span className={isStatus || isBlog ? 'text-[#1A1464] dark:text-[#9FA8FF]' : 'text-[#EE1119]'}>
+                              {typeLabel}
                             </span>
                             <span aria-hidden="true">·</span>
                             <span className="tabular-nums">{item.createdAtLabel}</span>

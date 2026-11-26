@@ -42,7 +42,79 @@ export interface BlogArticle {
     code: string;
   };
   isCustom?: boolean;
+  publishStatus?: 'published' | 'upcoming';
+  scheduledDate?: string;
 }
+
+export const UPCOMING_BLOG_DISPATCHES: BlogArticle[] = [
+  {
+    id: 'upcoming-edge-caching-uganda',
+    slug: 'upcoming-edge-caching-low-bandwidth-africa',
+    title: 'Sub-200ms Edge Caching & Stale-While-Revalidate for East African Mobile Networks',
+    excerpt:
+      'Upcoming engineering deep-dive: how we tune Cloudflare Workers KV, ETags, and delta payloads for 3G reliability without stale financial data.',
+    category: 'Cloud & DevOps',
+    authorName: 'Arigye Wisdom',
+    authorRole: 'Principal Systems Architect · 0xDEV',
+    publishedDate: 'Upcoming Dispatch',
+    scheduledDate: 'Next Thursday · 09:00 EAT',
+    readTimeMinutes: 7,
+    featured: false,
+    publishStatus: 'upcoming',
+    coverImage: '/src/assets/images/blog_cloud_infra_1794909289647.jpg',
+    stackTags: ['Cloudflare Workers', 'HTTP Caching', 'ETag', 'TypeScript'],
+    keyTakeaways: [
+      'Separate immutable static asset caching from short-TTL stale-while-revalidate API responses.',
+      'Use deterministic cache-tag invalidation when admin catalogs or prices change.',
+      'Compress JSON payloads with Brotli and keep initial mobile bundles under 180 KB gzipped.',
+    ],
+    calloutQuote:
+      'Fast web apps in Kampala or Kabale are won in payload discipline and smart edge invalidation, not heavy client frameworks.',
+    sections: [
+      {
+        id: 'upcoming-preview',
+        heading: 'Upcoming Dispatch Preview: Network Reality First',
+        paragraphs: [
+          'This upcoming technical brief walks through the exact Cloudflare Worker middleware and Cache-Control headers 0xDEV uses across client portals so mobile visitors load core views in under 200 milliseconds even on congested 3G towers.',
+          'Full benchmarks, Terraform worker bindings, and invalidation webhook code will be published alongside our next release sprint.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'upcoming-passkeys-webauthn',
+    slug: 'upcoming-webauthn-passkeys-fintech-portals',
+    title: 'Replacing SMS OTP Fatigue With WebAuthn Passkeys in Financial Portals',
+    excerpt:
+      'Upcoming security guide: binding hardware-backed biometrics to high-value transfers while maintaining graceful SMS fallback for legacy devices.',
+    category: 'Security',
+    authorName: 'Arigye Wisdom',
+    authorRole: 'Principal Systems Architect · 0xDEV',
+    publishedDate: 'Upcoming Dispatch',
+    scheduledDate: 'Coming Next Week',
+    readTimeMinutes: 8,
+    featured: false,
+    publishStatus: 'upcoming',
+    coverImage: '/src/assets/images/blog_fintech_ledger_1794909287930.jpg',
+    stackTags: ['WebAuthn', 'Passkeys', 'FIDO2', 'Security'],
+    keyTakeaways: [
+      'Eliminate SIM-swap and telecom OTP delays with platform authenticators.',
+      'Verify challenge nonces server-side with strict origin and RP ID checks.',
+      'Provide multi-device recovery keys before disabling legacy second factors.',
+    ],
+    calloutQuote:
+      'Telecom SMS delays cost fintech checkouts conversion and expose users to SIM-swap risk. Passkeys solve both when rolled out progressively.',
+    sections: [
+      {
+        id: 'upcoming-preview',
+        heading: 'Upcoming Dispatch Preview: Progressive Passkey Rollout',
+        paragraphs: [
+          'In this upcoming release note, we break down our server challenge verification pipeline and UX enrollment prompts so returning clients sign in with Face ID or Touch ID in one tap.',
+        ],
+      },
+    ],
+  },
+];
 
 export const BLOG_ARTICLES: BlogArticle[] = [
   {

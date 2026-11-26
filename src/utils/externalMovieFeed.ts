@@ -12,8 +12,10 @@ import { db } from '../firebase';
 import { buildMovieReleaseEmailHtml } from './brandedEmailTemplates';
 import {
   ArchiveSearchScope,
+  cleanArchiveMovieTitle,
   extractArchiveIdentifier,
   fetchInternetArchiveMovieDraft,
+  isRealMovieTitle,
   searchCustomArchiveSource,
   searchInternetArchiveMovies,
 } from './internetArchiveApi';
@@ -65,7 +67,8 @@ export interface AutoFirestoreSyncResult {
 
 const SOURCES_STORAGE_KEY = '0xdev_external_feed_sources_v1';
 const SETTINGS_STORAGE_KEY = '0xdev_external_sync_settings_v1';
-const FEED_CACHE_STORAGE_KEY = '0xdev_external_movie_feed_cache_v1';
+const FEED_CACHE_STORAGE_KEY = '0xdev_external_movie_feed_cache_v2';
+const LEGACY_FEED_CACHE_KEY = '0xdev_external_movie_feed_cache_v1';
 const DEFAULT_FALLBACK_POSTER = '/src/assets/images/movies_cinema_hub_1795014042309.jpg';
 
 export const EXTERNAL_FEED_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -465,12 +468,14 @@ async function fetchExternalRssOrPeerTubeSources(
           errors.push(`${feedResult.label || 'Feed'}: ${feedResult.error}`);
         }
         for (const rawEntry of feedResult.items || []) {
+          const cleanTitle = cleanArchiveMovieTitle(rawEntry.title);
+          if (!isRealMovieTitle(cleanTitle, rawEntry.externalId || '')) continue;
           const translator = inferTranslatorFromText(`${rawEntry.title} ${rawEntry.synopsis}`);
           const category =
             translator.language === 'Luganda Translated' ? 'Indie & Regional' : 'Open Classics';
           const discovered = sanitizeDiscoveredMovie({
             movieId: `EXT-FEED-${hashShort(rawEntry.externalId || rawEntry.videoUrl)}`,
-            title: rawEntry.title,
+            title: cleanTitle,
             category,
             genre: inferCategoryFallbackGenre(category),
             language: translator.language,
@@ -546,9 +551,12 @@ async function fetchExternalRssOrPeerTubeSources(
           const category =
             translator.language === 'Luganda Translated' ? 'Indie & Regional' : 'Open Classics';
 
+          const cleanTitle = cleanArchiveMovieTitle(entry.name);
+          if (!isRealMovieTitle(cleanTitle, entry.uuid || '')) continue;
+
           const cleanItem = sanitizeDiscoveredMovie({
             movieId: `EXT-PT-${hashShort(entry.uuid || entry.shortUUID || videoUrl)}`,
-            title: entry.name,
+            title: cleanTitle,
             category,
             genre: inferCategoryFallbackGenre(category),
             language: translator.language,
@@ -559,7 +567,7 @@ async function fetchExternalRssOrPeerTubeSources(
             fileSizeLabel: formatSizeCompact(Number(mp4?.size || 0)),
             synopsis:
               entry.description ||
-              `${entry.name} automatically discovered from ${src.label}.`,
+              `${cleanTitle} automatically discovered from ${src.label}.`,
             posterUrl: poster,
             coverArtUrl: poster,
             videoUrl,
@@ -582,10 +590,20 @@ async function fetchExternalRssOrPeerTubeSources(
 }
 
 export function getCachedExternalFeedSnapshot(): ExternalFeedDiscoveryResult | null {
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.removeItem(LEGACY_FEED_CACHE_KEY);
+    } catch {
+      // Ignore storage error
+    }
+  }
   const cached = readStorageJson<FeedCachePayload | null>(FEED_CACHE_STORAGE_KEY, null);
   if (!cached || !Array.isArray(cached.movies)) return null;
+  const cleanMovies = cached.movies.filter((m) =>
+    isRealMovieTitle(m.title, m.archiveIdentifier || m.movieId)
+  );
   return {
-    movies: cached.movies,
+    movies: cleanMovies,
     checkedAtMs: cached.lastCheckedMs || Date.now(),
     fromCache: true,
     sourceErrors: cached.sourceErrors || [],
@@ -691,11 +709,22 @@ export async function discoverLatestExternalMovies(options?: {
     }
   }
 
-  // Resolve up to 8 newest uncached Archive items per cycle so mobile connections stay fast
-  const batchToResolve = uncachedCandidates.slice(0, 8);
+  // Resolve up to 10 newest uncached Archive items per cycle so mobile connections stay fast
+  const batchToResolve = uncachedCandidates.slice(0, 10);
   const resolvedDrafts = await Promise.allSettled(
     batchToResolve.map(async (cand) => {
       const draft = await fetchInternetArchiveMovieDraft(cand.identifier);
+      if (!isRealMovieTitle(draft.title, cand.identifier)) {
+        return null;
+      }
+      // Enforce full-feature movie minimum runtime (>= 30m) and size (>= 70 MB) to drop clips/trailers
+      if (
+        (draft.durationSeconds > 0 && draft.durationSeconds < 1800) ||
+        (draft.fileSizeBytes > 0 && draft.fileSizeBytes < 70 * 1024 * 1024)
+      ) {
+        return null;
+      }
+
       const movieId = `EXT-IA-${makeSafeIdFragment(cand.identifier)}`;
       const safeMovie = sanitizeDiscoveredMovie({
         movieId,

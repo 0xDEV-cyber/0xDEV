@@ -82,9 +82,33 @@
       (function () {
         try {
           var stored = localStorage.getItem('0xdev_theme');
+          var darkThemes = [
+            'dark',
+            '0xdev-dark',
+            'cinema-obsidian',
+            'cyber-emerald',
+            'abyssal-cyan',
+            'amethyst-velvet',
+            'golden-noir',
+            'twilight-rose',
+            'polar-night',
+            'volcanic-copper',
+            'silver-studio'
+          ];
+          var lightThemes = [
+            'light',
+            '0xdev-light',
+            'warm-editorial',
+            'nordic-frost',
+            'botanical-sage',
+            'lavender-atelier',
+            'golden-sand'
+          ];
           var prefersDark =
             window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          var isDark = stored === 'dark' || (stored !== 'light' && prefersDark);
+          var isDark =
+            darkThemes.indexOf(stored) !== -1 ||
+            (lightThemes.indexOf(stored) === -1 && prefersDark);
           if (isDark) {
             document.documentElement.classList.add('dark');
             var meta = document.querySelector('meta[name="theme-color"]');

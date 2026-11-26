@@ -4,10 +4,12 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
+  query,
   serverTimestamp,
   setDoc,
   Timestamp,
   updateDoc,
+  where,
   writeBatch,
 } from 'firebase/firestore';
 import {
@@ -24,6 +26,7 @@ import {
   Info,
   Loader2,
   Mail,
+  MessageSquarePlus,
   Pencil,
   Plus,
   Radio,
@@ -31,6 +34,7 @@ import {
   Search,
   Send,
   Sparkles,
+  ThumbsUp,
   Trash2,
   UploadCloud,
   Users,
@@ -166,6 +170,22 @@ export const AdminMoviesManager: React.FC = () => {
   const [newFeedLabel, setNewFeedLabel] = useState('');
   const [runningAutoSync, setRunningAutoSync] = useState(false);
   const [lastAutoSyncAt, setLastAutoSyncAt] = useState<number | null>(null);
+  const [communityRequests, setCommunityRequests] = useState<
+    {
+      requestId: string;
+      authorName: string;
+      title: string;
+      vjPreference: string;
+      releaseYear: string;
+      notes: string;
+      status: 'open' | 'fulfilled';
+      fulfilledMovieId: string;
+      upvoteCount: number;
+    }[]
+  >([]);
+  const [selectedMatchByRequestId, setSelectedMatchByRequestId] = useState<Record<string, string>>(
+    {}
+  );
   const formRef = useRef<HTMLFormElement | null>(null);
 
   useEffect(() => {
@@ -198,6 +218,45 @@ export const AdminMoviesManager: React.FC = () => {
       (err) => {
         setSubsLoading(false);
         handleFirestoreError(err, OperationType.LIST, 'movieSubscribers');
+      }
+    );
+
+    return () => unsubscribe();
+  }, [isPrimaryAdmin]);
+
+  useEffect(() => {
+    if (!isPrimaryAdmin) {
+      setCommunityRequests([]);
+      return;
+    }
+
+    const q = query(collection(db, 'movieRequests'), where('status', 'in', ['open', 'fulfilled']));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const items = snapshot.docs
+          .map((d) => {
+            const data = d.data();
+            return {
+              requestId: String(data.requestId || d.id),
+              authorName: String(data.authorName || 'Member'),
+              title: String(data.title || 'Untitled Request'),
+              vjPreference: String(data.vjPreference || 'Any VJ'),
+              releaseYear: String(data.releaseYear || '2026'),
+              notes: String(data.notes || ''),
+              status: (data.status === 'fulfilled' ? 'fulfilled' : 'open') as 'open' | 'fulfilled',
+              fulfilledMovieId: String(data.fulfilledMovieId || ''),
+              upvoteCount: Number(data.upvoteCount) || 0,
+            };
+          })
+          .sort((a, b) => {
+            if (a.status !== b.status) return a.status === 'open' ? -1 : 1;
+            return b.upvoteCount - a.upvoteCount;
+          });
+        setCommunityRequests(items);
+      },
+      (err) => {
+        console.warn('Admin movie requests listener notice:', err.message);
       }
     );
 
@@ -1972,6 +2031,105 @@ export const AdminMoviesManager: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Community Movie Requests Fulfillment Queue */}
+      {communityRequests.length > 0 && (
+        <div className="mt-6 rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-4 sm:p-5 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <MessageSquarePlus className="h-4 w-4 text-[#EE1119]" aria-hidden="true" />
+              <p className="text-xs font-bold uppercase tracking-wider text-[#1A1464] dark:text-[#F4F6FC]">
+                Community Movie Requests (
+                {communityRequests.filter((r) => r.status === 'open').length} Open)
+              </p>
+            </div>
+            <p className="text-[11px] text-[#6B7188] dark:text-[#8E97B8]">
+              Sorted by member upvotes · Link uploaded film and mark fulfilled
+            </p>
+          </div>
+
+          <div className="space-y-2.5">
+            {communityRequests.map((req) => {
+              const linkedMovieId =
+                selectedMatchByRequestId[req.requestId] ?? req.fulfilledMovieId ?? '';
+              return (
+                <div
+                  key={req.requestId}
+                  className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-[#E5E7F0] dark:border-[#242C54] bg-white dark:bg-[#141A38] p-3.5"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-bold text-[#EE1119]">
+                      {req.vjPreference} · {req.releaseYear} · By {req.authorName} ·{' '}
+                      <span className="inline-flex items-center gap-1">
+                        <ThumbsUp className="h-3 w-3 inline" aria-hidden="true" /> {req.upvoteCount}
+                      </span>
+                      {req.status === 'fulfilled' ? ' · Fulfilled' : ''}
+                    </p>
+                    <p className="text-sm font-extrabold text-[#1A1464] dark:text-[#F4F6FC] truncate">
+                      {req.title}
+                    </p>
+                    {req.notes && (
+                      <p className="text-xs text-[#6B7188] dark:text-[#8E97B8] line-clamp-1">
+                        {req.notes}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    {req.status === 'open' && (
+                      <>
+                        <select
+                          aria-label={`Link uploaded movie for ${req.title}`}
+                          value={linkedMovieId}
+                          onChange={(e) =>
+                            setSelectedMatchByRequestId((prev) => ({
+                              ...prev,
+                              [req.requestId]: e.target.value,
+                            }))
+                          }
+                          className="max-w-[180px] rounded-lg border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] px-2.5 py-1.5 text-[11px] text-[#1A1464] dark:text-white"
+                        >
+                          <option value="">Optional: Link movie...</option>
+                          {movies.map((m) => (
+                            <option key={m.movieId} value={m.movieId}>
+                              {m.title}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void updateDoc(doc(db, 'movieRequests', req.requestId), {
+                              status: 'fulfilled',
+                              fulfilledMovieId: linkedMovieId.slice(0, 128),
+                              notes: req.notes.slice(0, 300),
+                              updatedAt: serverTimestamp(),
+                            }).then(() =>
+                              setFeedback(`Marked request "${req.title}" as fulfilled.`)
+                            )
+                          }
+                          className="inline-flex items-center gap-1 rounded-lg bg-[#10B981] px-3 py-1.5 text-[11px] font-bold text-white hover:bg-[#059669]"
+                        >
+                          <Check className="h-3 w-3" aria-hidden="true" />
+                          <span>Mark Fulfilled</span>
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => void deleteDoc(doc(db, 'movieRequests', req.requestId))}
+                      aria-label={`Delete request ${req.title}`}
+                      className="rounded-lg border border-[#E5E7F0] dark:border-[#242C54] p-1.5 text-[#6B7188] hover:border-[#EE1119] hover:text-[#EE1119]"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Subscriber Directory Preview */}
       {activeSubscribers.length > 0 && (

@@ -356,10 +356,18 @@ const ArticleDetailView: React.FC<{
           <div className="mt-7 max-w-4xl">
             <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-[#6B7188] dark:text-[#8E97B8] tabular-nums">
               <span className="text-[#EE1119] font-bold">
-                {liveMeta ? `${liveMeta.sourceName} · ${article.category}` : article.category}
+                {article.publishStatus === 'upcoming'
+                  ? `Upcoming Dispatch · ${article.category}`
+                  : liveMeta
+                    ? `${liveMeta.sourceName} · ${article.category}`
+                    : article.category}
               </span>
               <span className="mx-2 text-[#E5E7F0] dark:text-[#242C54]" aria-hidden="true">/</span>
-              <span>{article.publishedDate}</span>
+              <span>
+                {article.publishStatus === 'upcoming' && article.scheduledDate
+                  ? article.scheduledDate
+                  : article.publishedDate}
+              </span>
               <span className="mx-2 text-[#E5E7F0] dark:text-[#242C54]" aria-hidden="true">·</span>
               <span>{article.readTimeMinutes} min read</span>
             </p>
@@ -668,7 +676,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   onSelectArticle,
   onNavigate,
 }) => {
-  const { articles } = useBlogPosts();
+  const { articles, upcomingPosts } = useBlogPosts();
   const {
     liveArticles,
     headlines,
@@ -717,8 +725,8 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   }, [articles, liveArticles, feedScope]);
 
   const allPool = useMemo<BlogArticle[]>(
-    () => [...articles, ...liveArticles],
-    [articles, liveArticles]
+    () => [...articles, ...upcomingPosts, ...liveArticles],
+    [articles, upcomingPosts, liveArticles]
   );
 
   // Handle direct deep-link refresh to /blog/news-dev-<id>
@@ -1485,6 +1493,80 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                       <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     </a>
                   </InteractiveCard>
+                ))}
+              </div>
+            </section>
+          )}
+          {/* Upcoming Scheduled Dispatches */}
+          {upcomingPosts.length > 0 && feedScope !== 'daily-wire' && (
+            <section
+              aria-labelledby="upcoming-blog-dispatches-heading"
+              className="border-t border-[#E5E7F0] dark:border-[#242C54] pt-12"
+            >
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
+                    Editorial Roadmap
+                  </p>
+                  <h2
+                    id="upcoming-blog-dispatches-heading"
+                    className="mt-1.5 font-display text-2xl sm:text-3xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]"
+                  >
+                    Upcoming Engineering Dispatches
+                  </h2>
+                </div>
+                <p className="font-mono text-xs text-[#6B7188] dark:text-[#8E97B8]">
+                  Preview outlines · Live alerts notify members automatically
+                </p>
+              </div>
+
+              <div className="mt-7 grid grid-cols-1 gap-5 md:grid-cols-2">
+                {upcomingPosts.map((post) => (
+                  <article
+                    key={post.id}
+                    className="group flex flex-col justify-between rounded-2xl border border-[#E5E7F0] dark:border-[#242C54] bg-[#F6F7FB] dark:bg-[#101530] p-6 transition-colors hover:border-[#1A1464]/35 dark:hover:border-[#4F59B8]"
+                  >
+                    <div>
+                      <p className="font-mono text-xs font-semibold text-[#6B7188] dark:text-[#8E97B8] tabular-nums">
+                        <span className="font-bold text-[#EE1119]">Upcoming</span>
+                        <span className="mx-1.5" aria-hidden="true">·</span>
+                        <span>{post.category}</span>
+                        {post.scheduledDate && (
+                          <>
+                            <span className="mx-1.5" aria-hidden="true">·</span>
+                            <span>{post.scheduledDate}</span>
+                          </>
+                        )}
+                      </p>
+                      <h3 className="mt-2 font-display text-lg font-extrabold text-[#1A1464] dark:text-[#F4F6FC] group-hover:text-[#EE1119] transition-colors">
+                        <a
+                          href={`/blog/${post.slug}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            onSelectArticle(post.slug);
+                          }}
+                        >
+                          {post.title}
+                        </a>
+                      </h3>
+                      <p className="mt-2 text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
+                        {post.excerpt}
+                      </p>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between border-t border-[#E5E7F0] dark:border-[#242C54] pt-4 text-xs">
+                      <span className="font-mono text-[#6B7188] dark:text-[#8E97B8]">
+                        {post.stackTags.slice(0, 3).join(' · ')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onSelectArticle(post.slug)}
+                        className="inline-flex items-center gap-1.5 font-bold text-[#1A1464] dark:text-[#F4F6FC] group-hover:text-[#EE1119] transition-colors whitespace-nowrap"
+                      >
+                        <span>Read Preview</span>
+                        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </article>
                 ))}
               </div>
             </section>

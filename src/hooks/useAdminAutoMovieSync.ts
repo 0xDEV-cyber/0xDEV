@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import {
@@ -8,6 +8,7 @@ import {
   getAutoSyncSettings,
   syncDiscoveredMoviesToFirestore,
 } from '../utils/externalMovieFeed';
+import { isRealMovieTitle } from '../utils/internetArchiveApi';
 import { EXTERNAL_SOURCES_UPDATED_EVENT, useMovies } from './useMovies';
 
 export const AUTO_SYNC_RESULT_EVENT = '0xdev:auto-sync-completed';
@@ -36,6 +37,18 @@ export function useAdminAutoMovieSync() {
 
       syncingRef.current = true;
       try {
+        // Purge any legacy auto-synced EXT-* items that lack a real movie title
+        const staleInvalidDocs = firestoreMoviesRef.current.filter(
+          (m) => m.movieId.startsWith('EXT-') && !isRealMovieTitle(m.title, m.movieId)
+        );
+        if (staleInvalidDocs.length > 0) {
+          const cleanupBatch = writeBatch(db);
+          staleInvalidDocs.slice(0, 100).forEach((bad) => {
+            cleanupBatch.delete(doc(db, 'movies', bad.movieId));
+          });
+          await cleanupBatch.commit();
+        }
+
         const discovery = await discoverLatestExternalMovies({
           forceRefresh,
           existingMovies: firestoreMoviesRef.current,
