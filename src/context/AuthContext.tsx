@@ -1,7 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
+  EmailAuthProvider,
   onAuthStateChanged,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -15,12 +19,14 @@ import {
   googleProvider,
   isValidProfilePhotoUrl,
   PreferredContactChannel,
+  purgeUserFirestoreData,
   subscribeUserPrivateProfile,
   subscribeUserPublicProfile,
   syncVerifiedUserProfile,
   UserProfileDetails,
   UserProfileExtra,
 } from '../firebase';
+import { clearPendingReferralCode } from '../utils/referralUtils';
 
 interface AuthContextValue {
   user: User | null;
@@ -28,9 +34,11 @@ interface AuthContextValue {
   profileDetails: UserProfileDetails;
   loading: boolean;
   authError: string | null;
+  accountDeletedNotice: string | null;
   emailProviderDisabled: boolean;
   verificationSent: boolean;
   clearAuthError: () => void;
+  clearAccountDeletedNotice: () => void;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   registerWithEmail: (params: {
@@ -55,6 +63,7 @@ interface AuthContextValue {
     marketingOptIn: boolean;
   }) => Promise<void>;
   signOutUser: () => Promise<void>;
+  deleteAccountPermanently: (currentPassword?: string) => Promise<void>;
 }
 
 const DEFAULT_PROFILE_DETAILS: UserProfileDetails = {
@@ -127,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [accountDeletedNotice, setAccountDeletedNotice] = useState<string | null>(null);
   const [emailProviderDisabled, setEmailProviderDisabled] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const [firestorePhotoUrl, setFirestorePhotoUrl] = useState<string | undefined>(undefined);
@@ -135,6 +145,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearAuthError = useCallback(() => {
     setAuthError(null);
     setEmailProviderDisabled(false);
+  }, []);
+
+  const clearAccountDeletedNotice = useCallback(() => {
+    setAccountDeletedNotice(null);
   }, []);
 
   const [, setRefreshTick] = useState(0);
@@ -217,6 +231,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = useCallback(async () => {
     clearAuthError();
+    setAccountDeletedNotice(null);
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
@@ -230,6 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithEmail = useCallback(
     async (email: string, password: string) => {
       clearAuthError();
+      setAccountDeletedNotice(null);
       try {
         await signInWithEmailAndPassword(auth, email.trim(), password);
       } catch (error) {
@@ -251,6 +267,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       phone: string;
     }) => {
       clearAuthError();
+      setAccountDeletedNotice(null);
       try {
         const cred = await createUserWithEmailAndPassword(
           auth,
@@ -464,6 +481,100 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await signOut(auth);
   }, [clearAuthError]);
 
+  const deleteAccountPermanently = useCallback(
+    async (currentPassword?: string) => {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error('No authenticated user found.');
+      }
+
+      const hasPasswordProvider = currentUser.providerData.some(
+        (p) => p.providerId === 'password'
+      );
+      const hasGoogleProvider = currentUser.providerData.some(
+        (p) => p.providerId === 'google.com'
+      );
+
+      // Re-authenticate BEFORE deleting any Firestore records so failed checks
+      // never leave the user signed in with wiped data.
+      try {
+        if (hasPasswordProvider) {
+          if (!currentUser.email) {
+            throw new Error('Account email is missing for re-authentication.');
+          }
+          if (!currentPassword) {
+            throw new Error('Please enter your current password to confirm account deletion.');
+          }
+          const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+          await reauthenticateWithCredential(currentUser, credential);
+        } else if (hasGoogleProvider) {
+          await reauthenticateWithPopup(currentUser, googleProvider);
+        }
+      } catch (error) {
+        const code =
+          typeof error === 'object' && error !== null && 'code' in error
+            ? String((error as { code: string }).code)
+            : '';
+        switch (code) {
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            throw new Error('Incorrect current password. Please check it and try again.');
+          case 'auth/user-mismatch':
+            throw new Error('The selected Google account does not match your signed-in account.');
+          case 'auth/popup-closed-by-user':
+            throw new Error('Google verification popup was closed before completing.');
+          case 'auth/popup-blocked':
+            throw new Error('Verification popup was blocked by your browser. Please allow popups and try again.');
+          case 'auth/too-many-requests':
+            throw new Error('Too many verification attempts. Please wait a moment and try again.');
+          default:
+            if (error instanceof Error && !code) {
+              throw error;
+            }
+            throw new Error('Unable to verify your identity before deleting your account.');
+        }
+      }
+
+      const uid = currentUser.uid;
+      try {
+        window.localStorage.removeItem(PENDING_PROFILE_KEY);
+        window.localStorage.removeItem(`0xdev_watchlist_v1_${uid}`);
+        window.localStorage.removeItem(`0xdev_progress_v1_${uid}`);
+        window.localStorage.removeItem(`0xdev_engagement_v1_${uid}`);
+      } catch {
+        // Ignore storage errors
+      }
+      clearPendingReferralCode();
+
+      await purgeUserFirestoreData(uid);
+
+      try {
+        await deleteUser(currentUser);
+      } catch (error) {
+        const code =
+          typeof error === 'object' && error !== null && 'code' in error
+            ? String((error as { code: string }).code)
+            : '';
+        if (code === 'auth/requires-recent-login') {
+          throw new Error(
+            'For security, please sign out and sign back in, then confirm account deletion again.'
+          );
+        }
+        throw new Error('Unable to complete permanent account deletion. Please try again.');
+      }
+
+      clearAuthError();
+      setVerificationSent(false);
+      setFirestorePhotoUrl(undefined);
+      setProfileDetails(DEFAULT_PROFILE_DETAILS);
+      setAccountDeletedNotice(
+        'Your 0xDEV account and personal profile data have been permanently deleted.'
+      );
+      setUser(null);
+    },
+    [clearAuthError]
+  );
+
   const profilePhotoUrl =
     firestorePhotoUrl === ''
       ? null
@@ -477,9 +588,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profileDetails,
         loading,
         authError,
+        accountDeletedNotice,
         emailProviderDisabled,
         verificationSent,
         clearAuthError,
+        clearAccountDeletedNotice,
         signInWithGoogle,
         signInWithEmail,
         registerWithEmail,
@@ -490,6 +603,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateUserProfilePhoto,
         updateUserProfileDetails,
         signOutUser,
+        deleteAccountPermanently,
       }}
     >
       {children}

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
+  AlertTriangle,
   Bell,
   Calendar,
   Camera,
@@ -26,6 +27,7 @@ import { AdminBlogManager } from './AdminBlogManager';
 import { AdminMoviesManager } from './AdminMoviesManager';
 import { AdminPortfolioManager } from './AdminPortfolioManager';
 import { DailyRewardsPanel } from './DailyRewardsPanel';
+import { DeleteAccountModal } from './DeleteAccountModal';
 import { EditProfileModal } from './EditProfileModal';
 import { EASE_OUT_EXPO, Reveal, SPRING_SNAPPY } from './MotionPrimitives';
 import { NotificationCenter } from './NotificationCenter';
@@ -185,6 +187,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     updateUserProfilePhoto,
     updateUserProfileDetails,
     signOutUser,
+    deleteAccountPermanently,
   } = useAuth();
 
   const [displayName, setDisplayName] = useState(user?.displayName || '');
@@ -193,6 +196,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [savedNotice, setSavedNotice] = useState(false);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [fullProfileNotice, setFullProfileNotice] = useState<string | null>(null);
 
   const [savingPhoto, setSavingPhoto] = useState(false);
@@ -238,9 +242,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   if (!user) return null;
 
   const createdDate = formatCreationDate(user.metadata?.creationTime);
-  const providerLabel = user.providerData?.some((p) => p.providerId === 'google.com')
-    ? 'Google Account'
-    : 'Email & Password';
+  const hasGoogleProvider = Boolean(
+    user.providerData?.some((p) => p.providerId === 'google.com')
+  );
+  const hasPasswordProvider = Boolean(
+    user.providerData?.some((p) => p.providerId === 'password')
+  );
+  const providerLabel = hasGoogleProvider ? 'Google Account' : 'Email & Password';
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -775,7 +783,48 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             <AdminBlogManager />
             <AdminMoviesManager />
             <NotificationCenter />
+
+            {/* Danger Zone: Permanent Account Deletion */}
+            <Reveal
+              delay={0.08}
+              className="mt-10 rounded-2xl border border-[#EE1119]/30 bg-[#FFF5F5]/75 dark:bg-[#1D1224]/70 p-6 sm:p-8"
+            >
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1.5 max-w-2xl">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#EE1119]">
+                    <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                    <span>Danger Zone</span>
+                  </div>
+                  <h2 className="font-display text-xl font-extrabold text-[#1A1464] dark:text-[#F4F6FC]">
+                    Delete Account Permanently
+                  </h2>
+                  <p className="text-xs sm:text-sm leading-relaxed text-[#4A4F63] dark:text-[#C2C9E0]">
+                    Permanently erase your 0xDEV profile, saved watchlist, DevCredits, streaks,
+                    referral code, bookings, and login credentials. This action is immediate and
+                    cannot be undone.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setDeleteModalOpen(true)}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[#EE1119] bg-white dark:bg-[#141A38] px-5 py-3 text-xs sm:text-sm font-bold text-[#EE1119] transition-colors hover:bg-[#EE1119] hover:text-white whitespace-nowrap"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  <span>Delete Account</span>
+                </button>
+              </div>
+            </Reveal>
           </div>
+
+          <DeleteAccountModal
+            isOpen={deleteModalOpen}
+            onClose={() => setDeleteModalOpen(false)}
+            userEmail={user.email || ''}
+            hasPasswordProvider={hasPasswordProvider}
+            hasGoogleProvider={hasGoogleProvider}
+            onConfirmDelete={deleteAccountPermanently}
+          />
         </div>
       </section>
     </>

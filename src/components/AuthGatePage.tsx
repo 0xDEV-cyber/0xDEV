@@ -91,8 +91,10 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
   const { isDark } = useTheme();
   const {
     authError,
+    accountDeletedNotice,
     emailProviderDisabled,
     clearAuthError,
+    clearAccountDeletedNotice,
     signInWithGoogle,
     signInWithEmail,
     registerWithEmail,
@@ -635,6 +637,36 @@ export const AuthGatePage: React.FC<AuthGatePageProps> = ({
               </motion.div>
             </AnimatePresence>
           </div>
+
+          {/* Account Deleted Confirmation Banner */}
+          <AnimatePresence>
+            {accountDeletedNotice && !authError && (
+              <motion.div
+                key="account-deleted-notice"
+                role="status"
+                aria-live="polite"
+                initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                transition={SPRING_GENTLE}
+                className="relative z-10 mt-4 rounded-xl border border-[#10B981]/35 bg-[#ECFDF5] dark:bg-[#0D2A24] p-3.5 text-xs text-[#065F46] dark:text-[#A7F3D0]"
+              >
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-start gap-2.5">
+                    <Check className="mt-0.5 h-4 w-4 text-[#10B981] shrink-0" aria-hidden="true" />
+                    <p className="font-semibold">{accountDeletedNotice}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearAccountDeletedNotice}
+                    className="text-xs font-bold opacity-80 hover:opacity-100 shrink-0"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Auth Error Alert */}
           <AnimatePresence>

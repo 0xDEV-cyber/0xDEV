@@ -1,14 +1,20 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, User } from 'firebase/auth';
 import {
+  collection,
   doc,
+  DocumentReference,
   getDoc,
   getDocFromServer,
+  getDocs,
   getFirestore,
   onSnapshot,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
+  writeBatch,
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
@@ -333,8 +339,91 @@ export function subscribeUserPrivateProfile(
           typeof data.marketingOptIn === 'boolean' ? data.marketingOptIn : undefined,
       });
     },
-    (error) => {
-      handleFirestoreError(error, OperationType.GET, path);
+      (error) => {
+        handleFirestoreError(error, OperationType.GET, path);
+      }
+    );
+  }
+
+/**
+ * Deletes all owner-scoped Firestore records for a user before deleting their
+ * Firebase Auth account. Must run while the user is still authenticated.
+ */
+export async function purgeUserFirestoreData(uid: string): Promise<void> {
+  if (!uid) return;
+
+  const refsToDelete: DocumentReference<unknown>[] = [];
+
+  // Query owner-scoped collections first so only existing owned docs are queued
+  const ownerQueries: Array<{
+    path: string;
+    q: ReturnType<typeof query>;
+  }> = [
+    {
+      path: `users/${uid}/watchlist`,
+      q: query(collection(db, 'users', uid, 'watchlist'), where('userId', '==', uid)),
+    },
+    {
+      path: `users/${uid}/watchProgress`,
+      q: query(collection(db, 'users', uid, 'watchProgress'), where('userId', '==', uid)),
+    },
+    {
+      path: 'referralCodes',
+      q: query(collection(db, 'referralCodes'), where('ownerUid', '==', uid)),
+    },
+    {
+      path: 'notifications',
+      q: query(collection(db, 'notifications'), where('recipientId', '==', uid)),
+    },
+    {
+      path: 'bookings',
+      q: query(collection(db, 'bookings'), where('authorId', '==', uid)),
+    },
+    {
+      path: 'movieRequestVotes',
+      q: query(collection(db, 'movieRequestVotes'), where('userId', '==', uid)),
+    },
+    {
+      path: 'movieRequests',
+      q: query(
+        collection(db, 'movieRequests'),
+        where('authorId', '==', uid),
+        where('status', '==', 'open')
+      ),
+    },
+  ];
+
+  for (const entry of ownerQueries) {
+    try {
+      const snap = await getDocs(entry.q);
+      snap.forEach((docSnap) => {
+        refsToDelete.push(docSnap.ref);
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.LIST, entry.path);
     }
+  }
+
+  // Deterministic owner-scoped single documents (idempotent batch.delete)
+  refsToDelete.push(
+    doc(db, 'movieSubscribers', uid),
+    doc(db, 'users', uid, 'preferences', 'engagement'),
+    doc(db, 'users', uid, 'preferences', 'rewards'),
+    doc(db, 'users', uid, 'preferences', 'notificationState'),
+    doc(db, 'users', uid, 'private', 'info'),
+    doc(db, 'users', uid)
   );
+
+  // Commit in chunks of <= 400 to stay well under Firestore's 500-write batch limit
+  const CHUNK_SIZE = 400;
+  for (let i = 0; i < refsToDelete.length; i += CHUNK_SIZE) {
+    const chunk = refsToDelete.slice(i, i + CHUNK_SIZE);
+    const batch = writeBatch(db);
+    chunk.forEach((ref) => batch.delete(ref));
+    try {
+      await batch.commit();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `users/${uid}`);
+    }
+  }
 }
